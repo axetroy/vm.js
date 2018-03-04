@@ -459,6 +459,12 @@ const evaluate_map = {
       "^=": v => ($var.$set($var.$get() ^ v), $var.$get()),
       "&=": v => ($var.$set($var.$get() & v), $var.$get())
     }[node.operator](evaluate(node.right, scope));
+  },
+  LogicalExpression(node: types.LogicalExpression, scope: Scope) {
+    return {
+      "||": () => evaluate(node.left, scope) || evaluate(node.right, scope),
+      "&&": () => evaluate(node.left, scope) && evaluate(node.right, scope)
+    }[node.operator]();
   }
 };
 
