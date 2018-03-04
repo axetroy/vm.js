@@ -465,6 +465,11 @@ const evaluate_map = {
       "||": () => evaluate(node.left, scope) || evaluate(node.right, scope),
       "&&": () => evaluate(node.left, scope) && evaluate(node.right, scope)
     }[node.operator]();
+  },
+  ConditionalExpression: (node: types.ConditionalExpression, scope: Scope) => {
+    return evaluate(node.test, scope)
+      ? evaluate(node.consequent, scope)
+      : evaluate(node.alternate, scope);
   }
 };
 
