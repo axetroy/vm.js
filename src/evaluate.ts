@@ -1,6 +1,5 @@
-import {ErrNotDefined} from "./error";
 import {types} from "babel-core";
-
+import {ErrNotDefined, ErrNotSupport} from "./error";
 import {EvaluateFunc} from "./type";
 import {Scope} from "./scope";
 import {Var} from "./scope";
@@ -13,13 +12,13 @@ const evaluate_map = {
   File(node: types.File, scope: Scope) {
     evaluate(node.program, scope);
   },
-  Program: (program: types.Program, scope: Scope) => {
+  Program(program: types.Program, scope: Scope) {
     for (const node of program.body) {
       evaluate(node, scope);
     }
   },
 
-  Identifier: (node: types.Identifier, scope: Scope) => {
+  Identifier(node: types.Identifier, scope: Scope) {
     if (node.name === "undefined") {
       return undefined;
     } // 奇怪的问题
@@ -30,6 +29,9 @@ const evaluate_map = {
       // 返回
       throw new ErrNotDefined(node.name);
     }
+  },
+  RegExpLiteral(node: types.RegExpLiteral, scope: Scope) {
+    return new RegExp(node.pattern, node.flags);
   },
   StringLiteral(node: types.StringLiteral, scope: Scope) {
     return node.value;
@@ -60,6 +62,9 @@ const evaluate_map = {
         return result;
       }
     }
+  },
+  WithStatement(node: types.WithStatement, scope: Scope) {
+    throw new ErrNotSupport("with");
   },
   DebuggerStatement(node: types.DebuggerStatement, scope: Scope) {
     debugger;
