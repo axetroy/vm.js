@@ -504,6 +504,16 @@ const evaluate_map = {
     Object.defineProperty(func, "length", {value: node.params.length});
 
     return func;
+  },
+  TemplateLiteral(node: types.TemplateLiteral, scope: Scope) {
+    return (<types.Node[]>[])
+      .concat(node.expressions, node.quasis)
+      .sort((a, b) => a.start - b.start)
+      .map(element => evaluate(element, scope))
+      .join("");
+  },
+  TemplateElement(node: types.TemplateElement, scope: Scope) {
+    return node.value.raw;
   }
 };
 
