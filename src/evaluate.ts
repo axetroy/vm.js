@@ -1,3 +1,4 @@
+import {ErrNotDefined} from "./error";
 import {types} from "babel-core";
 
 import {EvaluateFunc} from "./type";
@@ -27,7 +28,7 @@ const evaluate_map = {
       return $var.$get();
     } else {
       // 返回
-      throw new ReferenceError(`${node.name} is not defined`);
+      throw new ErrNotDefined(node.name);
     }
   },
   StringLiteral(node: types.StringLiteral, scope: Scope) {
@@ -113,6 +114,20 @@ const evaluate_map = {
         return result;
       }
     }
+  },
+  DoWhileStatement(node: types.DoWhileStatement, scope: Scope) {
+    do {
+      const new_scope = new Scope("loop", scope);
+      new_scope.invasived = true;
+      const result = evaluate(node.body, new_scope); // 先把do的执行一遍
+      if (result === BREAK_SINGAL) {
+        break;
+      } else if (result === CONTINUE_SINGAL) {
+        continue;
+      } else if (result === RETURN_SINGAL) {
+        return result;
+      }
+    } while (evaluate(node.test, scope));
   },
   WhileStatement(node: types.WhileStatement, scope: Scope) {
     while (evaluate(node.test, scope)) {
@@ -308,7 +323,7 @@ const evaluate_map = {
     if (types.isIdentifier(node.left)) {
       const {name} = node.left;
       const $var_or_not = scope.$find(name);
-      if (!$var_or_not) throw new ReferenceError(`${name} is not defined`);
+      if (!$var_or_not) throw new ErrNotDefined(name);
       $var = $var_or_not;
     } else if (types.isMemberExpression(node.left)) {
       const left = node.left;
