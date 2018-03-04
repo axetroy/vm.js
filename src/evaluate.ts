@@ -144,6 +144,30 @@ const evaluate_map = {
       }
     }
   },
+  ThrowStatement(node: types.ThrowStatement, scope: Scope) {
+    throw evaluate(node.argument, scope);
+  },
+  CatchClause(node: types.CatchClause, scope, Scope) {
+    return evaluate(node.body, scope);
+  },
+  TryStatement(node: types.TryStatement, scope: Scope) {
+    try {
+      const newScope = new Scope("block", scope);
+      return evaluate(node.block, newScope);
+    } catch (err) {
+      if (node.handler) {
+        const param = <types.Identifier>node.handler.param;
+        const new_scope = new Scope("block", scope);
+        new_scope.invasived = true; // 标记为侵入式Scope，不用再多构造啦
+        new_scope.$const(param.name, err);
+        return evaluate(node.handler, new_scope);
+      } else {
+        throw err;
+      }
+    } finally {
+      if (node.finalizer) return evaluate(node.finalizer, scope);
+    }
+  },
   SwitchStatement(node: types.SwitchStatement, scope: Scope) {
     const discriminant = evaluate(node.discriminant, scope); // switch的条件
     const new_scope = new Scope("switch", scope);
