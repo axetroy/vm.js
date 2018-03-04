@@ -476,6 +476,34 @@ const evaluate_map = {
     Object.defineProperty(func, "length", {value: node.arguments.length});
     const args = node.arguments.map(arg => evaluate(arg, scope));
     return new (func.bind.apply(func, [null].concat(args)))();
+  },
+
+  // ES2015
+  ArrowFunctionExpression(node: types.ArrowFunctionExpression, scope: Scope) {
+    const func = function(...args) {
+      const new_scope = new Scope("function", scope);
+      new_scope.invasived = true;
+      for (let i = 0; i < node.params.length; i++) {
+        const {name} = <types.Identifier>node.params[i];
+        new_scope.$const(name, args[i]);
+      }
+
+      const lastThis = scope.$find("this");
+
+      new_scope.$const("this", lastThis ? lastThis.$get() : null);
+      new_scope.$const("arguments", arguments);
+      const result = evaluate(node.body, new_scope);
+
+      if (result === RETURN_SINGAL) {
+        return result.result;
+      } else {
+        return result;
+      }
+    };
+
+    Object.defineProperty(func, "length", {value: node.params.length});
+
+    return func;
   }
 };
 
