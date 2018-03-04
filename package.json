@@ -1,0 +1,20 @@
+{
+  "name": "vm.js",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "rm -rf ./build && tsc -p ./ && ava ./build/test",
+    "build": "rm -rf ./build && tsc -p ./ -d"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "babel-core": "^6.26.0"
+  },
+  "devDependencies": {
+    "@types/babel-core": "^6.25.3",
+    "@types/node": "^9.4.6",
+    "typescript": "^2.7.2"
+  }
+}
