@@ -134,7 +134,9 @@ const evaluate_map = {
     for (const value in evaluate(node.right, scope)) {
       const new_scope = new Scope("loop", scope);
       new_scope.invasived = true;
-      scope.$declar(kind, name, value);
+
+      new_scope.$declar(kind, name, value);
+
       const result = evaluate(node.body, new_scope);
       if (result === BREAK_SINGAL) {
         break;
