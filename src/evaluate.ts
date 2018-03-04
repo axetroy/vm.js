@@ -126,6 +126,25 @@ const evaluate_map = {
       }
     }
   },
+  ForInStatement: (node: types.ForInStatement, scope: Scope) => {
+    const kind = (<types.VariableDeclaration>node.left).kind;
+    const decl = (<types.VariableDeclaration>node.left).declarations[0];
+    const name = (<types.Identifier>decl.id).name;
+
+    for (const value in evaluate(node.right, scope)) {
+      const new_scope = new Scope("loop", scope);
+      new_scope.invasived = true;
+      scope.$declar(kind, name, value);
+      const result = evaluate(node.body, new_scope);
+      if (result === BREAK_SINGAL) {
+        break;
+      } else if (result === CONTINUE_SINGAL) {
+        continue;
+      } else if (result === RETURN_SINGAL) {
+        return result;
+      }
+    }
+  },
   DoWhileStatement(node: types.DoWhileStatement, scope: Scope) {
     do {
       const new_scope = new Scope("loop", scope);
