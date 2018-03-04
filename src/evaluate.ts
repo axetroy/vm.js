@@ -47,6 +47,7 @@ const evaluate_map = {
       return evaluate(node.alternate, scope);
     }
   },
+  EmptyStatement(node: types.EmptyStatement, scope: Scope) {},
   BlockStatement(block: types.BlockStatement, scope: Scope) {
     let new_scope = scope.invasived ? scope : new Scope("block", scope);
     for (const node of block.body) {
@@ -60,8 +61,18 @@ const evaluate_map = {
       }
     }
   },
-  BreakStatement: (node: types.BreakStatement, scope: Scope) => {
+  DebuggerStatement(node: types.DebuggerStatement, scope: Scope) {
+    debugger;
+  },
+  LabeledStatement(node: types.LabeledStatement, scope: Scope) {
+    `${node.type} 未实现`;
+  },
+
+  BreakStatement(node: types.BreakStatement, scope: Scope) {
     return BREAK_SINGAL;
+  },
+  ContinueStatement(node: types.ContinueStatement, scope: Scope) {
+    return CONTINUE_SINGAL;
   },
   ReturnStatement(node: types.ReturnStatement, scope: Scope) {
     RETURN_SINGAL.result = node.argument
