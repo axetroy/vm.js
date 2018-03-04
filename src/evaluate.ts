@@ -466,10 +466,16 @@ const evaluate_map = {
       "&&": () => evaluate(node.left, scope) && evaluate(node.right, scope)
     }[node.operator]();
   },
-  ConditionalExpression: (node: types.ConditionalExpression, scope: Scope) => {
+  ConditionalExpression(node: types.ConditionalExpression, scope: Scope) {
     return evaluate(node.test, scope)
       ? evaluate(node.consequent, scope)
       : evaluate(node.alternate, scope);
+  },
+  NewExpression(node: types.NewExpression, scope: Scope) {
+    const func = evaluate(node.callee, scope);
+    Object.defineProperty(func, "length", {value: node.arguments.length});
+    const args = node.arguments.map(arg => evaluate(arg, scope));
+    return new (func.bind.apply(func, [null].concat(args)))();
   }
 };
 
