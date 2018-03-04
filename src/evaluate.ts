@@ -362,6 +362,39 @@ const evaluate_map = {
       instanceof: (a, b) => a instanceof b
     }[node.operator](evaluate(node.left, scope), evaluate(node.right, scope));
   },
+  UnaryExpression(node: types.UnaryExpression, scope: Scope) {
+    return {
+      "-": () => -evaluate(node.argument, scope),
+      "+": () => +evaluate(node.argument, scope),
+      "!": () => !evaluate(node.argument, scope),
+      "~": () => ~evaluate(node.argument, scope),
+      void: () => void evaluate(node.argument, scope),
+      typeof: () => {
+        if (types.isIdentifier(node.argument)) {
+          const $var = scope.$find(node.argument.name);
+          return $var ? typeof $var.$get() : "undefined";
+        } else {
+          return typeof evaluate(node.argument, scope);
+        }
+      },
+      delete: () => {
+        if (types.isMemberExpression(node.argument)) {
+          const {object, property, computed} = node.argument;
+          if (computed) {
+            return delete evaluate(object, scope)[evaluate(property, scope)];
+          } else {
+            return delete evaluate(object, scope)[
+              (<types.Identifier>property).name
+            ];
+          }
+        } else if (types.isIdentifier(node.argument)) {
+          const $this = scope.$find("this");
+          if ($this) return $this.$get()[node.argument.name];
+        }
+      }
+    }[node.operator]();
+  },
+
   CallExpression(node: types.CallExpression, scope: Scope) {
     const func = evaluate(node.callee, scope);
     const args = node.arguments.map(arg => evaluate(arg, scope));
