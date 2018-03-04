@@ -274,9 +274,12 @@ const evaluate_map = {
       "++": v => ($var.$set(v + 1), prefix ? ++v : v++)
     }[node.operator](evaluate(node.argument, scope));
   },
-  ThisExpression: (node: types.ThisExpression, scope: Scope) => {
+  ThisExpression(node: types.ThisExpression, scope: Scope) {
     const this_val = scope.$find("this");
     return this_val ? this_val.$get() : null;
+  },
+  ArrayExpression(node: types.ArrayExpression, scope: Scope) {
+    return node.elements.map(item => evaluate(item, scope));
   },
   ObjectExpression(node: types.ObjectExpression, scope: Scope) {
     const object = {};

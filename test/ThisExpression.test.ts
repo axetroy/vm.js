@@ -22,5 +22,5 @@ module.exports = t;
 
   func.call(ctx);
 
-  t.true(ctx.name, "hello");
+  t.deepEqual(ctx.name, "hello");
 });
