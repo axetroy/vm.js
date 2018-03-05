@@ -24,7 +24,9 @@ class Vm {
     scope.$const("module", $module);
     scope.$const("exports", $exports);
 
-    const {ast} = transform(code);
+    const {ast} = transform(code, {
+      plugins: ["transform-object-rest-spread"]
+    });
 
     ast && evaluate(ast, scope);
 

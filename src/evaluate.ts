@@ -7,7 +7,8 @@ import {
   _classCallCheck,
   _createClass,
   _possibleConstructorReturn,
-  _inherits
+  _inherits,
+  _extends
 } from "./runtime";
 
 const BREAK_SINGAL: {} = {};
@@ -647,6 +648,9 @@ const evaluate_map = {
   },
   Super(node: types.Super, scope: Scope) {
     return function() {};
+  },
+  SpreadElement(node: types.SpreadElement, scope: Scope) {
+    return evaluate(node.argument, scope);
   }
 };
 

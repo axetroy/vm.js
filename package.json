@@ -10,11 +10,13 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "babel-core": "^6.26.0"
+    "babel-core": "^6.26.0",
+    "babel-plugin-transform-object-rest-spread": "^6.26.0"
   },
   "devDependencies": {
     "@types/babel-core": "^6.25.3",
     "@types/node": "^9.4.6",
+    "ava": "^0.25.0",
     "typescript": "^2.7.2"
   }
 }
