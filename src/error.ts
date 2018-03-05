@@ -9,3 +9,9 @@ export class ErrNotSupport extends SyntaxError {
     super(`The Syntax '${syntax}' is not support`);
   }
 }
+
+export class ErrDuplicateDeclard extends SyntaxError {
+  constructor(varName: string) {
+    super(`Identifier '${varName}' has already been declared`);
+  }
+}

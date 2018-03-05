@@ -11,7 +11,9 @@
   "license": "ISC",
   "dependencies": {
     "babel-core": "^6.26.0",
-    "babel-plugin-transform-object-rest-spread": "^6.26.0"
+    "babel-plugin-transform-object-rest-spread": "^6.26.0",
+    "babel-preset-env": "^1.6.1",
+    "regenerator": "^0.12.3"
   },
   "devDependencies": {
     "@types/babel-core": "^6.25.3",

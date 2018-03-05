@@ -110,12 +110,8 @@ export class Scope {
     }
 
     const $var = scope.content[name];
-    if (!$var) {
-      this.content[name] = new ScopeVar("var", value);
-      return true;
-    } else {
-      return false;
-    }
+    this.content[name] = new ScopeVar("var", value);
+    return true;
   }
 
   $declar(kind: Kind, raw_name: string, value: any): boolean {

@@ -3,7 +3,7 @@ import * as fs from "fs";
 
 import vm from "../src/vm";
 
-test("FunctionExpression", t => {
+test("FunctionExpression-1", t => {
   const sandbox: any = vm.createContext({});
 
   const testFunc = vm.runInContext(
@@ -22,7 +22,7 @@ module.exports = test;
   t.deepEqual(testFunc("world"), "hello world");
 });
 
-test("FunctionDeclaration", t => {
+test("FunctionDeclaration-2", t => {
   const sandbox: any = vm.createContext({});
 
   const testFunc = vm.runInContext(

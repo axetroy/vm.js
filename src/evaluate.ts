@@ -1,5 +1,5 @@
 import {types} from "babel-core";
-import {ErrNotDefined, ErrNotSupport} from "./error";
+import {ErrNotDefined, ErrNotSupport, ErrDuplicateDeclard} from "./error";
 import {EvaluateFunc} from "./type";
 import {Scope} from "./scope";
 import {Var} from "./scope";
@@ -21,8 +21,23 @@ const evaluate_map = {
     evaluate(node.program, scope);
   },
   Program(program: types.Program, scope: Scope) {
+    // hoisting
     for (const node of program.body) {
-      evaluate(node, scope);
+      if (types.isFunctionDeclaration(node)) {
+        evaluate(node, scope);
+      } else if (types.isVariableDeclaration(node)) {
+        for (const declaration of node.declarations) {
+          if (node.kind === "var") {
+            scope.$var((<types.Identifier>declaration.id).name, undefined);
+          }
+        }
+      }
+    }
+
+    for (const node of program.body) {
+      if (!types.isFunctionDeclaration(node)) {
+        evaluate(node, scope);
+      }
     }
   },
 
@@ -59,6 +74,19 @@ const evaluate_map = {
   },
   EmptyStatement(node: types.EmptyStatement, scope: Scope) {},
   BlockStatement(block: types.BlockStatement, scope: Scope, {SuperClass}) {
+    // hoisting
+    for (const node of block.body) {
+      if (types.isFunctionDeclaration(node)) {
+        evaluate(node, scope);
+      } else if (types.isVariableDeclaration(node)) {
+        for (const declaration of node.declarations) {
+          if (node.kind === "var") {
+            scope.$var((<types.Identifier>declaration.id).name, undefined);
+          }
+        }
+      }
+    }
+
     let new_scope = scope.invasived ? scope : new Scope("block", scope);
     for (const node of block.body) {
       const result = evaluate(node, new_scope, {SuperClass});
@@ -112,11 +140,14 @@ const evaluate_map = {
     }
   },
   FunctionDeclaration(node: types.FunctionDeclaration, scope: Scope) {
-    const func = evaluate_map.FunctionExpression(<any>node, scope);
+    if (node.async === true) {
+    } else {
+      const func = evaluate_map.FunctionExpression(<any>node, scope);
 
-    const {name: func_name} = node.id;
-    if (!scope.$const(func_name, func)) {
-      throw `[Error] ${func_name} 重复定义`;
+      const {name: func_name} = node.id;
+
+      // function declartion can be duplicate
+      scope.$var(func_name, func);
     }
   },
   ExpressionStatement(
@@ -422,6 +453,11 @@ const evaluate_map = {
   CallExpression(node: types.CallExpression, scope: Scope, {SuperClass}) {
     const func = evaluate(node.callee, scope, {SuperClass});
     const args = node.arguments.map(arg => evaluate(arg, scope));
+
+    if (typeof func !== "function") {
+      // throw new Error();
+      return;
+    }
 
     if (types.isMemberExpression(node.callee)) {
       const object = evaluate(node.callee.object, scope, {SuperClass});
