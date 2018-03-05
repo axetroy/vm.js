@@ -35,7 +35,7 @@ It base on [https://github.com/bramblex/jsjs](https://github.com/bramblex/jsjs)
   * [ ] es2015-shorthand-properties
   * [x] es2015-spread
   * [x] es2015-template-literals
-  * [ ] es2015-unicode-regex
+  * [ ] es2015-unicode-regex (Depends on environment)
 * [ ] es2016
   * [ ] exponentiation-operator
 * [ ] es2017
