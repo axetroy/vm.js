@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "rm -rf ./build && tsc -p ./ && ava ./build/test",
+    "test": "rm -rf ./build && tsc -p ./ && nyc ava ./build/test",
     "build": "rm -rf ./build && tsc -p ./ -d"
   },
   "author": "",
@@ -19,6 +19,8 @@
     "@types/babel-core": "^6.25.3",
     "@types/node": "^9.4.6",
     "ava": "^0.25.0",
+    "coveralls": "^3.0.0",
+    "nyc": "^11.4.1",
     "typescript": "^2.7.2"
   }
 }

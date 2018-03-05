@@ -131,8 +131,11 @@ test("Switch Hoisting", async t => {
   const func = vm.runInContext(
     `
 function get() {
-  switch(a===undefined){
-    return true
+  switch(a){
+    case undefined:
+      return true;
+    default:
+      return false;
   }
   var a = 123;
 }
