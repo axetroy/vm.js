@@ -3,7 +3,12 @@ import {ErrNotDefined, ErrNotSupport} from "./error";
 import {EvaluateFunc} from "./type";
 import {Scope} from "./scope";
 import {Var} from "./scope";
-import {_classCallCheck, _createClass} from "./runtime";
+import {
+  _classCallCheck,
+  _createClass,
+  _possibleConstructorReturn,
+  _inherits
+} from "./runtime";
 
 const BREAK_SINGAL: {} = {};
 const CONTINUE_SINGAL: {} = {};
@@ -51,10 +56,10 @@ const evaluate_map = {
     }
   },
   EmptyStatement(node: types.EmptyStatement, scope: Scope) {},
-  BlockStatement(block: types.BlockStatement, scope: Scope) {
+  BlockStatement(block: types.BlockStatement, scope: Scope, {SuperClass}) {
     let new_scope = scope.invasived ? scope : new Scope("block", scope);
     for (const node of block.body) {
-      const result = evaluate(node, new_scope);
+      const result = evaluate(node, new_scope, {SuperClass});
       if (
         result === BREAK_SINGAL ||
         result === CONTINUE_SINGAL ||
@@ -80,9 +85,9 @@ const evaluate_map = {
   ContinueStatement(node: types.ContinueStatement, scope: Scope) {
     return CONTINUE_SINGAL;
   },
-  ReturnStatement(node: types.ReturnStatement, scope: Scope) {
+  ReturnStatement(node: types.ReturnStatement, scope: Scope, {SuperClass}) {
     RETURN_SINGAL.result = node.argument
-      ? evaluate(node.argument, scope)
+      ? evaluate(node.argument, scope, {SuperClass})
       : undefined;
     return RETURN_SINGAL;
   },
@@ -112,8 +117,12 @@ const evaluate_map = {
       throw `[Error] ${func_name} 重复定义`;
     }
   },
-  ExpressionStatement(node: types.ExpressionStatement, scope: Scope) {
-    evaluate(node.expression, scope);
+  ExpressionStatement(
+    node: types.ExpressionStatement,
+    scope: Scope,
+    {SuperClass}
+  ) {
+    evaluate(node.expression, scope, {SuperClass});
   },
   ForStatement(node: types.ForStatement, scope: Scope) {
     for (
@@ -396,20 +405,27 @@ const evaluate_map = {
     }[node.operator]();
   },
 
-  CallExpression(node: types.CallExpression, scope: Scope) {
-    const func = evaluate(node.callee, scope);
+  CallExpression(node: types.CallExpression, scope: Scope, {SuperClass}) {
+    const func = evaluate(node.callee, scope, {SuperClass});
     const args = node.arguments.map(arg => evaluate(arg, scope));
 
     if (types.isMemberExpression(node.callee)) {
-      const object = evaluate(node.callee.object, scope);
+      const object = evaluate(node.callee.object, scope, {SuperClass});
       return func.apply(object, args);
     } else {
       const this_val = scope.$find("this");
       return func.apply(this_val ? this_val.$get() : null, args);
     }
   },
-  MemberExpression(node: types.MemberExpression, scope: Scope) {
+  MemberExpression(node: types.MemberExpression, scope: Scope, {SuperClass}) {
     const {object, property, computed} = node;
+    if (types.isSuper(node.object)) {
+      const $var = scope.$find("this");
+      if ($var) {
+        const __this = $var.$get();
+        return SuperClass.prototype[(<any>property).name].bind(__this);
+      }
+    }
     if (computed) {
       return evaluate(object, scope)[evaluate(property, scope)];
     } else {
@@ -527,16 +543,45 @@ const evaluate_map = {
       n => types.isClassProperty(n)
     );
 
-    const Class = (function() {
-      function A(...args) {
-        _classCallCheck(this, A);
+    let SuperClass;
+
+    if (node.superClass) {
+      const superClassName: string = (<any>node.superClass).name;
+      const $var = scope.$find(superClassName);
+
+      if ($var) {
+        SuperClass = $var.$get();
+      } else {
+        throw new ErrNotDefined(superClassName);
+      }
+    }
+
+    const Class = (function(SuperClass) {
+      if (SuperClass) {
+        _inherits(Class, SuperClass);
+      }
+      function Class(...args) {
+        _classCallCheck(this, Class);
 
         // TODO: need babel plugin to support class property
-        // define class property
         const newScope = new Scope("function", scope);
-        newScope.$const("this", this);
 
-        properties.forEach(p => (this[p.key.name] = p.value));
+        // babel way to call super();
+        const __this = _possibleConstructorReturn(
+          this,
+          ((<any>Class).__proto__ || Object.getPrototypeOf(Class)).apply(
+            this,
+            args
+          )
+        );
+
+        // typescript way to call super()
+        // const __this = superClass ? superClass.apply(this, args) || this : this;
+
+        newScope.$const("this", __this);
+
+        // define class property
+        properties.forEach(p => (__this[p.key.name] = p.value));
 
         if (constructor) {
           // defined the params
@@ -548,8 +593,10 @@ const evaluate_map = {
             }
           });
 
-          evaluate(constructor, newScope);
+          evaluate(constructor, newScope, {SuperClass});
         }
+
+        return __this;
       }
 
       const _methods = methods
@@ -565,7 +612,7 @@ const evaluate_map = {
               }
             });
 
-            const result = evaluate(method.body, newScope);
+            const result = evaluate(method.body, newScope, {SuperClass});
             if (result === RETURN_SINGAL) {
               return result.result ? result.result : result;
             } else {
@@ -583,24 +630,31 @@ const evaluate_map = {
         .concat([
           {
             key: "constructor",
-            value: A
+            value: Class
           }
         ]);
 
       // define clsss methods
-      _createClass(A, _methods);
+      _createClass(Class, _methods);
 
-      return A;
-    })();
+      return Class;
+    })(SuperClass);
 
     scope.$const(node.id.name, Class);
   },
-  ClassMethod(node: types.ClassMethod, scope: Scope) {
-    return evaluate(node.body, scope);
+  ClassMethod(node: types.ClassMethod, scope: Scope, {SuperClass}) {
+    return evaluate(node.body, scope, {SuperClass});
+  },
+  Super(node: types.Super, scope: Scope) {
+    return function() {};
   }
 };
 
-export default function evaluate(node: types.Node, scope: Scope, arg?: any) {
+export default function evaluate(
+  node: types.Node,
+  scope: Scope,
+  arg: any = {}
+) {
   const _evalute = <EvaluateFunc>evaluate_map[node.type];
   if (!_evalute) {
     throw new Error(`Unknown visitors of ${node.type}`);
