@@ -3,6 +3,7 @@ import {ErrNotDefined, ErrNotSupport} from "./error";
 import {EvaluateFunc} from "./type";
 import {Scope} from "./scope";
 import {Var} from "./scope";
+import {_classCallCheck, _createClass} from "./runtime";
 
 const BREAK_SINGAL: {} = {};
 const CONTINUE_SINGAL: {} = {};
@@ -514,6 +515,88 @@ const evaluate_map = {
   },
   TemplateElement(node: types.TemplateElement, scope: Scope) {
     return node.value.raw;
+  },
+  ClassDeclaration(node: types.ClassDeclaration, scope: Scope) {
+    const constructor: types.ClassMethod | void = <types.ClassMethod | void>node.body.body.find(
+      n => types.isClassMethod(n) && n.kind === "constructor"
+    );
+    const methods: types.ClassMethod[] = <types.ClassMethod[]>node.body.body.filter(
+      n => types.isClassMethod(n) && n.kind !== "constructor"
+    );
+    const properties: types.ClassProperty[] = <types.ClassProperty[]>node.body.body.filter(
+      n => types.isClassProperty(n)
+    );
+
+    const Class = (function() {
+      function A(...args) {
+        _classCallCheck(this, A);
+
+        // TODO: need babel plugin to support class property
+        // define class property
+        const newScope = new Scope("function", scope);
+        newScope.$const("this", this);
+
+        properties.forEach(p => (this[p.key.name] = p.value));
+
+        if (constructor) {
+          // defined the params
+          constructor.params.forEach((p: types.LVal, i) => {
+            if (types.isIdentifier(p)) {
+              newScope.$const(p.name, args[i]);
+            } else {
+              throw new Error("Invalid params");
+            }
+          });
+
+          evaluate(constructor, newScope);
+        }
+      }
+
+      const _methods = methods
+        .map((method: types.ClassMethod) => {
+          const newScope = new Scope("function", scope);
+          const func = function(...args) {
+            newScope.$const("this", this);
+
+            // defined the params
+            method.params.forEach((p: types.LVal, i) => {
+              if (types.isIdentifier(p)) {
+                newScope.$const(p.name, args[i]);
+              }
+            });
+
+            const result = evaluate(method.body, newScope);
+            if (result === RETURN_SINGAL) {
+              return result.result ? result.result : result;
+            } else {
+              return result;
+            }
+          };
+
+          Object.defineProperty(func, "length", {value: method.params.length});
+
+          return {
+            key: (<any>method.key).name,
+            [method.kind === "method" ? "value" : method.kind]: func
+          };
+        })
+        .concat([
+          {
+            key: "constructor",
+            value: A
+          }
+        ]);
+
+      // define clsss methods
+      _createClass(A, _methods);
+
+      return A;
+    })();
+
+    scope.$const(node.id.name, Class);
+  },
+  ClassMethod(node: types.ClassMethod, scope: Scope) {
+    return evaluate(node.body, scope);
   }
 };
 
