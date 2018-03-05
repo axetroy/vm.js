@@ -8,7 +8,8 @@ import {
   _createClass,
   _possibleConstructorReturn,
   _inherits,
-  _extends
+  _extends,
+  _toConsumableArray
 } from "./runtime";
 
 const BREAK_SINGAL: {} = {};
@@ -290,7 +291,19 @@ const evaluate_map = {
     return this_val ? this_val.$get() : null;
   },
   ArrayExpression(node: types.ArrayExpression, scope: Scope) {
-    return node.elements.map(item => evaluate(item, scope));
+    const gotSpreadElement: boolean = !!node.elements.find(v =>
+      types.isSpreadElement(v)
+    );
+    let newArray: any[] = [];
+    node.elements.forEach(item => {
+      if (types.isSpreadElement(item)) {
+        const arr = evaluate(item, scope);
+        newArray = (<any[]>[]).concat(newArray, _toConsumableArray(arr));
+      } else {
+        newArray.push(evaluate(item, scope));
+      }
+    });
+    return newArray;
   },
   ObjectExpression(node: types.ObjectExpression, scope: Scope) {
     const object = {};
