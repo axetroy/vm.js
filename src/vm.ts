@@ -9,13 +9,9 @@ class Vm {
   }
   runInContext(code: string, context: Context): any | null {
     const scope = new Scope("block");
+    scope.isTopLevel = true;
     scope.$const("this", this);
-
-    for (let name in context) {
-      if (context.hasOwnProperty(name)) {
-        scope.$const(name, context[name]);
-      }
-    }
+    scope.$setContext(context);
 
     // 定义 module
     const $exports = {};
