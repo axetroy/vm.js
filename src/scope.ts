@@ -28,13 +28,15 @@ export class Scope {
 
   public isTopLevel: boolean = false;
 
-  public context: Context = {};
+  public context: Context;
 
   constructor(
     public readonly type: ScopeType,
     private parent: Scope | null = null,
     label?: string
-  ) {}
+  ) {
+    this.context = new Context();
+  }
 
   $setContext(context: Context) {
     this.context = context;
@@ -62,6 +64,14 @@ export class Scope {
       return this.parent.$find(varName);
     } else {
       return null;
+    }
+  }
+
+  get $global(): Scope {
+    if (this.parent) {
+      return this.parent.$global;
+    } else {
+      return this;
     }
   }
 
@@ -100,6 +110,7 @@ export class Scope {
       } else {
         if (this.isTopLevel && this.context[varName]) {
           // top level context can not be cover
+          // here we do nothing
         } else {
           this.content[varName] = new ScopeVar("var", value, this);
         }

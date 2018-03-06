@@ -1,6 +1,9 @@
 export interface Sandbox$ {
   [k: string]: any;
 }
+
+import g from "./global";
+
 const defaultContext: Sandbox$ = {
   console,
 
@@ -43,9 +46,9 @@ const defaultContext: Sandbox$ = {
 };
 
 export default class Context {
+  public global: any = g;
   constructor(externalContext: Sandbox$ = {}) {
     const ctx = Object.assign(defaultContext, externalContext);
-
     for (let attr in ctx) {
       this[attr] = ctx[attr];
     }

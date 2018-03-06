@@ -163,3 +163,99 @@ module.exports = test();
   );
   t.deepEqual(g, 123);
 });
+
+test("VariableDeclaration-define global var", t => {
+  const sandbox: any = vm.createContext({
+    global: "hello"
+  });
+
+  const output = vm.runInContext(
+    `
+name = "axetroy"
+module.exports = {name: name, global}
+    `,
+    sandbox
+  );
+  t.deepEqual(output.global, "hello");
+  t.deepEqual(output.name, "axetroy");
+});
+
+test("VariableDeclaration-define var then cover value", t => {
+  const sandbox: any = vm.createContext({});
+
+  const output = vm.runInContext(
+    `
+var name = "hello"
+name = "world"  // cover the name var
+module.exports = {name: name}
+    `,
+    sandbox
+  );
+  t.deepEqual(output.name, "world");
+});
+
+test("VariableDeclaration-define let then cover", t => {
+  const sandbox: any = vm.createContext({});
+
+  const output = vm.runInContext(
+    `
+let name = "hello"
+name = "world"  // cover the name, it should throw an error
+module.exports = {name: name}
+      `,
+    sandbox
+  );
+  t.deepEqual(output.name, "world");
+});
+
+test("VariableDeclaration-define const then cover", t => {
+  const sandbox: any = vm.createContext({});
+
+  t.throws(function() {
+    vm.runInContext(
+      `
+const name = "hello"
+name = "world"  // cover the name, it should throw an error
+module.exports = {name: name}
+      `,
+      sandbox
+    );
+  }, new TypeError("Assignment to constant variable.").message);
+});
+
+test("VariableDeclaration-define global var in block scope", t => {
+  const sandbox: any = vm.createContext({});
+
+  const func = vm.runInContext(
+    `
+function run(){
+  name = "world";
+  return name;
+}
+
+module.exports = run;
+      `,
+    sandbox
+  );
+
+  t.deepEqual(func(), "world");
+});
+
+test("VariableDeclaration-redefine global var in block scope", t => {
+  const sandbox: any = vm.createContext({});
+
+  const func = vm.runInContext(
+    `
+function run(){
+  name = "world";
+  name = "hello";
+  return name;
+}
+
+module.exports = run;
+      `,
+    sandbox
+  );
+
+  t.deepEqual(func(), "hello");
+});

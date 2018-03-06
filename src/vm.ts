@@ -4,8 +4,11 @@ import {Scope} from "./scope";
 import evaluate from "./evaluate";
 
 class Vm {
-  createContext(sandbox: Sandbox$ = {}) {
+  createContext(sandbox: Sandbox$ = {}): Context {
     return new Context(sandbox);
+  }
+  isContext(sandbox: any): boolean {
+    return sandbox instanceof Context;
   }
   runInContext(code: string, context: Context): any | null {
     const scope = new Scope("block");

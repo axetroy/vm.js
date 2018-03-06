@@ -6,7 +6,7 @@ import {
   ErrUnexpectedToken
 } from "./error";
 import {EvaluateFunc} from "./type";
-import {Scope, ScopeVar} from "./scope";
+import {Scope, ScopeVar, Kind} from "./scope";
 import {
   _classCallCheck,
   _createClass,
@@ -539,6 +539,7 @@ const evaluate_map = {
   },
   AssignmentExpression(node: types.AssignmentExpression, scope: Scope) {
     let $var: {
+      kind: Kind;
       $set(value: any): boolean;
       $get(): any;
     };
@@ -547,9 +548,24 @@ const evaluate_map = {
       const {name} = node.left;
       const $var_or_not = scope.$find(name);
       if (!$var_or_not) {
-        throw new ErrNotDefined(name);
+        // here to define global var
+        const globalScope = scope.$global;
+        globalScope.$var(name, evaluate(node.right, scope));
+        const globalVar = globalScope.$find(name);
+        if (globalVar) {
+          $var = globalVar;
+        } else {
+          throw new ErrNotDefined(name);
+        }
       } else {
-        $var = $var_or_not;
+        $var = <ScopeVar>$var_or_not;
+        /**
+         * const test = 123;
+         * test = 321 // it should throw an error
+         */
+        if ($var.kind === "const") {
+          throw new TypeError("Assignment to constant variable.");
+        }
       }
     } else if (types.isMemberExpression(node.left)) {
       const left = node.left;
@@ -558,6 +574,7 @@ const evaluate_map = {
         ? evaluate(left.property, scope)
         : (<types.Identifier>left.property).name;
       $var = {
+        kind: "var",
         $set(value: any) {
           object[property] = value;
           return true;
