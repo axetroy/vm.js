@@ -3,3 +3,4 @@ build
 .vscode
 *.log
 .nyc_output
+.DS_Store

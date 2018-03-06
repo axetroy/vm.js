@@ -1,5 +1,4 @@
 import test from "ava";
-
 import vm from "../src/vm";
 import {ErrNotDefined} from "../src/error";
 

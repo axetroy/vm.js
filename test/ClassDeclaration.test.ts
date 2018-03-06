@@ -1,6 +1,4 @@
 import test from "ava";
-import * as fs from "fs";
-
 import vm from "../src/vm";
 
 test("ClassDeclaration-contructor", t => {
@@ -120,7 +118,7 @@ module.exports = People;
 test("ClassDeclaration-extends", t => {
   const sandbox: any = vm.createContext({});
 
-  const {Life, People} = vm.runInContext(
+  const {People} = vm.runInContext(
     `
 class Life{
   eat(){

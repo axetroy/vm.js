@@ -1,6 +1,4 @@
 import test from "ava";
-import * as fs from "fs";
-
 import vm from "../src/vm";
 
 test("ObjectExpression", t => {

@@ -5,17 +5,14 @@ import {
   ErrDuplicateDeclard,
   ErrUnexpectedToken
 } from "./error";
-import {EvaluateFunc} from "./type";
 import {Scope, ScopeVar, Kind} from "./scope";
 import {
   _classCallCheck,
   _createClass,
   _possibleConstructorReturn,
   _inherits,
-  _extends,
   _toConsumableArray
 } from "./runtime";
-import {debug} from "util";
 
 const BREAK_SINGAL: {} = {};
 const CONTINUE_SINGAL: {} = {};
@@ -221,7 +218,7 @@ const evaluate_map = {
   ForStatement(node: types.ForStatement, scope: Scope) {
     for (
       const new_scope = scope.$child("loop"),
-        init_val = node.init ? evaluate(node.init, new_scope) : null;
+        _ = node.init ? evaluate(node.init, new_scope) : null;
       node.test ? evaluate(node.test, new_scope) : true;
       node.update ? evaluate(node.update, new_scope) : void 0
     ) {
@@ -380,9 +377,6 @@ const evaluate_map = {
     return this_val ? this_val.$get() : null;
   },
   ArrayExpression(node: types.ArrayExpression, scope: Scope) {
-    const gotSpreadElement: boolean = !!node.elements.find(v =>
-      types.isSpreadElement(v)
-    );
     let newArray: any[] = [];
     node.elements.forEach(item => {
       if (types.isSpreadElement(item)) {
@@ -781,6 +775,8 @@ const evaluate_map = {
     // do nothing
   }
 };
+
+export type EvaluateFunc = (node: types.Node, scope: Scope, arg?: any) => any;
 
 export default function evaluate(
   node: types.Node,
