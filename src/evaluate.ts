@@ -2,7 +2,6 @@ import * as types from "babel-types";
 import {ErrNotDefined, ErrNotSupport, ErrDuplicateDeclard} from "./error";
 import {EvaluateFunc} from "./type";
 import {Scope} from "./scope";
-import {Var} from "./scope";
 import {
   _classCallCheck,
   _createClass,
@@ -207,7 +206,6 @@ const evaluate_map = {
       const func = evaluate_map.FunctionExpression(<any>node, scope);
 
       const {name: func_name} = node.id;
-
       // function declartion can be duplicate
       scope.$var(func_name, func);
     }
@@ -349,13 +347,10 @@ const evaluate_map = {
   },
   UpdateExpression(node: types.UpdateExpression, scope: Scope) {
     const {prefix} = node;
-    let $var: {
-      $set(value: any): boolean;
-      $get(): any;
-    };
+    let $var;
     if (types.isIdentifier(node.argument)) {
       const {name} = node.argument;
-      $var = <Var>scope.$find(name);
+      $var = scope.$find(name);
       if (!$var) throw `${name} 未定义`;
     } else if (types.isMemberExpression(node.argument)) {
       const argument = node.argument;

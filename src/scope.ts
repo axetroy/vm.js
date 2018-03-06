@@ -1,29 +1,18 @@
+import {ErrDuplicateDeclard} from "./error";
+
 export type ScopeType = "function" | "loop" | "switch" | "block";
 
 export type Kind = "const" | "var" | "let";
 
-export interface Var {
-  $get(): any;
-  $set(value: any): boolean;
-  // $call($this: any, args: Array<any>): any
-}
-
-export class ScopeVar implements Var {
-  value: any;
-  kind: Kind;
-
-  constructor(kind: Kind, value: any) {
+export class ScopeVar {
+  constructor(public kind: Kind, public value: any) {
     this.value = value;
     this.kind = kind;
   }
 
   $set(value: any): boolean {
-    if (this.value === "const") {
-      return false;
-    } else {
-      this.value = value;
-      return true;
-    }
+    this.value = value;
+    return true;
   }
 
   $get(): any {
@@ -31,42 +20,18 @@ export class ScopeVar implements Var {
   }
 }
 
-export class PropVar implements Var {
-  object: any;
-  property: string;
-
-  constructor(object: any, property: string) {
-    this.object = object;
-    this.property = property;
-  }
-
-  $set(value: any) {
-    this.object[this.property] = value;
-    return true;
-  }
-  $get() {
-    return this.object[this.property];
-  }
-  $delete() {
-    delete this.object[this.property];
-  }
-}
-
 export class Scope {
-  private content: {[key: string]: Var};
-  private parent: Scope | null;
+  private content: {[key: string]: ScopeVar} = {};
+  // private parent: Scope | null;
   private prefix: string = "@";
 
-  readonly type: ScopeType;
+  public invasived: boolean = false;
 
-  invasived: boolean;
-
-  constructor(type: ScopeType, parent?: Scope, label?: string) {
-    this.type = type;
-    this.parent = parent || null;
-    this.content = {};
-    this.invasived = false;
-  }
+  constructor(
+    public readonly type: ScopeType,
+    private parent: Scope | null = null,
+    label?: string
+  ) {}
 
   $all() {
     const map = {};
@@ -78,41 +43,41 @@ export class Scope {
     return map;
   }
 
-  $find(raw_name: string): Var | null {
-    const name = this.prefix + raw_name;
+  $find(varName: string): ScopeVar | null {
+    const name = this.prefix + varName;
     if (this.content.hasOwnProperty(name)) {
       return this.content[name];
     } else if (this.parent) {
-      return this.parent.$find(raw_name);
+      return this.parent.$find(varName);
     } else {
       return null;
     }
   }
 
-  $let(raw_name: string, value: any): boolean {
-    const name = this.prefix + raw_name;
+  $let(varName: string, value: any): boolean {
+    const name = this.prefix + varName;
     const $var = this.content[name];
     if (!$var) {
       this.content[name] = new ScopeVar("let", value);
       return true;
     } else {
-      return false;
+      throw new ErrDuplicateDeclard(varName);
     }
   }
 
-  $const(raw_name: string, value: any): boolean {
-    const name = this.prefix + raw_name;
+  $const(varName: string, value: any): boolean {
+    const name = this.prefix + varName;
     const $var = this.content[name];
     if (!$var) {
       this.content[name] = new ScopeVar("const", value);
       return true;
     } else {
-      return false;
+      throw new ErrDuplicateDeclard(varName);
     }
   }
 
-  $var(raw_name: string, value: any): boolean {
-    const name = this.prefix + raw_name;
+  $var(varName: string, value: any): boolean {
+    const name: string = this.prefix + varName;
     let scope: Scope = this;
 
     while (scope.parent !== null && scope.type !== "function") {
@@ -120,7 +85,16 @@ export class Scope {
     }
 
     const $var = scope.content[name];
-    this.content[name] = new ScopeVar("var", value);
+    if ($var) {
+      if ($var.kind !== "var") {
+        // only recover var with var, not const and let
+        throw new ErrDuplicateDeclard(name);
+      } else {
+        this.content[name] = new ScopeVar("var", value);
+      }
+    } else {
+      this.content[name] = new ScopeVar("var", value);
+    }
     return true;
   }
 
