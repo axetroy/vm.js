@@ -688,7 +688,6 @@ const evaluate_map = {
       function Class(...args) {
         _classCallCheck(this, Class);
 
-        // TODO: need babel plugin to support class property
         const newScope = scope.$child("function");
 
         // babel way to call super();
@@ -706,7 +705,9 @@ const evaluate_map = {
         newScope.$const("this", __this);
 
         // define class property
-        properties.forEach(p => (__this[p.key.name] = p.value));
+        properties.forEach(p => {
+          __this[p.key.name] = evaluate(p.value, newScope);
+        });
 
         if (constructor) {
           // defined the params
@@ -728,7 +729,7 @@ const evaluate_map = {
         .map((method: types.ClassMethod) => {
           const newScope = scope.$child("function");
           const func = function(...args) {
-            newScope.$const("this", this);
+            newScope.$var("this", this);
 
             // defined the params
             method.params.forEach((p: types.LVal, i) => {
