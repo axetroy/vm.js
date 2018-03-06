@@ -4,16 +4,14 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "rm -rf ./build && tsc -p ./ && nyc ava ./build/test",
+    "test": "rm -rf ./build && tsc -p ./ && ava ./build/test",
     "build": "rm -rf ./build && tsc -p ./ -d"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "babel-core": "^6.26.0",
-    "babel-plugin-transform-object-rest-spread": "^6.26.0",
-    "babel-preset-env": "^1.6.1",
-    "regenerator": "^0.12.3"
+    "babel-types": "^6.26.0",
+    "babylon": "^6.18.0"
   },
   "devDependencies": {
     "@types/babel-core": "^6.25.3",

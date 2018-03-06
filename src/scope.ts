@@ -68,6 +68,16 @@ export class Scope {
     this.invasived = false;
   }
 
+  $all() {
+    const map = {};
+    for (let $var in this.content) {
+      const val = this.content[$var];
+      map[$var.replace(/^\@/, "")] =
+        val instanceof ScopeVar ? val.$get() : undefined;
+    }
+    return map;
+  }
+
   $find(raw_name: string): Var | null {
     const name = this.prefix + raw_name;
     if (this.content.hasOwnProperty(name)) {

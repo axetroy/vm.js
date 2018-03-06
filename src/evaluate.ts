@@ -1,4 +1,4 @@
-import {types} from "babel-core";
+import * as types from "babel-types";
 import {ErrNotDefined, ErrNotSupport, ErrDuplicateDeclard} from "./error";
 import {EvaluateFunc} from "./type";
 import {Scope} from "./scope";
@@ -11,6 +11,7 @@ import {
   _extends,
   _toConsumableArray
 } from "./runtime";
+import {debug} from "util";
 
 const BREAK_SINGAL: {} = {};
 const CONTINUE_SINGAL: {} = {};
@@ -44,12 +45,11 @@ const evaluate_map = {
   Identifier(node: types.Identifier, scope: Scope) {
     if (node.name === "undefined") {
       return undefined;
-    } // 奇怪的问题
+    }
     const $var = scope.$find(node.name);
     if ($var) {
       return $var.$get();
     } else {
-      // 返回
       throw new ErrNotDefined(node.name);
     }
   },
@@ -124,19 +124,81 @@ const evaluate_map = {
   VariableDeclaration(node: types.VariableDeclaration, scope: Scope) {
     const kind = node.kind;
     for (const declartor of node.declarations) {
-      const {name} = <types.Identifier>declartor.id;
-      const value = declartor.init
-        ? evaluate(declartor.init, scope)
-        : undefined;
-      if (!scope.$declar(kind, name, value)) {
-        new SyntaxError(`Identifier '${name}' has already been declared`);
+      if (types.isIdentifier(declartor.id)) {
+        const {name} = declartor.id;
+        const value = declartor.init
+          ? evaluate(declartor.init, scope)
+          : undefined;
+        if (!scope.$declar(kind, name, value)) {
+          throw new ErrDuplicateDeclard(name);
+        }
+      } else if (types.isObjectPattern(declartor.id)) {
+        // @es2015 destrucuring
+        const vars: {key: string; alias: string}[] = [];
+        declartor.id.properties.forEach(n => {
+          if (types.isObjectProperty(n)) {
+            vars.push({
+              key: <string>(<any>n.key).name,
+              alias: <string>(<any>n.value).name
+            });
+          }
+        });
+        const obj = evaluate(declartor.init, scope);
+
+        for (let $var of vars) {
+          if ($var.key in obj) {
+            scope.$declar(kind, $var.alias, obj[$var.key]);
+          }
+        }
+      } else if (types.isArrayPattern(declartor.id)) {
+        // @es2015 destrucuring
+        // @flow
+        declartor.id.elements.forEach((n, i) => {
+          if (types.isIdentifier(n)) {
+            const $varName: string = n.typeAnnotation
+              ? (<any>n.typeAnnotation.typeAnnotation).id.name
+              : n.name;
+
+            if (types.isArrayExpression(declartor.init)) {
+              const el = declartor.init.elements[i];
+              if (!el) {
+                scope.$declar(kind, $varName, undefined);
+              } else {
+                scope.$declar(kind, $varName, evaluate(el, scope));
+              }
+            } else {
+              throw node;
+            }
+          }
+        });
+      } else {
+        throw node;
       }
     }
   },
   VariableDeclarator: (node: types.VariableDeclarator, scope: Scope) => {
-    const varName: string = (<types.Identifier>node.id).name;
-    if (types.isObjectExpression(node.init)) {
+    // @es2015 destructuring
+    // console.log(node);
+    if (types.isObjectPattern(node.id)) {
+      const newScope = new Scope("block");
+      if (types.isObjectExpression(node.init)) {
+        evaluate_map.ObjectExpression(node.init, newScope);
+      }
+      console.log(node);
+      node.id.properties.forEach(n => {
+        console.log(n);
+        if (types.isObjectProperty(n)) {
+          const propertyName: string = (<any>n).id.name;
+          const $var = newScope.$find(propertyName);
+          console.log("set", propertyName, (<any>$var).$get());
+          scope.$var(propertyName, $var ? $var.$get() : undefined);
+        }
+      });
+    } else if (types.isObjectExpression(node.init)) {
+      const varName: string = (<types.Identifier>node.id).name;
       scope.$var(varName, evaluate_map.ObjectExpression(node.init, scope));
+    } else {
+      throw node;
     }
   },
   FunctionDeclaration(node: types.FunctionDeclaration, scope: Scope) {
@@ -337,7 +399,7 @@ const evaluate_map = {
     return newArray;
   },
   ObjectExpression(node: types.ObjectExpression, scope: Scope) {
-    const object = {};
+    let object = {};
     for (const property of node.properties) {
       if (types.isObjectProperty(property)) {
         if (types.isIdentifier(property.key)) {
@@ -366,6 +428,8 @@ const evaluate_map = {
             throw new Error("Invalid kind of property");
         }
       } else if (types.isSpreadProperty(property)) {
+        // @experimental Object rest spread
+        object = Object.assign(object, evaluate(property.argument, scope));
       } else {
         throw node;
       }
@@ -700,6 +764,9 @@ const evaluate_map = {
   },
   SpreadElement(node: types.SpreadElement, scope: Scope) {
     return evaluate(node.argument, scope);
+  },
+  ObjectProperty(node: types.ObjectProperty, scope: Scope) {
+    // do nothing
   }
 };
 

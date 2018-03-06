@@ -27,10 +27,10 @@ It base on [https://github.com/bramblex/jsjs](https://github.com/bramblex/jsjs)
   * [x] es2015-block-scoping
   * [x] es2015-classes
   * [ ] es2015-computed-properties
-  * [ ] es2015-destructuring
+  * [x] es2015-destructuring
   * [ ] es2015-for-of
   * [ ] es2015-function-name
-  * [ ] es2015-literals
+  * [x] es2015-literals
   * [x] es2015-object-super
   * [ ] es2015-parameters
   * [ ] es2015-shorthand-properties
