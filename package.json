@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "rm -rf ./build && tsc -p ./ && ava ./build/test",
+    "test": "rm -rf ./build && tsc -p ./ && nyc ava ./build/test",
     "build": "rm -rf ./build && tsc -p ./ -d"
   },
   "author": "",
