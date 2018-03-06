@@ -117,4 +117,7 @@ export class Scope {
       const: () => this.$const(raw_name, value)
     }[kind]();
   }
+  $child(type: ScopeType, label?: string) {
+    return new Scope(type, this, label);
+  }
 }

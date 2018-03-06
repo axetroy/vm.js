@@ -86,7 +86,7 @@ const evaluate_map = {
       }
     }
 
-    let new_scope = scope.invasived ? scope : new Scope("block", scope);
+    let new_scope = scope.invasived ? scope : scope.$child("block");
     for (const node of block.body) {
       const result = evaluate(node, new_scope, {SuperClass});
       if (
@@ -177,19 +177,15 @@ const evaluate_map = {
   },
   VariableDeclarator: (node: types.VariableDeclarator, scope: Scope) => {
     // @es2015 destructuring
-    // console.log(node);
     if (types.isObjectPattern(node.id)) {
-      const newScope = new Scope("block");
+      const newScope = scope.$child("block");
       if (types.isObjectExpression(node.init)) {
         evaluate_map.ObjectExpression(node.init, newScope);
       }
-      console.log(node);
       node.id.properties.forEach(n => {
-        console.log(n);
         if (types.isObjectProperty(n)) {
           const propertyName: string = (<any>n).id.name;
           const $var = newScope.$find(propertyName);
-          console.log("set", propertyName, (<any>$var).$get());
           scope.$var(propertyName, $var ? $var.$get() : undefined);
         }
       });
@@ -219,7 +215,7 @@ const evaluate_map = {
   },
   ForStatement(node: types.ForStatement, scope: Scope) {
     for (
-      const new_scope = new Scope("loop", scope),
+      const new_scope = scope.$child("loop"),
         init_val = node.init ? evaluate(node.init, new_scope) : null;
       node.test ? evaluate(node.test, new_scope) : true;
       node.update ? evaluate(node.update, new_scope) : void 0
@@ -240,7 +236,7 @@ const evaluate_map = {
     const name = (<types.Identifier>decl.id).name;
 
     for (const value in evaluate(node.right, scope)) {
-      const new_scope = new Scope("loop", scope);
+      const new_scope = scope.$child("loop");
       new_scope.invasived = true;
 
       new_scope.$declar(kind, name, value);
@@ -257,7 +253,7 @@ const evaluate_map = {
   },
   DoWhileStatement(node: types.DoWhileStatement, scope: Scope) {
     do {
-      const new_scope = new Scope("loop", scope);
+      const new_scope = scope.$child("loop");
       new_scope.invasived = true;
       const result = evaluate(node.body, new_scope); // 先把do的执行一遍
       if (result === BREAK_SINGAL) {
@@ -271,7 +267,7 @@ const evaluate_map = {
   },
   WhileStatement(node: types.WhileStatement, scope: Scope) {
     while (evaluate(node.test, scope)) {
-      const new_scope = new Scope("loop", scope);
+      const new_scope = scope.$child("loop");
       new_scope.invasived = true;
       const result = evaluate(node.body, new_scope);
 
@@ -292,12 +288,12 @@ const evaluate_map = {
   },
   TryStatement(node: types.TryStatement, scope: Scope) {
     try {
-      const newScope = new Scope("block", scope);
+      const newScope = scope.$child("block");
       return evaluate(node.block, newScope);
     } catch (err) {
       if (node.handler) {
         const param = <types.Identifier>node.handler.param;
-        const new_scope = new Scope("block", scope);
+        const new_scope = scope.$child("block");
         new_scope.invasived = true; // 标记为侵入式Scope，不用再多构造啦
         new_scope.$const(param.name, err);
         return evaluate(node.handler, new_scope);
@@ -310,7 +306,7 @@ const evaluate_map = {
   },
   SwitchStatement(node: types.SwitchStatement, scope: Scope) {
     const discriminant = evaluate(node.discriminant, scope); // switch的条件
-    const new_scope = new Scope("switch", scope);
+    const new_scope = scope.$child("switch");
 
     let matched = false;
     for (const $case of node.cases) {
@@ -433,7 +429,7 @@ const evaluate_map = {
   },
   FunctionExpression(node: types.FunctionExpression, scope: Scope) {
     const func = function(...args) {
-      const new_scope = new Scope("function", scope);
+      const new_scope = scope.$child("function");
       new_scope.invasived = true;
       for (let i = 0; i < node.params.length; i++) {
         const {name} = <types.Identifier>node.params[i];
@@ -512,11 +508,6 @@ const evaluate_map = {
   CallExpression(node: types.CallExpression, scope: Scope, {SuperClass}) {
     const func = evaluate(node.callee, scope, {SuperClass});
     const args = node.arguments.map(arg => evaluate(arg, scope));
-
-    if (typeof func !== "function") {
-      // throw new Error();
-      return;
-    }
 
     if (types.isMemberExpression(node.callee)) {
       const object = evaluate(node.callee.object, scope, {SuperClass});
@@ -607,7 +598,7 @@ const evaluate_map = {
   // ES2015
   ArrowFunctionExpression(node: types.ArrowFunctionExpression, scope: Scope) {
     const func = function(...args) {
-      const new_scope = new Scope("function", scope);
+      const new_scope = scope.$child("function");
       new_scope.invasived = true;
       for (let i = 0; i < node.params.length; i++) {
         const {name} = <types.Identifier>node.params[i];
@@ -673,7 +664,7 @@ const evaluate_map = {
         _classCallCheck(this, Class);
 
         // TODO: need babel plugin to support class property
-        const newScope = new Scope("function", scope);
+        const newScope = scope.$child("function");
 
         // babel way to call super();
         const __this = _possibleConstructorReturn(
@@ -710,7 +701,7 @@ const evaluate_map = {
 
       const _methods = methods
         .map((method: types.ClassMethod) => {
-          const newScope = new Scope("function", scope);
+          const newScope = scope.$child("function");
           const func = function(...args) {
             newScope.$const("this", this);
 
