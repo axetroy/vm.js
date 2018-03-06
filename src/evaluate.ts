@@ -1,7 +1,12 @@
 import * as types from "babel-types";
-import {ErrNotDefined, ErrNotSupport, ErrDuplicateDeclard} from "./error";
+import {
+  ErrNotDefined,
+  ErrNotSupport,
+  ErrDuplicateDeclard,
+  ErrUnexpectedToken
+} from "./error";
 import {EvaluateFunc} from "./type";
-import {Scope} from "./scope";
+import {Scope, ScopeVar} from "./scope";
 import {
   _classCallCheck,
   _createClass,
@@ -541,12 +546,15 @@ const evaluate_map = {
     if (types.isIdentifier(node.left)) {
       const {name} = node.left;
       const $var_or_not = scope.$find(name);
-      if (!$var_or_not) throw new ErrNotDefined(name);
-      $var = $var_or_not;
+      if (!$var_or_not) {
+        throw new ErrNotDefined(name);
+      } else {
+        $var = $var_or_not;
+      }
     } else if (types.isMemberExpression(node.left)) {
       const left = node.left;
-      const object = evaluate(left.object, scope);
-      let property = left.computed
+      const object: any = evaluate(left.object, scope);
+      const property: string = left.computed
         ? evaluate(left.property, scope)
         : (<types.Identifier>left.property).name;
       $var = {
@@ -559,7 +567,7 @@ const evaluate_map = {
         }
       };
     } else {
-      throw `如果出现在这里，那就说明有问题了`;
+      throw new ErrUnexpectedToken();
     }
 
     return {

@@ -15,3 +15,9 @@ export class ErrDuplicateDeclard extends SyntaxError {
     super(`Identifier '${varName}' has already been declared`);
   }
 }
+
+export class ErrUnexpectedToken extends SyntaxError {
+  constructor(token: string = "") {
+    super(`Uncaught SyntaxError: Invalid or unexpected token '${token}'`);
+  }
+}
