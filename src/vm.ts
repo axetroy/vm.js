@@ -40,7 +40,7 @@ class Vm {
       ]
     });
 
-    ast && evaluate(ast, scope);
+    ast && evaluate(ast, scope, {});
 
     // exports
     const module_var = scope.$find("module");
