@@ -3,7 +3,8 @@ import {
   ErrNotDefined,
   ErrNotSupport,
   ErrDuplicateDeclard,
-  ErrUnexpectedToken
+  ErrUnexpectedToken,
+  ErrInvalidIterable
 } from "./error";
 import {Scope, ScopeVar, Kind} from "./scope";
 import {
@@ -234,6 +235,46 @@ const evaluate_map = {
         continue;
       } else if (result === RETURN_SINGAL) {
         return result;
+      }
+    }
+  },
+  // @es2015 for of
+  ForOfStatement(node: types.ForOfStatement, scope: Scope, arg) {
+    const entity = evaluate(node.right, scope, arg);
+    // not support for of, it mean not support native for of
+    if (typeof Symbol !== "undefined") {
+      if (!entity || !entity[Symbol.iterator]) {
+        // FIXME: how to get function name
+        // for (let value of get()){}
+        throw new ErrInvalidIterable((<types.Identifier>node.right).name);
+      }
+    }
+
+    if (types.isVariableDeclaration(node.left)) {
+      /**
+       * for (let value in array){ // value should define in block scope
+       *
+       * }
+       */
+      const declarator: types.VariableDeclarator = node.left.declarations[0];
+      const varName = (<types.Identifier>declarator.id).name;
+      // typescript will compile it to for(){}
+      for (let value of entity) {
+        const newScope = scope.$child("loop");
+        newScope.$declar(node.left.kind, varName, value); // define in current scope
+        evaluate(node.body, newScope, arg);
+      }
+    } else if (types.isIdentifier(node.left)) {
+      /**
+       * for (value in array){  // value should define in parent scope
+       *
+       * }
+       */
+      const varName = node.left.name;
+      for (let value of entity) {
+        const newScope = scope.$child("loop");
+        scope.$var(varName, value); // define in parent scope
+        evaluate(node.body, newScope, arg);
       }
     }
   },

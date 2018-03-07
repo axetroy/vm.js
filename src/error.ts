@@ -21,3 +21,15 @@ export class ErrUnexpectedToken extends SyntaxError {
     super(`Uncaught SyntaxError: Invalid or unexpected token '${token}'`);
   }
 }
+
+class ErrIsNot extends TypeError {
+  constructor(name: string, type: string) {
+    super(`Uncaught TypeError: ${name} is not ${type}`);
+  }
+}
+
+export class ErrInvalidIterable extends ErrIsNot {
+  constructor(name) {
+    super(name, "iterable");
+  }
+}

@@ -30,13 +30,14 @@ It base on [https://github.com/bramblex/jsjs](https://github.com/bramblex/jsjs)
   * [x] classes
   * [x] computed properties
   * [x] destructuring
-  * [ ] for-of
+  * [x] for-of
   * [x] function name
   * [x] literals
   * [x] object super
   * [x] default and rest-parameters
   * [x] shorthand properties
   * [x] spread
+  * [x] template literals
   * [x] template literals
   * [ ] unicode-regex (Depends on environment)
 * [ ] es2016
