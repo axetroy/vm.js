@@ -33,3 +33,7 @@ export class ErrInvalidIterable extends ErrIsNot {
     super(name, "iterable");
   }
 }
+
+export const ErrNoSuper = new ReferenceError(
+  `Uncaught ReferenceError: Must call super constructor in derived class before accessing 'this' or returning from derived constructor`
+);

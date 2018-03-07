@@ -4,7 +4,8 @@ import {
   ErrNotSupport,
   ErrDuplicateDeclard,
   ErrUnexpectedToken,
-  ErrInvalidIterable
+  ErrInvalidIterable,
+  ErrNoSuper
 } from "./error";
 import {Scope, ScopeVar, Kind} from "./scope";
 import {
@@ -832,7 +833,24 @@ const evaluate_map = {
             }
           });
 
-          evaluate(constructor, newScope, {SuperClass});
+          if (node.superClass) {
+            // make sure super exist in first line
+            const superCallExpression: types.ExpressionStatement = <types.ExpressionStatement>(<any>constructor).body.body.shift();
+
+            if (
+              !types.isExpressionStatement(superCallExpression) ||
+              !types.isCallExpression(superCallExpression.expression) ||
+              !types.isSuper(superCallExpression.expression.callee)
+            ) {
+              throw ErrNoSuper;
+            } else {
+              // TODO: run super
+            }
+          }
+
+          constructor.body.body.forEach(n =>
+            evaluate(n, newScope, {SuperClass})
+          );
         }
 
         return __this;
