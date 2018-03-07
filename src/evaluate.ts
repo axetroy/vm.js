@@ -461,16 +461,19 @@ const evaluate_map = {
     }
   },
   FunctionExpression(node: types.FunctionExpression, scope: Scope, arg) {
-    const func = function(...args) {
+    const func = function(..._arguments) {
       const newScope = scope.$child("function");
       newScope.invasived = true;
       for (let i = 0; i < node.params.length; i++) {
         const param = node.params[i];
         if (types.isIdentifier(param)) {
-          newScope.$const(param.name, args[i]);
+          newScope.$const(param.name, _arguments[i]);
         } else if (types.isAssignmentPattern(param)) {
-          // @es2015 default and rest parameters
-          evaluate(param, newScope, {...arg, value: args[i]});
+          // @es2015 default parameters
+          evaluate(param, newScope, {...arg, value: _arguments[i]});
+        } else if (types.isRestElement(param)) {
+          // @es2015 rest parameters
+          evaluate(param, newScope, {...arg, value: _arguments.slice(i)});
         }
       }
       newScope.$const("this", this);
@@ -916,6 +919,10 @@ const evaluate_map = {
       node.left.name,
       value === undefined ? evaluate(node.right, scope, arg) : value
     );
+  },
+  RestElement(node: types.RestElement, scope: Scope, arg) {
+    const {value} = arg;
+    scope.$const((<types.Identifier>node.argument).name, value);
   }
 };
 

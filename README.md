@@ -22,30 +22,29 @@ It base on [https://github.com/bramblex/jsjs](https://github.com/bramblex/jsjs)
 
 * [x] ECMA5
 * [x] es2015
-  * [x] es2015-let-const
-  * [x] es2015-modules-commonjs
-  * [x] check-es2015-constants
-  * [x] es2015-block-scoped-functions
-  * [x] es2015-arrow-functions
-  * [x] es2015-block-scoping
-  * [x] es2015-classes
-  * [x] es2015-computed-properties
-  * [x] es2015-destructuring
-  * [ ] es2015-for-of
-  * [x] es2015-function-name
-  * [x] es2015-literals
-  * [x] es2015-object-super
-  * [ ] es2015-parameters
-  * [x] es2015-shorthand-properties
-  * [x] es2015-spread
-  * [x] es2015-template-literals
-  * [ ] es2015-unicode-regex (Depends on environment)
+  * [x] let and const
+  * [x] import and export
+  * [x] block scoped functions
+  * [x] arrow functions
+  * [x] block scoping
+  * [x] classes
+  * [x] computed properties
+  * [x] destructuring
+  * [ ] for-of
+  * [x] function name
+  * [x] literals
+  * [x] object super
+  * [x] default and rest-parameters
+  * [x] shorthand properties
+  * [x] spread
+  * [x] template literals
+  * [ ] unicode-regex (Depends on environment)
 * [ ] es2016
   * [ ] exponentiation-operator
 * [ ] es2017
   * [ ] async-to-generator
 * [ ] es2018
-  * [ ] es2018-asynchronous-iteration
+  * [ ] asynchronous-iteration
   * [ ] Promise.prototype.finally() (Depends on environment)
   * [ ] s (dotAll) flag for regular expressions (Depends on environment)
   * [ ] RegExp named capture groups (Depends on environment)
