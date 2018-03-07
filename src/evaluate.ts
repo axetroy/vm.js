@@ -857,6 +857,7 @@ const evaluate_map = {
       }
 
       // define class name
+      // TODO: support class length, equal to constructor's length
       Object.defineProperty(Class, "name", {value: node.id.name});
 
       const _methods = methods
