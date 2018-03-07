@@ -6,8 +6,8 @@
   "scripts": {
     "test": "rm -rf ./build && tsc -p ./ && nyc ava ./build/test",
     "build": "rm -rf ./build && tsc -p ./ -d",
-    "start": "npm run build && parcel ./doc/index.html -d vm-docs",
-    "docs": "npm run build && parcel build doc/index.html -d ./vm-docs && gh-pages -d ./vm-docs"
+    "start": "npm run build && parcel ./doc/index.html -d vm.js",
+    "docs": "npm run build && parcel build doc/index.html -d ./vm.js && gh-pages -d ./vm.js"
   },
   "repository": {
     "type": "git",
