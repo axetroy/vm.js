@@ -470,8 +470,12 @@ const evaluate_map = {
     }
   },
   ObjectMethod(node: types.ObjectMethod, scope: Scope, arg) {
-    const key = evaluate(node.key, scope, arg);
-    const val = function() {
+    const methodName: string = !node.computed
+      ? types.isIdentifier(node.key)
+        ? node.key.name
+        : evaluate(node.key, scope, arg)
+      : evaluate(node.key, scope, arg);
+    const method = function() {
       const _arguments = [].slice.call(arguments);
       const newScope = scope.$child("function");
       newScope.$const("this", this);
@@ -486,16 +490,24 @@ const evaluate_map = {
       const result = evaluate(node.body, newScope, arg);
       return result.result ? result.result : result;
     };
-    Object.defineProperty(val, "length", {value: node.params.length});
+    Object.defineProperties(method, {
+      length: {
+        value: node.params.length
+      },
+      name: {
+        value: methodName
+      }
+    });
     switch (node.kind) {
       case "get":
-        Object.defineProperty(arg.object, key, {get: val});
-        scope.$const(key, val);
+        Object.defineProperty(arg.object, methodName, {get: method});
+        scope.$const(methodName, method);
         break;
       case "set":
-        Object.defineProperty(arg.object, key, {set: val});
+        Object.defineProperty(arg.object, methodName, {set: method});
         break;
       case "method":
+        Object.defineProperty(arg.object, methodName, {value: method});
         break;
       default:
         throw new Error("Invalid kind of property");
