@@ -787,6 +787,77 @@ const evaluate_map = {
   },
   ObjectProperty(node: types.ObjectProperty, scope: Scope, arg) {
     // do nothing
+  },
+  ImportDeclaration(node: types.ImportDeclaration, scope: Scope, arg) {
+    let defaultImport: string = ""; // default import object
+    const otherImport: string[] = []; // import property
+    const moduleNane: string = evaluate(node.source, scope, arg);
+    node.specifiers.forEach(n => {
+      if (types.isImportDefaultSpecifier(n)) {
+        defaultImport = evaluate_map.ImportDefaultSpecifier(n, scope, arg);
+      } else if (types.isImportSpecifier(n)) {
+        otherImport.push(evaluate_map.ImportSpecifier(n, scope, arg));
+      } else {
+        throw n;
+      }
+    });
+
+    const _require = scope.$find("require");
+
+    if (_require) {
+      const requireFunc = _require.$get();
+
+      const targetModle: any = requireFunc(moduleNane) || {};
+
+      if (defaultImport) {
+        scope.$const(
+          defaultImport,
+          targetModle.default ? targetModle.default : targetModle
+        );
+      }
+
+      otherImport.forEach((varName: string) => {
+        scope.$const(varName, targetModle[varName]);
+      });
+    }
+  },
+  ImportDefaultSpecifier(
+    node: types.ImportDefaultSpecifier,
+    scope: Scope,
+    arg
+  ) {
+    return node.local.name;
+  },
+  ImportSpecifier(node: types.ImportSpecifier, scope: Scope, arg) {
+    return node.local.name;
+  },
+  ExportDefaultDeclaration(
+    node: types.ExportDefaultDeclaration,
+    scope: Scope,
+    arg
+  ) {
+    const moduleVar = scope.$find("module");
+    if (moduleVar) {
+      const moduleObject = moduleVar.$get();
+      moduleObject.exports = {
+        ...moduleObject.exports,
+        ...evaluate(node.declaration, scope, arg)
+      };
+    }
+  },
+  ExportNamedDeclaration(
+    node: types.ExportNamedDeclaration,
+    scope: Scope,
+    arg
+  ) {
+    node.specifiers.forEach(n => evaluate(n, scope, arg));
+  },
+  ExportSpecifier(node: types.ExportSpecifier, scope: Scope, arg) {
+    const moduleVar = scope.$find("module");
+    if (moduleVar) {
+      const moduleObject = moduleVar.$get();
+      moduleObject.exports[node.local.name] = evaluate(node.local, scope, arg);
+    }
   }
 };
 

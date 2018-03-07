@@ -21,7 +21,7 @@ It base on [https://github.com/bramblex/jsjs](https://github.com/bramblex/jsjs)
 * [x] ECMA5
 * [x] es2015
   * [x] es2015-let-const
-  * [ ] es2015-modules-commonjs
+  * [x] es2015-modules-commonjs
   * [x] check-es2015-constants
   * [x] es2015-block-scoped-functions
   * [x] es2015-arrow-functions

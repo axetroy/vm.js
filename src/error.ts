@@ -1,6 +1,6 @@
 export class ErrNotDefined extends ReferenceError {
   constructor(varName: string) {
-    super(`${varName} is not defined`);
+    super(`Uncaught ReferenceError: ${varName} is not defined`);
   }
 }
 
