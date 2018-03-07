@@ -856,6 +856,9 @@ const evaluate_map = {
         return __this;
       }
 
+      // define class name
+      Object.defineProperty(Class, "name", {value: node.id.name});
+
       const _methods = methods
         .map((method: types.ClassMethod) => {
           const newScope = scope.$child("function");
