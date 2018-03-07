@@ -30,7 +30,7 @@ It base on [https://github.com/bramblex/jsjs](https://github.com/bramblex/jsjs)
   * [x] es2015-computed-properties
   * [x] es2015-destructuring
   * [ ] es2015-for-of
-  * [ ] es2015-function-name
+  * [x] es2015-function-name
   * [x] es2015-literals
   * [x] es2015-object-super
   * [ ] es2015-parameters

@@ -202,8 +202,17 @@ const evaluate_map = {
     if (node.async === true) {
     } else {
       const func = evaluate_map.FunctionExpression(<any>node, scope, arg);
-
       const {name: func_name} = node.id;
+
+      Object.defineProperties(func, {
+        length: {
+          value: node.params.length
+        },
+        name: {
+          value: func_name
+        }
+      });
+
       // function declartion can be duplicate
       scope.$var(func_name, func);
     }
@@ -467,7 +476,14 @@ const evaluate_map = {
       }
     };
 
-    Object.defineProperty(func, "length", {value: node.params.length});
+    Object.defineProperties(func, {
+      length: {
+        value: node.params.length
+      },
+      name: {
+        value: node.id ? node.id.name : "" // Anonymous function
+      }
+    });
 
     return func;
   },
