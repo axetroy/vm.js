@@ -14,6 +14,8 @@ Run Javascript code in ECMAScript, without eval(), new Function(), setTimeout().
 
 It still in development...
 
+The first version will be release when support es2015 completely. comming soon.
+
 It base on [https://github.com/bramblex/jsjs](https://github.com/bramblex/jsjs)
 
 ## Support
@@ -34,7 +36,7 @@ It base on [https://github.com/bramblex/jsjs](https://github.com/bramblex/jsjs)
   * [x] es2015-literals
   * [x] es2015-object-super
   * [ ] es2015-parameters
-  * [ ] es2015-shorthand-properties
+  * [x] es2015-shorthand-properties
   * [x] es2015-spread
   * [x] es2015-template-literals
   * [ ] es2015-unicode-regex (Depends on environment)
