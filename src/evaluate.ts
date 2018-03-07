@@ -462,15 +462,20 @@ const evaluate_map = {
   },
   FunctionExpression(node: types.FunctionExpression, scope: Scope, arg) {
     const func = function(...args) {
-      const new_scope = scope.$child("function");
-      new_scope.invasived = true;
+      const newScope = scope.$child("function");
+      newScope.invasived = true;
       for (let i = 0; i < node.params.length; i++) {
-        const {name} = <types.Identifier>node.params[i];
-        new_scope.$const(name, args[i]);
+        const param = node.params[i];
+        if (types.isIdentifier(param)) {
+          newScope.$const(param.name, args[i]);
+        } else if (types.isAssignmentPattern(param)) {
+          // @es2015 default and rest parameters
+          evaluate(param, newScope, {...arg, value: args[i]});
+        }
       }
-      new_scope.$const("this", this);
-      new_scope.$const("arguments", arguments);
-      const result = evaluate(node.body, new_scope, arg);
+      newScope.$const("this", this);
+      newScope.$const("arguments", arguments);
+      const result = evaluate(node.body, newScope, arg);
       if (result === RETURN_SINGAL) {
         return result.result;
       }
@@ -904,6 +909,13 @@ const evaluate_map = {
       const moduleObject = moduleVar.$get();
       moduleObject.exports[node.local.name] = evaluate(node.local, scope, arg);
     }
+  },
+  AssignmentPattern(node: types.AssignmentPattern, scope: Scope, arg) {
+    const {value} = arg;
+    scope.$const(
+      node.left.name,
+      value === undefined ? evaluate(node.right, scope, arg) : value
+    );
   }
 };
 
