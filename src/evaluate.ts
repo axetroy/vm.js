@@ -386,42 +386,70 @@ const evaluate_map = {
   },
   ObjectExpression(node: types.ObjectExpression, scope: Scope, arg) {
     let object = {};
+    const newScope = scope.$child("block");
+    const computedProperties: (
+      | types.ObjectProperty
+      | types.ObjectMethod)[] = [];
+
+    const newArg = {...arg, ...{object}};
+
     for (const property of node.properties) {
-      if (types.isObjectProperty(property)) {
-        if (types.isIdentifier(property.key)) {
-          object[property.key.name] = evaluate(property.value, scope, arg);
-        } else {
-          object[evaluate(property.key, scope, arg)] = evaluate(
-            property.value,
-            scope,
-            arg
-          );
-        }
-      } else if (types.isObjectMethod(property)) {
-        switch (property.kind) {
-          case "get":
-            Object.defineProperty(object, evaluate(property.key, scope, arg), {
-              get: evaluate(property.value, scope, arg)
-            });
-            break;
-          case "set":
-            Object.defineProperty(object, evaluate(property.key, scope, arg), {
-              set: evaluate(property.value, scope, arg)
-            });
-            break;
-          case "method":
-            break;
-          default:
-            throw new Error("Invalid kind of property");
-        }
-      } else if (types.isSpreadProperty(property)) {
-        // @experimental Object rest spread
-        object = Object.assign(object, evaluate(property.argument, scope, arg));
-      } else {
-        throw node;
+      const _property = <types.ObjectMethod | types.ObjectProperty>property;
+      if (_property.computed === true) {
+        computedProperties.push(_property);
+        continue;
       }
+      evaluate(property, newScope, newArg);
     }
+
+    // eval the computed properties
+    for (const property of computedProperties) {
+      evaluate(property, newScope, newArg);
+    }
+
     return object;
+  },
+  ObjectProperty(node: types.ObjectProperty, scope: Scope, arg) {
+    const {object} = arg;
+    const val = evaluate(node.value, scope, arg);
+    if (types.isIdentifier(node.key)) {
+      object[node.key.name] = val;
+      scope.$const(node.key.name, val);
+    } else {
+      object[evaluate(node.key, scope, arg)] = val;
+    }
+  },
+  ObjectMethod(node: types.ObjectMethod, scope: Scope, arg) {
+    const key = evaluate(node.key, scope, arg);
+    const val = function() {
+      const _arguments = [].slice.call(arguments);
+      const newScope = scope.$child("function");
+      newScope.$const("this", this);
+      // define argument
+      node.params.forEach((param, i) => {
+        if (types.isIdentifier(param)) {
+          newScope.$const(param.name, _arguments[i]);
+        } else {
+          throw node;
+        }
+      });
+      const result = evaluate(node.body, newScope, arg);
+      return result.result ? result.result : result;
+    };
+    Object.defineProperty(val, "length", {value: node.params.length});
+    switch (node.kind) {
+      case "get":
+        Object.defineProperty(arg.object, key, {get: val});
+        scope.$const(key, val);
+        break;
+      case "set":
+        Object.defineProperty(arg.object, key, {set: val});
+        break;
+      case "method":
+        break;
+      default:
+        throw new Error("Invalid kind of property");
+    }
   },
   FunctionExpression(node: types.FunctionExpression, scope: Scope, arg) {
     const func = function(...args) {
@@ -785,8 +813,10 @@ const evaluate_map = {
   SpreadElement(node: types.SpreadElement, scope: Scope, arg) {
     return evaluate(node.argument, scope, arg);
   },
-  ObjectProperty(node: types.ObjectProperty, scope: Scope, arg) {
-    // do nothing
+  // @experimental Object rest spread
+  SpreadProperty(node: types.SpreadProperty, scope: Scope, arg) {
+    const {object} = arg;
+    Object.assign(object, evaluate(node.argument, scope, arg));
   },
   ImportDeclaration(node: types.ImportDeclaration, scope: Scope, arg) {
     let defaultImport: string = ""; // default import object
