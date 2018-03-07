@@ -3,11 +3,11 @@ import Context, {Sandbox$} from "./context";
 import {Scope} from "./scope";
 import evaluate from "./evaluate";
 
-interface Options {
+export interface Options {
   filename?: string;
 }
 
-class Vm {
+export class Vm {
   createContext(sandbox: Sandbox$ = {}): Context {
     return new Context(sandbox);
   }

@@ -22,7 +22,7 @@ export class ErrUnexpectedToken extends SyntaxError {
   }
 }
 
-class ErrIsNot extends TypeError {
+export class ErrIsNot extends TypeError {
   constructor(name: string, type: string) {
     super(`Uncaught TypeError: ${name} is not ${type}`);
   }

@@ -1,25 +1,34 @@
 {
   "name": "vm.js",
-  "version": "1.0.0",
-  "description": "",
+  "version": "0.0.1",
+  "description": "Javascript Interpreter, run Javascript code in ECMAScript",
   "main": "index.js",
   "scripts": {
     "test": "rm -rf ./build && tsc -p ./ && nyc ava ./build/test",
-    "build": "rm -rf ./build && tsc -p ./ -d"
+    "build": "rm -rf ./build && tsc -p ./ -d",
+    "start": "npm run build && parcel ./doc/index.html -d vm-docs",
+    "docs": "npm run build && parcel build doc/index.html -d ./vm-docs && gh-pages -d ./vm-docs"
   },
-  "author": "",
-  "license": "ISC",
+  "author": "Axetroy",
+  "license": "MIT",
   "dependencies": {
     "babel-types": "^6.26.0",
     "babylon": "^6.18.0"
   },
   "devDependencies": {
-    "@axetroy/libpack": "^0.6.4",
     "@types/babel-core": "^6.25.3",
     "@types/node": "^9.4.6",
     "ava": "^0.25.0",
+    "babel-preset-env": "^1.6.1",
+    "babel-preset-react": "^6.24.1",
     "coveralls": "^3.0.0",
+    "gh-pages": "^1.1.0",
+    "normalize.css": "^8.0.0",
     "nyc": "^11.4.1",
+    "parcel-bundler": "^1.6.2",
+    "react": "^16.2.0",
+    "react-codemirror": "^1.0.0",
+    "react-dom": "^16.2.0",
     "typescript": "^2.7.2"
   }
 }

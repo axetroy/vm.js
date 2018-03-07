@@ -1,0 +1,53 @@
+* {
+  padding: 0;
+  margin: 0;
+}
+
+.code-mirror {
+  border: 1px solid #ccc;
+}
+
+.container {
+  width: 60%;
+  margin: 0 auto;
+}
+
+@media (max-width: 768px) {
+  .container {
+    width: 100%;
+  }
+}
+
+@media (min-width: 769px and max-width 992px) {
+  .container {
+    width: 80%;
+  }
+}
+
+@media (min-width: 993px) {
+  .container {
+    width: 60%;
+  }
+}
+
+.btn {
+  padding: 15;
+  margin: 15;
+  border-color: #fff;
+  border-radius: 5;
+  background-color: #607d8b;
+  color: #fff;
+  cursor: pointer;
+}
+
+input,
+button,
+textarea {
+  border: 0;
+  outline: none;
+}
+
+p {
+  line-height: 1.5rem;
+  margin: 0.5rem;
+}
