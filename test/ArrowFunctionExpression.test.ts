@@ -36,6 +36,7 @@ module.exports = func;
 
   t.true(typeof func === "function");
   t.deepEqual(func.length, 0);
+  t.deepEqual(func.name, "");
   t.deepEqual(func(), "hello undefined");
 });
 

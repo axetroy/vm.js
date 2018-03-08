@@ -781,8 +781,10 @@ const evaluate_map: EvaluateMap = {
       }
     };
 
-    // TODO: define function name
-    Object.defineProperty(func, "length", {value: node.params.length});
+    Object.defineProperties(func,{
+      length:{value:node.params.length},
+      name: {value:node.id ? node.id.name : ""}
+    })
 
     return func;
   },
