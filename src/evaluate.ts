@@ -20,6 +20,13 @@ const BREAK_SINGAL: {} = {};
 const CONTINUE_SINGAL: {} = {};
 const RETURN_SINGAL: {result: any} = {result: undefined};
 
+class Path {
+  constructor(public node: types.Node, public parent: types.Node) {}
+  $child(node: types.Node) {
+    return new Path(node, this.parent);
+  }
+}
+
 const evaluate_map = {
   File(node: types.File, scope: Scope, arg) {
     evaluate(node.program, scope, arg);
@@ -857,8 +864,10 @@ const evaluate_map = {
       }
 
       // define class name
-      // TODO: support class length, equal to constructor's length
-      Object.defineProperty(Class, "name", {value: node.id.name});
+      Object.defineProperties(Class, {
+        name: {value: node.id.name},
+        length: {value: constructor ? constructor.params.length : 0}
+      });
 
       const _methods = methods
         .map((method: types.ClassMethod) => {

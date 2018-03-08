@@ -249,10 +249,29 @@ test("ClassDeclaration-extends without super", t => {
     constructor(name){
     }
   }
-  
+
   module.exports = new People();
     `,
       sandbox
     );
   }, ErrNoSuper.message);
+});
+
+test("ClassDeclaration-class name and length", t => {
+  const sandbox: any = vm.createContext({});
+
+  const People = vm.runInContext(
+    `
+class People{
+  constructor(name){
+  }
+}
+
+module.exports = People;
+  `,
+    sandbox
+  );
+
+  t.deepEqual(People.length, 1);
+  t.deepEqual(People.name, "People");
 });
