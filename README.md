@@ -18,6 +18,8 @@ The first version will be release when support es2015 completely. comming soon.
 
 It base on [https://github.com/bramblex/jsjs](https://github.com/bramblex/jsjs)
 
+[Try it out](https://axetroy.github.io/vm.js)
+
 ## Support
 
 * [x] ECMA5
