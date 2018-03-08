@@ -144,7 +144,7 @@ module.exports = {
   t.deepEqual(typeof people.learn, "function");
 });
 
-test("ClassDeclaration-extends and super", t => {
+test("ClassDeclaration-extends and super-1", t => {
   const sandbox: any = vm.createContext({});
 
   const {Life, People} = vm.runInContext(
@@ -191,7 +191,7 @@ module.exports = {
   t.true(people.learn()); // inherit from Life getSkill method
 });
 
-test("ClassDeclaration-extends and super", t => {
+test("ClassDeclaration-extends and super-2", t => {
   const sandbox: any = vm.createContext({});
 
   const {People} = vm.runInContext(
@@ -243,14 +243,42 @@ test("ClassDeclaration-extends without super", t => {
   t.throws(function() {
     vm.runInContext(
       `
-  class Life{
+class Life{
+}
+class People extends Life{
+  constructor(name){
   }
-  class People extends Life{
-    constructor(name){
-    }
-  }
+}
 
-  module.exports = new People();
+module.exports = new People();
+    `,
+      sandbox
+    );
+  }, ErrNoSuper.message);
+});
+
+test("ClassDeclaration-extends without super", t => {
+  const sandbox: any = vm.createContext({});
+
+  t.throws(function() {
+    vm.runInContext(
+      `
+class Life{
+}
+class People extends Life{
+  constructor(name){
+    super()
+  }
+}
+
+class A extends Life{
+  constructor(name){
+    // here will throw an error
+  }
+}
+
+new People();
+new A(); // throw error
     `,
       sandbox
     );

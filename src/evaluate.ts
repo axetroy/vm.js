@@ -652,22 +652,15 @@ const evaluate_map: EvaluateMap = {
   MemberExpression(path) {
     const {node, scope, ctx} = path;
     const {object, property, computed} = node;
-    if (types.isSuper(node.object)) {
-      const $var = scope.$find("this");
-      if ($var) {
-        const __this = $var.$get();
-        if (ctx.SuperClass) {
-          return ctx.SuperClass.prototype[(<any>property).name].bind(__this);
-        } else {
-          throw node;
-        }
-      }
-    }
-    if (computed) {
-      return evaluate(path.$child(object))[evaluate(path.$child(property))];
-    } else {
-      return evaluate(path.$child(object))[(<types.Identifier>property).name];
-    }
+
+    const propertyName: string = computed
+      ? evaluate(path.$child(property))
+      : (<types.Identifier>property).name;
+
+    const obj = evaluate(path.$child(object));
+    const target = obj[propertyName];
+
+    return typeof target === "function" ? target.bind(obj) : target;
   },
   AssignmentExpression(path) {
     const {node, scope} = path;
@@ -781,10 +774,10 @@ const evaluate_map: EvaluateMap = {
       }
     };
 
-    Object.defineProperties(func,{
-      length:{value:node.params.length},
-      name: {value:node.id ? node.id.name : ""}
-    })
+    Object.defineProperties(func, {
+      length: {value: node.params.length},
+      name: {value: node.id ? node.id.name : ""}
+    });
 
     return func;
   },
@@ -800,96 +793,75 @@ const evaluate_map: EvaluateMap = {
     return path.node.value.raw;
   },
   ClassDeclaration(path) {
+    const ClassConstructor = evaluate(
+      path.$child(path.node.body, path.scope.$child("block"))
+    );
+    path.scope.$const(path.node.id.name, ClassConstructor);
+  },
+  ClassBody(path) {
     const {node, scope} = path;
-    const constructor: types.ClassMethod | void = <types.ClassMethod | void>node.body.body.find(
+    const constructor: types.ClassMethod | void = <types.ClassMethod | void>node.body.find(
       n => types.isClassMethod(n) && n.kind === "constructor"
     );
-    const methods: types.ClassMethod[] = <types.ClassMethod[]>node.body.body.filter(
+    const methods: types.ClassMethod[] = <types.ClassMethod[]>node.body.filter(
       n => types.isClassMethod(n) && n.kind !== "constructor"
     );
-    const properties: types.ClassProperty[] = <types.ClassProperty[]>node.body.body.filter(
+    const properties: types.ClassProperty[] = <types.ClassProperty[]>node.body.filter(
       n => types.isClassProperty(n)
     );
 
-    let SuperClass;
-
-    if (node.superClass) {
-      const superClassName: string = (<any>node.superClass).name;
-      const $var = scope.$find(superClassName);
-
-      if ($var) {
-        SuperClass = $var.$get();
-      } else {
-        throw new ErrNotDefined(superClassName);
-      }
-    }
+    const parentNode = (<Path<types.ClassDeclaration>>path.parent).node;
 
     const Class = (function(SuperClass) {
       if (SuperClass) {
         _inherits(Class, SuperClass);
       }
+
       function Class(...args) {
         _classCallCheck(this, Class);
-
-        const newScope = scope.$child("function");
-
-        // babel way to call super();
-        const __this = _possibleConstructorReturn(
-          this,
-          ((<any>Class).__proto__ || Object.getPrototypeOf(Class)).apply(
-            this,
-            args
-          )
-        );
-
-        newScope.$const("super", this.__proto__);
-
-        // typescript way to call super()
-        // const __this = superClass ? superClass.apply(this, args) || this : this;
-
-        newScope.$const("this", __this);
+        const classScope = scope.$child("function");
+        classScope.$var("this", this);
 
         // define class property
         properties.forEach(p => {
-          __this[p.key.name] = evaluate(path.$child(p.value, newScope));
+          this[p.key.name] = evaluate(path.$child(p.value, classScope));
         });
 
         if (constructor) {
           // defined the params
           constructor.params.forEach((p: types.LVal, i) => {
             if (types.isIdentifier(p)) {
-              newScope.$const(p.name, args[i]);
+              classScope.$const(p.name, args[i]);
             } else {
               throw new Error("Invalid params");
             }
           });
+          constructor.body.body.forEach(n =>
+            evaluate(
+              path.$child(n, classScope, {
+                SuperClass,
+                ClassConstructor: Class,
+                ClassConstructorArguments: args,
+                ClassEntity: this
+              })
+            )
+          );
 
-          if (node.superClass) {
-            // make sure super exist in first line
-            const superCallExpression: types.ExpressionStatement = <types.ExpressionStatement>(<any>constructor).body.body.shift();
-
-            if (
-              !types.isExpressionStatement(superCallExpression) ||
-              !types.isCallExpression(superCallExpression.expression) ||
-              !types.isSuper(superCallExpression.expression.callee)
-            ) {
+          if (parentNode.superClass) {
+            // if not apply super in construtor
+            // FIXME: should define the var in private scope
+            if (!scope.$find("@super")) {
               throw ErrNoSuper;
-            } else {
-              // TODO: run super
             }
           }
-
-          constructor.body.body.forEach(n =>
-            evaluate(path.$child(n, newScope, {SuperClass}))
-          );
         }
 
-        return __this;
+        return this;
       }
 
       // define class name
       Object.defineProperties(Class, {
-        name: {value: node.id.name},
+        name: {value: parentNode.id.name},
         length: {value: constructor ? constructor.params.length : 0}
       });
 
@@ -907,7 +879,12 @@ const evaluate_map: EvaluateMap = {
             });
 
             const result = evaluate(
-              path.$child(method.body, newScope, {SuperClass})
+              path.$child(method.body, newScope, {
+                SuperClass,
+                ClassConstructor: Class,
+                ClassMethodArguments: args,
+                ClassEntity: this
+              })
             );
             if (result === RETURN_SINGAL) {
               return result.result ? result.result : result;
@@ -934,17 +911,54 @@ const evaluate_map: EvaluateMap = {
       _createClass(Class, _methods);
 
       return Class;
-    })(SuperClass);
+    })(
+      parentNode.superClass
+        ? (() => {
+            const $var = scope.$find((<any>parentNode.superClass).name);
+            return $var ? $var.$get() : null;
+          })()
+        : null
+    );
 
-    scope.$const(node.id.name, Class);
+    return Class;
   },
   ClassMethod(path) {
     return evaluate(path.$child(path.node.body));
   },
   ClassExpression(path) {},
   Super(path) {
-    // FIXME: check it include in Class expression
-    return function() {};
+    const {scope, ctx} = path;
+    const {
+      SuperClass,
+      ClassConstructor,
+      ClassConstructorArguments,
+      ClassEntity
+    } = ctx;
+    const ClassBodyPath = path.$findParent("ClassBody");
+    // make sure it include in ClassDeclaration
+    if (!ClassBodyPath) {
+      throw new Error("super() only can use in ClassDeclaration");
+    }
+    const parentPath = path.parent;
+    if (parentPath) {
+      // super()
+      if (types.isCallExpression(parentPath.node)) {
+        return function inherits(...args) {
+          _possibleConstructorReturn(
+            ClassEntity,
+            (
+              (<any>ClassConstructor).__proto__ ||
+              Object.getPrototypeOf(ClassConstructor)
+            ).apply(ClassEntity, args)
+          );
+          ClassBodyPath.scope.$const("@super", true);
+        }.bind(ClassEntity);
+      } else if (types.isMemberExpression(parentPath.node)) {
+        // super.eat()
+        // then return the superclass prototype
+        return SuperClass.prototype;
+      }
+    }
   },
   SpreadElement(path) {
     return evaluate(path.$child(path.node.argument));

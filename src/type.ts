@@ -65,7 +65,7 @@ export interface NodeTypeMap {
   // ArrayPattern: types.ArrayPattern;
   RestElement: types.RestElement;
   AssignmentPattern: types.AssignmentPattern;
-  // ClassBody: types.ClassBody;
+  ClassBody: types.ClassBody;
   ImportDeclaration: types.ImportDeclaration;
   ExportNamedDeclaration: types.ExportNamedDeclaration;
   ExportDefaultDeclaration: types.ExportDefaultDeclaration;
