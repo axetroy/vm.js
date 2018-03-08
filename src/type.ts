@@ -75,6 +75,7 @@ export interface NodeTypeMap {
   // ImportNamespaceSpecifier: types.ImportNamespaceSpecifier;
   ExportSpecifier: types.ExportSpecifier;
   SpreadProperty: types.SpreadProperty;
+  DoExpression: types.DoExpression;
 }
 
 export type EvaluateMap = {

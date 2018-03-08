@@ -13,7 +13,8 @@ import {
   _createClass,
   _possibleConstructorReturn,
   _inherits,
-  _toConsumableArray
+  _toConsumableArray,
+  _taggedTemplateLiteral
 } from "./runtime";
 import {Path} from "./path";
 import {EvaluateMap, EvaluateFunc} from "./type";
@@ -97,8 +98,9 @@ const evaluate_map: EvaluateMap = {
     }
 
     let new_scope = scope.invasived ? scope : scope.$child("block");
+    let _result;
     for (const node of block.body) {
-      const result = evaluate(path.$child(node, new_scope));
+      const result = (_result = evaluate(path.$child(node, new_scope)));
       if (
         result === BREAK_SINGAL ||
         result === CONTINUE_SINGAL ||
@@ -107,6 +109,7 @@ const evaluate_map: EvaluateMap = {
         return result;
       }
     }
+    return _result;
   },
   WithStatement(path) {
     throw new ErrNotSupport(path.node.type);
@@ -228,7 +231,7 @@ const evaluate_map: EvaluateMap = {
     }
   },
   ExpressionStatement(path) {
-    evaluate(path.$child(path.node.expression));
+    return evaluate(path.$child(path.node.expression));
   },
   ForStatement(path) {
     const {node, scope} = path;
@@ -1090,9 +1093,20 @@ const evaluate_map: EvaluateMap = {
   },
   YieldExpression(path) {},
   SequenceExpression(path) {},
-  TaggedTemplateExpression(path) {},
+  TaggedTemplateExpression(path) {
+    const string = path.node.quasi.quasis.map(v => v.value.cooked);
+    const raw = path.node.quasi.quasis.map(v => v.value.raw);
+    const _templateObject = _taggedTemplateLiteral(string, raw);
+    const func = evaluate(path.$child(path.node.tag));
+    const expressionResultList =
+      path.node.quasi.expressions.map(n => evaluate(path.$child(n))) || [];
+    return func(_templateObject, ...expressionResultList);
+  },
   MetaProperty(path) {},
-  AwaitExpression(path) {}
+  AwaitExpression(path) {},
+  DoExpression(path) {
+    return evaluate(path.$child(path.node.body));
+  }
 };
 
 export default function evaluate(path: Path<types.Node>) {

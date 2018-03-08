@@ -56,7 +56,9 @@ It base on [https://github.com/bramblex/jsjs](https://github.com/bramblex/jsjs)
 * [ ] Experimental
   * [x] Object rest spread
   * [x] Class property
-  * [ ] Lifting template literal restriction
+  * [x] Lifting template literal restriction
+  * [x] Do expression
+  * [ ] Try with optional catch
 
 ## Contributors
 

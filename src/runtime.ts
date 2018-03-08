@@ -106,3 +106,9 @@ export function _asyncToGenerator(fn) {
     });
   };
 }
+
+export function _taggedTemplateLiteral(strings: string[], raw: string[]) {
+  return Object.freeze(
+    Object.defineProperties(strings, {raw: {value: Object.freeze(raw)}})
+  );
+}

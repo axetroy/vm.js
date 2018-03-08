@@ -53,7 +53,7 @@ export class Vm {
         // "jsx",
         "flow",
         // "classConstructorCall",
-        // "doExpressions",
+        "doExpressions",
         "objectRestSpread",
         "decorators",
         "classProperties",
