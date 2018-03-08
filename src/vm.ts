@@ -2,6 +2,7 @@ import {parse} from "babylon";
 import Context, {Sandbox$} from "./context";
 import {Scope} from "./scope";
 import evaluate from "./evaluate";
+import {Path} from "./path";
 
 export interface Options {
   filename?: string;
@@ -64,7 +65,9 @@ export class Vm {
       ]
     });
 
-    ast && evaluate(ast, scope, {});
+    const path = new Path(ast, null, scope, {});
+
+    ast && evaluate(path);
 
     // exports
     const module_var = scope.$find("module");
