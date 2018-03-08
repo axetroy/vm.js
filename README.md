@@ -43,11 +43,13 @@ It base on [https://github.com/bramblex/jsjs](https://github.com/bramblex/jsjs)
   * [x] template literals
   * [ ] unicode-regex (Depends on environment)
 * [ ] es2016
-  * [ ] exponentiation-operator
+  * [x] exponentiation operator
 * [ ] es2017
-  * [ ] async-to-generator
+  * [ ] Trailing commas in function parameter lists and calls
+  * [ ] Async functions
+  * [ ] Shared memory and atomics
 * [ ] es2018
-  * [ ] asynchronous-iteration
+  * [ ] asynchronous iteration
   * [ ] Promise.prototype.finally() (Depends on environment)
   * [ ] s (dotAll) flag for regular expressions (Depends on environment)
   * [ ] RegExp named capture groups (Depends on environment)
@@ -55,6 +57,7 @@ It base on [https://github.com/bramblex/jsjs](https://github.com/bramblex/jsjs)
 * [ ] Experimental
   * [x] Object rest spread
   * [x] Class property
+  * [ ] Lifting template literal restriction
 
 ## Contributors
 

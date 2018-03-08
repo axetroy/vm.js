@@ -625,6 +625,7 @@ const evaluate_map: EvaluateMap = {
       "|": (a, b) => a | b,
       "^": (a, b) => a ^ b,
       "&": (a, b) => a & b,
+      "**": (a, b) => Math.pow(a, b),
       in: (a, b) => a in b,
       instanceof: (a, b) => a instanceof b
     }[node.operator](
