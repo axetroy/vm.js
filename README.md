@@ -40,7 +40,6 @@ It base on [https://github.com/bramblex/jsjs](https://github.com/bramblex/jsjs)
   * [x] shorthand properties
   * [x] spread
   * [x] template literals
-  * [x] template literals
   * [ ] unicode-regex (Depends on environment)
 * [ ] es2016
   * [x] exponentiation operator
