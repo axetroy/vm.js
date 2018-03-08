@@ -44,7 +44,7 @@ It base on [https://github.com/bramblex/jsjs](https://github.com/bramblex/jsjs)
 * [ ] es2016
   * [x] exponentiation operator
 * [ ] es2017
-  * [ ] Trailing commas in function parameter lists and calls
+  * [x] Trailing commas in function parameter lists and calls
   * [ ] Async functions
   * [ ] Shared memory and atomics
 * [ ] es2018
