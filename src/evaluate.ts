@@ -439,6 +439,38 @@ const evaluate_map: EvaluateMap = {
   },
   ThisExpression(path) {
     const {scope} = path;
+
+    // TODO: can not use this before super
+
+    // let classBodyScope;
+    // let tempScope = scope;
+
+    // while (!classBodyScope) {
+    //   if (!tempScope) break;
+    //   if (tempScope.type === "class") {
+    //     classBodyScope = tempScope;
+    //   } else {
+    //     if (!tempScope.parent) break;
+    //     tempScope = tempScope.parent;
+    //   }
+    // }
+
+    // if (classBodyScope) {
+    //   const classContext = classBodyScope.$find("this");
+    //   const thisExpressionContext = scope.$find("this");
+    //   if (
+    //     classContext &&
+    //     thisExpressionContext &&
+    //     classContext.$get() === thisExpressionContext.$get()
+    //   ) {
+    //     // this and class in same scope
+
+    //     if (!classBodyScope.$find("@super")) {
+    //       throw ErrNoSuper;
+    //     }
+    //   }
+    // }
+
     const this_val = scope.$find("this");
     return this_val ? this_val.$get() : null;
   },
@@ -794,7 +826,7 @@ const evaluate_map: EvaluateMap = {
   },
   ClassDeclaration(path) {
     const ClassConstructor = evaluate(
-      path.$child(path.node.body, path.scope.$child("block"))
+      path.$child(path.node.body, path.scope.$child("class"))
     );
     path.scope.$const(path.node.id.name, ClassConstructor);
   },
@@ -854,6 +886,16 @@ const evaluate_map: EvaluateMap = {
               throw ErrNoSuper;
             }
           }
+        } else {
+          // apply super
+          _possibleConstructorReturn(
+            this,
+            ((<any>Class).__proto__ || Object.getPrototypeOf(Class)).apply(
+              this,
+              args
+            )
+          );
+          scope.$const("@super", true);
         }
 
         return this;

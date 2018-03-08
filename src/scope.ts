@@ -1,7 +1,7 @@
 import {ErrDuplicateDeclard} from "./error";
 import Context from "./context";
 
-export type ScopeType = "function" | "loop" | "switch" | "block";
+export type ScopeType = "function" | "loop" | "switch" | "block" | "class";
 
 export type Kind = "const" | "var" | "let";
 
@@ -32,7 +32,7 @@ export class Scope {
 
   constructor(
     public readonly type: ScopeType,
-    private parent: Scope | null = null,
+    public parent: Scope | null = null,
     label?: string
   ) {
     this.context = new Context();

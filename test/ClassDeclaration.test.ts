@@ -303,3 +303,46 @@ module.exports = People;
   t.deepEqual(People.length, 1);
   t.deepEqual(People.name, "People");
 });
+
+// test("ClassDeclaration-extends use this before super", t => {
+//   const sandbox: any = vm.createContext({});
+
+//   t.throws(function() {
+//     vm.runInContext(
+//       `
+// class Life{
+// }
+// class People extends Life{
+//   constructor(name){
+//     this.name = 123; // it should throw an error, use 'this' before super()
+//     super()
+//   }
+// }
+
+// new People();
+//     `,
+//       sandbox
+//     );
+//   }, ErrNoSuper.message);
+// });
+
+test("ClassDeclaration-extends auto super without constructor", t => {
+  const sandbox: any = vm.createContext({});
+
+  const people = vm.runInContext(
+    `
+class Life{
+constructor(){
+  this.id = 123;
+}
+}
+class People extends Life{
+
+}
+
+module.exports = new People();
+  `,
+    sandbox
+  );
+  t.deepEqual(people.id, 123);
+});
