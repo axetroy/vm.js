@@ -40,7 +40,9 @@ It base on [https://github.com/bramblex/jsjs](https://github.com/bramblex/jsjs)
   * [x] shorthand properties
   * [x] spread
   * [x] template literals
-  * [ ] unicode-regex (Depends on environment)
+  * [x] Lifting template literal restriction
+  * [ ] unicode-regex
+  * [ ] generator
 * [ ] es2016
   * [x] exponentiation operator
 * [ ] es2017
@@ -49,14 +51,13 @@ It base on [https://github.com/bramblex/jsjs](https://github.com/bramblex/jsjs)
   * [ ] Shared memory and atomics
 * [ ] es2018
   * [ ] asynchronous iteration
-  * [ ] Promise.prototype.finally() (Depends on environment)
-  * [ ] s (dotAll) flag for regular expressions (Depends on environment)
-  * [ ] RegExp named capture groups (Depends on environment)
-  * [ ] RegExp Unicode Property Escapes (Depends on environment)
+  * [ ] Promise.prototype.finally()
+  * [ ] s (dotAll) flag for regular expressions
+  * [ ] RegExp named capture groups
+  * [ ] RegExp Unicode Property Escapes
 * [ ] Experimental
   * [x] Object rest spread
   * [x] Class property
-  * [x] Lifting template literal restriction
   * [x] Do expression
   * [ ] Try with optional catch
 
