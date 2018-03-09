@@ -42,7 +42,7 @@ It base on [https://github.com/bramblex/jsjs](https://github.com/bramblex/jsjs)
   * [x] template literals
   * [x] Lifting template literal restriction
   * [ ] unicode-regex
-  * [ ] generator
+  * [x] Generator function
 * [ ] es2016
   * [x] exponentiation operator
 * [ ] es2017

@@ -66,7 +66,7 @@ export class Vm {
     });
 
     const path = new Path(ast, null, scope, {});
-
+    
     ast && evaluate(path);
 
     // exports

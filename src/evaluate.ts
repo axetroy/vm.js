@@ -14,7 +14,8 @@ import {
   _possibleConstructorReturn,
   _inherits,
   _toConsumableArray,
-  _taggedTemplateLiteral
+  _taggedTemplateLiteral,
+  __generator
 } from "./runtime";
 import {Path} from "./path";
 import {EvaluateMap, EvaluateFunc} from "./type";
@@ -144,6 +145,7 @@ const evaluate_map: EvaluateMap = {
         if (!scope.$declar(kind, name, value)) {
           throw new ErrDuplicateDeclard(name);
         }
+        return value;
       } else if (types.isObjectPattern(declartor.id)) {
         // @es2015 destrucuring
         const vars: {key: string; alias: string}[] = [];
@@ -175,8 +177,11 @@ const evaluate_map: EvaluateMap = {
               const el = declartor.init.elements[i];
               if (!el) {
                 scope.$declar(kind, $varName, undefined);
+                return undefined;
               } else {
-                scope.$declar(kind, $varName, evaluate(path.$child(el)));
+                const result = evaluate(path.$child(el));
+                scope.$declar(kind, $varName, result);
+                return result;
               }
             } else {
               throw node;
@@ -200,23 +205,65 @@ const evaluate_map: EvaluateMap = {
         if (types.isObjectProperty(n)) {
           const propertyName: string = (<any>n).id.name;
           const $var = newScope.$find(propertyName);
-          scope.$var(propertyName, $var ? $var.$get() : undefined);
+          const varValue = $var ? $var.$get() : undefined;
+          scope.$var(propertyName, varValue);
+          return varValue;
         }
       });
     } else if (types.isObjectExpression(node.init)) {
       const varName: string = (<types.Identifier>node.id).name;
-      scope.$var(varName, evaluate(path.$child(node.init)));
+      const varValue = evaluate(path.$child(node.init));
+      scope.$var(varName, varValue);
+      return varValue;
     } else {
       throw node;
     }
   },
   FunctionDeclaration(path) {
     const {node, scope} = path;
+    const {name: func_name} = node.id;
     if (node.async === true) {
+    } else if (node.generator) {
+      const generatorFunc = function generatorFunc() {
+        const __this = this;
+
+        function handler(_a) {
+          const functionBody = node.body;
+          const block = functionBody.body[_a.label];
+          // the last block
+          if (!block) {
+            return [2, undefined];
+          }
+
+          const fieldContext = {
+            call: false,
+            value: null
+          };
+          function next(value) {
+            fieldContext.value = value;
+            fieldContext.call = true;
+            _a.sent();
+          }
+
+          const r = evaluate(path.$child(block, path.scope, {next: next}));
+          if (types.isReturnStatement(block)) {
+            return [2, r.result];
+          }
+          if (fieldContext.call) {
+            return [4, fieldContext.value];
+          } else {
+            // next block
+            _a.label++;
+            return handler(_a);
+          }
+        }
+
+        return __generator(__this, handler);
+      };
+      // function declartion can be duplicate
+      scope.$var(func_name, generatorFunc);
     } else {
       const func = evaluate_map.FunctionExpression(path.$child(<any>node));
-      const {name: func_name} = node.id;
-
       Object.defineProperties(func, {
         length: {
           value: node.params.length
@@ -572,7 +619,7 @@ const evaluate_map: EvaluateMap = {
   },
   FunctionExpression(path) {
     const {node, scope} = path;
-    const func = function(..._arguments) {
+    const func = function functionDeclaration(..._arguments) {
       const newScope = scope.$child("function");
       newScope.invasived = true;
       for (let i = 0; i < node.params.length; i++) {
@@ -1091,7 +1138,10 @@ const evaluate_map: EvaluateMap = {
     const {value} = ctx;
     scope.$const((<types.Identifier>node.argument).name, value);
   },
-  YieldExpression(path) {},
+  YieldExpression(path) {
+    const {next} = path.ctx;
+    next(evaluate(path.$child(path.node.argument))); // call next
+  },
   SequenceExpression(path) {},
   TaggedTemplateExpression(path) {
     const string = path.node.quasi.quasis.map(v => v.value.cooked);
