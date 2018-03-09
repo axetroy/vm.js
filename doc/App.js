@@ -35,14 +35,21 @@ class People extends Animal{
     super();
     this.name = myName;
   }
-  say(name) {
-    alert(\`hello \${name}, I am \${this.name}\`);
+}
+
+class Developer extends People{
+  constructor(name){
+    super(name);
+    this.hiredable = true;
+  }
+  hi(name){
+    alert(\`Hi \${name}, I am \${this.name}, \${this.hiredable ? "I am loking for a job": "I am working now"}.\nI hope this Interpreter can help you.\`);
   }
 }
 
-const person = new People("axetroy");
+const axetroy = new Developer("Axetroy");
 
-person.say("world");
+axetroy.hi("friend");
       `.trim(),
       error: ""
     };
@@ -59,11 +66,7 @@ person.say("world");
       vm.runInContext(code, sandbox);
     } catch (err) {
       console.error(err);
-      this.setState({
-        error: `
-${err.message}
-${err.stack}`
-      });
+      this.setState({error: err.stack});
     }
   }
   render() {

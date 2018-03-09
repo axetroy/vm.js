@@ -7,6 +7,10 @@
   border: 1px solid #ccc;
 }
 
+.CodeMirror {
+  height: 400px !important;
+}
+
 .container {
   width: 60%;
   margin: 0 auto;
