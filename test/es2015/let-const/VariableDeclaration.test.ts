@@ -1,6 +1,6 @@
 import test from "ava";
 import vm from "../../../src/vm";
-import {ErrDuplicateDeclard} from "../../../src/error";
+import { ErrDuplicateDeclard } from "../../../src/error";
 
 test("VariableDeclaration-const", t => {
   const sandbox: any = vm.createContext({});
@@ -116,10 +116,13 @@ test("VariableDeclaration-define const then cover", t => {
   const sandbox: any = vm.createContext({});
 
   t.throws(function() {
-    vm.runInContext(`
+    vm.runInContext(
+      `
 const name = "hello"
 name = "world"  // cover the name, it should throw an error
 module.exports = {name: name}
-      `, sandbox);
+      `,
+      sandbox
+    );
   }, new TypeError("Assignment to constant variable.").message);
 });

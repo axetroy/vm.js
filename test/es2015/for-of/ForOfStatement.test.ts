@@ -1,6 +1,6 @@
 import test from "ava";
 import vm from "../../../src/vm";
-import {ErrInvalidIterable} from "../../../src/error";
+import { ErrInvalidIterable } from "../../../src/error";
 
 test("ForOfStatement-invalid Iterator", t => {
   const sandbox: any = vm.createContext({});
@@ -47,7 +47,7 @@ module.exports = result;
 test("ForOfStatement-without var", t => {
   const sandbox: any = vm.createContext({});
 
-  const {result: arr, value} = vm.runInContext(
+  const { result: arr, value } = vm.runInContext(
     `
 const array = [1, 2, 3, 4];
 

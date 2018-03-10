@@ -12,7 +12,7 @@ test("LiftingTemplate-1", t => {
   t.deepEqual(str, "Hi 6!");
 });
 
-test("LiftingTemplate-with\/", t => {
+test("LiftingTemplate-with/", t => {
   const sandbox: any = vm.createContext({});
 
   const str: any = vm.runInContext(
@@ -22,4 +22,3 @@ test("LiftingTemplate-with\/", t => {
 
   t.deepEqual(str, "Hi\n 6!");
 });
-

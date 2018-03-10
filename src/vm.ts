@@ -1,8 +1,8 @@
-import {parse} from "babylon";
-import Context, {Sandbox$} from "./context";
-import {Scope} from "./scope";
+import { parse } from "babylon";
+import Context, { Sandbox$ } from "./context";
+import { Scope } from "./scope";
 import evaluate from "./evaluate";
-import {Path} from "./path";
+import { Path } from "./path";
 
 export interface Options {
   filename?: string;
@@ -29,7 +29,7 @@ export class Vm {
 
     // define module
     const $exports = {};
-    const $module = {exports: $exports};
+    const $module = { exports: $exports };
     scope.$const("module", $module);
     scope.$var("exports", $exports);
 
@@ -66,7 +66,7 @@ export class Vm {
     });
 
     const path = new Path(ast, null, scope, {});
-    
+
     ast && evaluate(path);
 
     // exports

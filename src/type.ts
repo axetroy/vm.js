@@ -1,6 +1,6 @@
 import * as types from "babel-types";
-import {Scope} from "./scope";
-import {Path} from "./path";
+import { Scope } from "./scope";
+import { Path } from "./path";
 
 export interface NodeTypeMap {
   File: types.File;

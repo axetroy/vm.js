@@ -1,6 +1,6 @@
 import test from "ava";
 import vm from "../../../src/vm";
-import {ErrDuplicateDeclard} from "../../../src/error";
+import { ErrDuplicateDeclard } from "../../../src/error";
 
 test("VariableDeclaration-var", t => {
   const sandbox: any = vm.createContext({});

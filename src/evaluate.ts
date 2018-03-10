@@ -7,7 +7,7 @@ import {
   ErrInvalidIterable,
   ErrNoSuper
 } from "./error";
-import {Scope, ScopeVar, Kind} from "./scope";
+import { Scope, ScopeVar, Kind } from "./scope";
 import {
   _classCallCheck,
   _createClass,
@@ -17,19 +17,19 @@ import {
   _taggedTemplateLiteral,
   __generator
 } from "./runtime";
-import {Path} from "./path";
-import {EvaluateMap, EvaluateFunc} from "./type";
+import { Path } from "./path";
+import { EvaluateMap, EvaluateFunc } from "./type";
 
 const BREAK_SINGAL: {} = {};
 const CONTINUE_SINGAL: {} = {};
-const RETURN_SINGAL: {result: any} = {result: undefined};
+const RETURN_SINGAL: { result: any } = { result: undefined };
 
 const evaluate_map: EvaluateMap = {
   File(path) {
     evaluate(path.$child(path.node.program));
   },
   Program(path) {
-    const {node: program, scope} = path;
+    const { node: program, scope } = path;
     // hoisting
     for (const node of program.body) {
       if (types.isFunctionDeclaration(node)) {
@@ -51,7 +51,7 @@ const evaluate_map: EvaluateMap = {
   },
 
   Identifier(path) {
-    const {node, scope} = path;
+    const { node, scope } = path;
     if (node.name === "undefined") {
       return undefined;
     }
@@ -63,7 +63,7 @@ const evaluate_map: EvaluateMap = {
     }
   },
   RegExpLiteral(path) {
-    const {node} = path;
+    const { node } = path;
     return new RegExp(node.pattern, node.flags);
   },
   StringLiteral(path) {
@@ -84,7 +84,7 @@ const evaluate_map: EvaluateMap = {
   },
   EmptyStatement(path) {},
   BlockStatement(path) {
-    const {node: block, scope} = path;
+    const { node: block, scope } = path;
     // hoisting
     for (const node of block.body) {
       if (types.isFunctionDeclaration(node)) {
@@ -134,11 +134,11 @@ const evaluate_map: EvaluateMap = {
     return RETURN_SINGAL;
   },
   VariableDeclaration(path) {
-    const {node, scope} = path;
+    const { node, scope } = path;
     const kind = node.kind;
     for (const declartor of node.declarations) {
       if (types.isIdentifier(declartor.id)) {
-        const {name} = declartor.id;
+        const { name } = declartor.id;
         const value = declartor.init
           ? evaluate(path.$child(declartor.init))
           : undefined;
@@ -148,7 +148,7 @@ const evaluate_map: EvaluateMap = {
         return value;
       } else if (types.isObjectPattern(declartor.id)) {
         // @es2015 destrucuring
-        const vars: {key: string; alias: string}[] = [];
+        const vars: { key: string; alias: string }[] = [];
         declartor.id.properties.forEach(n => {
           if (types.isObjectProperty(n)) {
             vars.push({
@@ -194,7 +194,7 @@ const evaluate_map: EvaluateMap = {
     }
   },
   VariableDeclarator: path => {
-    const {node, scope} = path;
+    const { node, scope } = path;
     // @es2015 destructuring
     if (types.isObjectPattern(node.id)) {
       const newScope = scope.$child("block");
@@ -220,8 +220,8 @@ const evaluate_map: EvaluateMap = {
     }
   },
   FunctionDeclaration(path) {
-    const {node, scope} = path;
-    const {name: func_name} = node.id;
+    const { node, scope } = path;
+    const { name: func_name } = node.id;
     if (node.async === true) {
     } else if (node.generator) {
       const generatorFunc = function generatorFunc() {
@@ -245,7 +245,7 @@ const evaluate_map: EvaluateMap = {
             _a.sent();
           }
 
-          const r = evaluate(path.$child(block, path.scope, {next: next}));
+          const r = evaluate(path.$child(block, path.scope, { next: next }));
           if (types.isReturnStatement(block)) {
             return [2, r.result];
           }
@@ -281,7 +281,7 @@ const evaluate_map: EvaluateMap = {
     return evaluate(path.$child(path.node.expression));
   },
   ForStatement(path) {
-    const {node, scope} = path;
+    const { node, scope } = path;
     for (
       const new_scope = scope.$child("loop"),
         _ = node.init ? evaluate(path.$child(node.init, new_scope)) : null;
@@ -300,7 +300,7 @@ const evaluate_map: EvaluateMap = {
   },
   // @es2015 for of
   ForOfStatement(path) {
-    const {node, scope} = path;
+    const { node, scope } = path;
     const entity = evaluate(path.$child(node.right));
     // not support for of, it mean not support native for of
     if (typeof Symbol !== "undefined") {
@@ -340,7 +340,7 @@ const evaluate_map: EvaluateMap = {
     }
   },
   ForInStatement(path) {
-    const {node, scope} = path;
+    const { node, scope } = path;
     const kind = (<types.VariableDeclaration>node.left).kind;
     const decl = (<types.VariableDeclaration>node.left).declarations[0];
     const name = (<types.Identifier>decl.id).name;
@@ -362,7 +362,7 @@ const evaluate_map: EvaluateMap = {
     }
   },
   DoWhileStatement(path) {
-    const {node, scope} = path;
+    const { node, scope } = path;
     do {
       const new_scope = scope.$child("loop");
       new_scope.invasived = true;
@@ -377,7 +377,7 @@ const evaluate_map: EvaluateMap = {
     } while (evaluate(path.$child(node.test)));
   },
   WhileStatement(path) {
-    const {node, scope} = path;
+    const { node, scope } = path;
     while (evaluate(path.$child(node.test))) {
       const new_scope = scope.$child("loop");
       new_scope.invasived = true;
@@ -399,7 +399,7 @@ const evaluate_map: EvaluateMap = {
     return evaluate(path.$child(path.node.body));
   },
   TryStatement(path) {
-    const {node, scope} = path;
+    const { node, scope } = path;
     try {
       const newScope = scope.$child("block");
       return evaluate(path.$child(node.block, newScope));
@@ -418,7 +418,7 @@ const evaluate_map: EvaluateMap = {
     }
   },
   SwitchStatement(path) {
-    const {node, scope} = path;
+    const { node, scope } = path;
     const discriminant = evaluate(path.$child(node.discriminant)); // switch的条件
     const new_scope = scope.$child("switch");
 
@@ -445,7 +445,7 @@ const evaluate_map: EvaluateMap = {
     }
   },
   SwitchCase(path) {
-    const {node} = path;
+    const { node } = path;
     for (const stmt of node.consequent) {
       const result = evaluate(path.$child(stmt));
       if (
@@ -458,11 +458,11 @@ const evaluate_map: EvaluateMap = {
     }
   },
   UpdateExpression(path) {
-    const {node, scope} = path;
-    const {prefix} = node;
+    const { node, scope } = path;
+    const { prefix } = node;
     let $var;
     if (types.isIdentifier(node.argument)) {
-      const {name} = node.argument;
+      const { name } = node.argument;
       $var = scope.$find(name);
       if (!$var) throw `${name} 未定义`;
     } else if (types.isMemberExpression(node.argument)) {
@@ -488,7 +488,7 @@ const evaluate_map: EvaluateMap = {
     }[node.operator](evaluate(path.$child(node.argument)));
   },
   ThisExpression(path) {
-    const {scope} = path;
+    const { scope } = path;
 
     // TODO: can not use this before super
 
@@ -525,7 +525,7 @@ const evaluate_map: EvaluateMap = {
     return this_val ? this_val.$get() : null;
   },
   ArrayExpression(path) {
-    const {node} = path;
+    const { node } = path;
     let newArray: any[] = [];
     node.elements.forEach(item => {
       if (types.isSpreadElement(item)) {
@@ -538,7 +538,7 @@ const evaluate_map: EvaluateMap = {
     return newArray;
   },
   ObjectExpression(path) {
-    const {node, scope} = path;
+    const { node, scope } = path;
     let object = {};
     const newScope = scope.$child("block");
     const computedProperties: (
@@ -551,19 +551,19 @@ const evaluate_map: EvaluateMap = {
         computedProperties.push(_property);
         continue;
       }
-      evaluate(path.$child(property, newScope, {object}));
+      evaluate(path.$child(property, newScope, { object }));
     }
 
     // eval the computed properties
     for (const property of computedProperties) {
-      evaluate(path.$child(property, newScope, {object}));
+      evaluate(path.$child(property, newScope, { object }));
     }
 
     return object;
   },
   ObjectProperty(path) {
-    const {node, scope, ctx} = path;
-    const {object} = ctx;
+    const { node, scope, ctx } = path;
+    const { object } = ctx;
     const val = evaluate(path.$child(node.value));
     if (types.isIdentifier(node.key)) {
       object[node.key.name] = val;
@@ -573,7 +573,7 @@ const evaluate_map: EvaluateMap = {
     }
   },
   ObjectMethod(path) {
-    const {node, scope} = path;
+    const { node, scope } = path;
     const methodName: string = !node.computed
       ? types.isIdentifier(node.key)
         ? node.key.name
@@ -604,21 +604,21 @@ const evaluate_map: EvaluateMap = {
     });
     switch (node.kind) {
       case "get":
-        Object.defineProperty(path.ctx.object, methodName, {get: method});
+        Object.defineProperty(path.ctx.object, methodName, { get: method });
         scope.$const(methodName, method);
         break;
       case "set":
-        Object.defineProperty(path.ctx.object, methodName, {set: method});
+        Object.defineProperty(path.ctx.object, methodName, { set: method });
         break;
       case "method":
-        Object.defineProperty(path.ctx.object, methodName, {value: method});
+        Object.defineProperty(path.ctx.object, methodName, { value: method });
         break;
       default:
         throw new Error("Invalid kind of property");
     }
   },
   FunctionExpression(path) {
-    const {node, scope} = path;
+    const { node, scope } = path;
     const func = function functionDeclaration(..._arguments) {
       const newScope = scope.$child("function");
       newScope.invasived = true;
@@ -628,10 +628,12 @@ const evaluate_map: EvaluateMap = {
           newScope.$const(param.name, _arguments[i]);
         } else if (types.isAssignmentPattern(param)) {
           // @es2015 default parameters
-          evaluate(path.$child(param, newScope, {value: _arguments[i]}));
+          evaluate(path.$child(param, newScope, { value: _arguments[i] }));
         } else if (types.isRestElement(param)) {
           // @es2015 rest parameters
-          evaluate(path.$child(param, newScope, {value: _arguments.slice(i)}));
+          evaluate(
+            path.$child(param, newScope, { value: _arguments.slice(i) })
+          );
         }
       }
       newScope.$const("this", this);
@@ -654,7 +656,7 @@ const evaluate_map: EvaluateMap = {
     return func;
   },
   BinaryExpression(path) {
-    const {node} = path;
+    const { node } = path;
     return {
       "==": (a, b) => a == b,
       "!=": (a, b) => a != b,
@@ -684,7 +686,7 @@ const evaluate_map: EvaluateMap = {
     );
   },
   UnaryExpression(path) {
-    const {node, scope} = path;
+    const { node, scope } = path;
     return {
       "-": () => -evaluate(path.$child(node.argument)),
       "+": () => +evaluate(path.$child(node.argument)),
@@ -701,7 +703,7 @@ const evaluate_map: EvaluateMap = {
       },
       delete: () => {
         if (types.isMemberExpression(node.argument)) {
-          const {object, property, computed} = node.argument;
+          const { object, property, computed } = node.argument;
           if (computed) {
             return delete evaluate(path.$child(object))[
               evaluate(path.$child(property))
@@ -720,7 +722,7 @@ const evaluate_map: EvaluateMap = {
   },
 
   CallExpression(path) {
-    const {node, scope} = path;
+    const { node, scope } = path;
     const func = evaluate(path.$child(node.callee));
     const args = node.arguments.map(arg => evaluate(path.$child(arg)));
 
@@ -733,8 +735,8 @@ const evaluate_map: EvaluateMap = {
     }
   },
   MemberExpression(path) {
-    const {node, scope, ctx} = path;
-    const {object, property, computed} = node;
+    const { node, scope, ctx } = path;
+    const { object, property, computed } = node;
 
     const propertyName: string = computed
       ? evaluate(path.$child(property))
@@ -746,7 +748,7 @@ const evaluate_map: EvaluateMap = {
     return typeof target === "function" ? target.bind(obj) : target;
   },
   AssignmentExpression(path) {
-    const {node, scope} = path;
+    const { node, scope } = path;
     let $var: {
       kind: Kind;
       $set(value: any): boolean;
@@ -754,7 +756,7 @@ const evaluate_map: EvaluateMap = {
     };
 
     if (types.isIdentifier(node.left)) {
-      const {name} = node.left;
+      const { name } = node.left;
       const $var_or_not = scope.$find(name);
       if (!$var_or_not) {
         // here to define global var
@@ -812,7 +814,7 @@ const evaluate_map: EvaluateMap = {
     }[node.operator](evaluate(path.$child(node.right)));
   },
   LogicalExpression(path) {
-    const {node} = path;
+    const { node } = path;
     return {
       "||": () =>
         evaluate(path.$child(node.left)) || evaluate(path.$child(node.right)),
@@ -826,21 +828,21 @@ const evaluate_map: EvaluateMap = {
       : evaluate(path.$child(path.node.alternate));
   },
   NewExpression(path) {
-    const {node} = path;
+    const { node } = path;
     const func = evaluate(path.$child(node.callee));
-    Object.defineProperty(func, "length", {value: node.arguments.length});
+    Object.defineProperty(func, "length", { value: node.arguments.length });
     const args = node.arguments.map(arg => evaluate(path.$child(arg)));
     return new (func.bind.apply(func, [null].concat(args)))();
   },
 
   // ES2015
   ArrowFunctionExpression(path) {
-    const {node, scope} = path;
+    const { node, scope } = path;
     const func = function(...args) {
       const new_scope = scope.$child("function");
       new_scope.invasived = true;
       for (let i = 0; i < node.params.length; i++) {
-        const {name} = <types.Identifier>node.params[i];
+        const { name } = <types.Identifier>node.params[i];
         new_scope.$const(name, args[i]);
       }
 
@@ -858,14 +860,14 @@ const evaluate_map: EvaluateMap = {
     };
 
     Object.defineProperties(func, {
-      length: {value: node.params.length},
-      name: {value: node.id ? node.id.name : ""}
+      length: { value: node.params.length },
+      name: { value: node.id ? node.id.name : "" }
     });
 
     return func;
   },
   TemplateLiteral(path) {
-    const {node} = path;
+    const { node } = path;
     return (<types.Node[]>[])
       .concat(node.expressions, node.quasis)
       .sort((a, b) => a.start - b.start)
@@ -882,7 +884,7 @@ const evaluate_map: EvaluateMap = {
     path.scope.$const(path.node.id.name, ClassConstructor);
   },
   ClassBody(path) {
-    const {node, scope} = path;
+    const { node, scope } = path;
     const constructor: types.ClassMethod | void = <types.ClassMethod | void>node.body.find(
       n => types.isClassMethod(n) && n.kind === "constructor"
     );
@@ -954,8 +956,8 @@ const evaluate_map: EvaluateMap = {
 
       // define class name
       Object.defineProperties(Class, {
-        name: {value: parentNode.id.name},
-        length: {value: constructor ? constructor.params.length : 0}
+        name: { value: parentNode.id.name },
+        length: { value: constructor ? constructor.params.length : 0 }
       });
 
       const _methods = methods
@@ -986,7 +988,9 @@ const evaluate_map: EvaluateMap = {
             }
           };
 
-          Object.defineProperty(func, "length", {value: method.params.length});
+          Object.defineProperty(func, "length", {
+            value: method.params.length
+          });
 
           return {
             key: (<any>method.key).name,
@@ -1020,7 +1024,7 @@ const evaluate_map: EvaluateMap = {
   },
   ClassExpression(path) {},
   Super(path) {
-    const {scope, ctx} = path;
+    const { scope, ctx } = path;
     const {
       SuperClass,
       ClassConstructor,
@@ -1058,12 +1062,12 @@ const evaluate_map: EvaluateMap = {
   },
   // @experimental Object rest spread
   SpreadProperty(path) {
-    const {node, ctx} = path;
-    const {object} = ctx;
+    const { node, ctx } = path;
+    const { object } = ctx;
     Object.assign(object, evaluate(path.$child(node.argument)));
   },
   ImportDeclaration(path) {
-    const {node, scope} = path;
+    const { node, scope } = path;
     let defaultImport: string = ""; // default import object
     const otherImport: string[] = []; // import property
     const moduleNane: string = evaluate(path.$child(node.source));
@@ -1103,7 +1107,7 @@ const evaluate_map: EvaluateMap = {
     return path.node.local.name;
   },
   ExportDefaultDeclaration(path) {
-    const {node, scope} = path;
+    const { node, scope } = path;
     const moduleVar = scope.$find("module");
     if (moduleVar) {
       const moduleObject = moduleVar.$get();
@@ -1114,11 +1118,11 @@ const evaluate_map: EvaluateMap = {
     }
   },
   ExportNamedDeclaration(path) {
-    const {node} = path;
+    const { node } = path;
     node.specifiers.forEach(n => evaluate(path.$child(n)));
   },
   ExportSpecifier(path) {
-    const {node, scope} = path;
+    const { node, scope } = path;
     const moduleVar = scope.$find("module");
     if (moduleVar) {
       const moduleObject = moduleVar.$get();
@@ -1126,20 +1130,20 @@ const evaluate_map: EvaluateMap = {
     }
   },
   AssignmentPattern(path) {
-    const {node, scope, ctx} = path;
-    const {value} = ctx;
+    const { node, scope, ctx } = path;
+    const { value } = ctx;
     scope.$const(
       node.left.name,
       value === undefined ? evaluate(path.$child(node.right)) : value
     );
   },
   RestElement(path) {
-    const {node, scope, ctx} = path;
-    const {value} = ctx;
+    const { node, scope, ctx } = path;
+    const { value } = ctx;
     scope.$const((<types.Identifier>node.argument).name, value);
   },
   YieldExpression(path) {
-    const {next} = path.ctx;
+    const { next } = path.ctx;
     next(evaluate(path.$child(path.node.argument))); // call next
   },
   SequenceExpression(path) {},

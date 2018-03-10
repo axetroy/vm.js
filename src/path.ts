@@ -1,5 +1,5 @@
-import {Node} from "babel-types";
-import {Scope, ScopeType} from "./scope";
+import { Node } from "babel-types";
+import { Scope, ScopeType } from "./scope";
 
 export class Path<T extends Node> {
   constructor(
@@ -19,7 +19,7 @@ export class Path<T extends Node> {
       scope
         ? typeof scope === "string" ? this.scope.$child(scope) : scope
         : this.scope,
-      {...this.ctx, ...ctx}
+      { ...this.ctx, ...ctx }
     );
   }
   $findParent(type: string): Path<Node> | null {

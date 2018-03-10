@@ -1,5 +1,5 @@
 import test from "ava";
-import {isImportDefaultSpecifier} from "babel-types";
+import { isImportDefaultSpecifier } from "babel-types";
 import vm from "../../../src/vm";
 
 test("ExportDeclaration-1", t => {

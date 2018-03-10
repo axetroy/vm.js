@@ -1,4 +1,4 @@
-import {ErrDuplicateDeclard} from "./error";
+import { ErrDuplicateDeclard } from "./error";
 import Context from "./context";
 
 export type ScopeType = "function" | "loop" | "switch" | "block" | "class";
@@ -22,7 +22,7 @@ export class ScopeVar {
 }
 
 export class Scope {
-  private content: {[key: string]: ScopeVar} = {};
+  private content: { [key: string]: ScopeVar } = {};
 
   public invasived: boolean = false;
 

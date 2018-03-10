@@ -1,6 +1,6 @@
 import test from "ava";
 import vm from "../../../src/vm";
-import {ErrNoSuper} from "../../../src/error";
+import { ErrNoSuper } from "../../../src/error";
 
 test("ClassDeclaration-contructor", t => {
   const sandbox: any = vm.createContext({});
@@ -119,7 +119,7 @@ module.exports = People;
 test("ClassDeclaration-extends", t => {
   const sandbox: any = vm.createContext({});
 
-  const {People} = vm.runInContext(
+  const { People } = vm.runInContext(
     `
 class Life{
   eat(){
@@ -147,7 +147,7 @@ module.exports = {
 test("ClassDeclaration-extends and super-1", t => {
   const sandbox: any = vm.createContext({});
 
-  const {Life, People} = vm.runInContext(
+  const { Life, People } = vm.runInContext(
     `
 class Life{
   constructor(name){
@@ -194,7 +194,7 @@ module.exports = {
 test("ClassDeclaration-extends and super-2", t => {
   const sandbox: any = vm.createContext({});
 
-  const {People} = vm.runInContext(
+  const { People } = vm.runInContext(
     `
 class Life{
   constructor(name){

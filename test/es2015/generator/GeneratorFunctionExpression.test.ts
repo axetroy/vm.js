@@ -19,8 +19,8 @@ module.exports = get;
   );
 
   const generator = get();
-  t.deepEqual(generator.next(), {done: false, value: 123});
-  t.deepEqual(generator.next(), {done: true, value: undefined});
+  t.deepEqual(generator.next(), { done: false, value: 123 });
+  t.deepEqual(generator.next(), { done: true, value: undefined });
 });
 
 test("GeneratoeFunction-2", t => {
@@ -43,9 +43,9 @@ module.exports = get;
   );
 
   const generator = get();
-  t.deepEqual(generator.next(), {done: false, value: 123});
-  t.deepEqual(generator.next(), {done: false, value: "hello world"});
-  t.deepEqual(generator.next(), {done: true, value: undefined});
+  t.deepEqual(generator.next(), { done: false, value: 123 });
+  t.deepEqual(generator.next(), { done: false, value: "hello world" });
+  t.deepEqual(generator.next(), { done: true, value: undefined });
 });
 
 test("GeneratoeFunction-3", t => {
@@ -69,9 +69,9 @@ module.exports = get;
   );
 
   const generator = get();
-  t.deepEqual(generator.next(), {done: false, value: 123});
-  t.deepEqual(generator.next(), {done: false, value: "hello world"});
-  t.deepEqual(generator.next(), {done: true, value: 233});
+  t.deepEqual(generator.next(), { done: false, value: 123 });
+  t.deepEqual(generator.next(), { done: false, value: "hello world" });
+  t.deepEqual(generator.next(), { done: true, value: 233 });
 });
 
 test("GeneratoeFunction-4", t => {
@@ -95,7 +95,7 @@ module.exports = get;
   );
 
   const generator = get();
-  t.deepEqual(generator.next(), {done: false, value: 123});
-  t.deepEqual(generator.next(), {done: false, value: "hello world"});
-  t.deepEqual(generator.next(), {done: true, value: undefined});
+  t.deepEqual(generator.next(), { done: false, value: 123 });
+  t.deepEqual(generator.next(), { done: false, value: "hello world" });
+  t.deepEqual(generator.next(), { done: true, value: undefined });
 });

@@ -10,7 +10,7 @@ test("TemplateLiteral-1", t => {
 });
 
 test("TemplateLiteral-2", t => {
-  const sandbox: any = vm.createContext({name: "world"});
+  const sandbox: any = vm.createContext({ name: "world" });
 
   const word: any = vm.runInContext(
     "module.exports = `hello ${name}`;",
@@ -21,7 +21,7 @@ test("TemplateLiteral-2", t => {
 });
 
 test("TemplateLiteral-3", t => {
-  const sandbox: any = vm.createContext({name: "world", age: 21});
+  const sandbox: any = vm.createContext({ name: "world", age: 21 });
 
   const word: any = vm.runInContext(
     "module.exports = `hello ${name}, I am ${age} years old.`;",
