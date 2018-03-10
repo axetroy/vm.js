@@ -98,7 +98,7 @@ const evaluate_map: EvaluateMap = {
       }
     }
 
-    let new_scope = scope.invasived ? scope : scope.$child("block");
+    let new_scope = scope.invasive ? scope : scope.$child("block");
     let _result;
     for (const node of block.body) {
       const result = (_result = evaluate(path.$child(node, new_scope)));
@@ -136,16 +136,15 @@ const evaluate_map: EvaluateMap = {
   VariableDeclaration(path) {
     const { node, scope } = path;
     const kind = node.kind;
+
     for (const declartor of node.declarations) {
+      const varKeyValueMap: string[] = [];
+      let varName: string;
+      let varValue: any;
       if (types.isIdentifier(declartor.id)) {
-        const { name } = declartor.id;
-        const value = declartor.init
+        varKeyValueMap[declartor.id.name] = declartor.init
           ? evaluate(path.$child(declartor.init))
           : undefined;
-        if (!scope.$declar(kind, name, value)) {
-          throw new ErrDuplicateDeclard(name);
-        }
-        return value;
       } else if (types.isObjectPattern(declartor.id)) {
         // @es2015 destrucuring
         const vars: { key: string; alias: string }[] = [];
@@ -161,7 +160,7 @@ const evaluate_map: EvaluateMap = {
 
         for (let $var of vars) {
           if ($var.key in obj) {
-            scope.$declar(kind, $var.alias, obj[$var.key]);
+            varKeyValueMap[$var.alias] = obj[$var.key];
           }
         }
       } else if (types.isArrayPattern(declartor.id)) {
@@ -176,12 +175,10 @@ const evaluate_map: EvaluateMap = {
             if (types.isArrayExpression(declartor.init)) {
               const el = declartor.init.elements[i];
               if (!el) {
-                scope.$declar(kind, $varName, undefined);
-                return undefined;
+                varKeyValueMap[$varName] = undefined;
               } else {
                 const result = evaluate(path.$child(el));
-                scope.$declar(kind, $varName, result);
-                return result;
+                varKeyValueMap[$varName] = result;
               }
             } else {
               throw node;
@@ -190,6 +187,18 @@ const evaluate_map: EvaluateMap = {
         });
       } else {
         throw node;
+      }
+
+      for (let varName in varKeyValueMap) {
+        if (scope.invasive && kind === "var") {
+          if (scope.parent) {
+            scope.parent.$declar(kind, varName, varKeyValueMap[varName]);
+          } else {
+            scope.$declar(kind, varName, varKeyValueMap[varName]);
+          }
+        } else {
+          scope.$declar(kind, varName, varKeyValueMap[varName]);
+        }
       }
     }
   },
@@ -347,7 +356,7 @@ const evaluate_map: EvaluateMap = {
 
     for (const value in evaluate(path.$child(node.right))) {
       const new_scope = scope.$child("loop");
-      new_scope.invasived = true;
+      new_scope.invasive = true;
 
       new_scope.$declar(kind, name, value);
 
@@ -363,9 +372,10 @@ const evaluate_map: EvaluateMap = {
   },
   DoWhileStatement(path) {
     const { node, scope } = path;
+    // do while don't have his own scope
     do {
       const new_scope = scope.$child("loop");
-      new_scope.invasived = true;
+      new_scope.invasive = true; // do while循环具有侵入性，定义var的时候，是覆盖父级变量
       const result = evaluate(path.$child(node.body, new_scope)); // 先把do的执行一遍
       if (result === BREAK_SINGAL) {
         break;
@@ -380,7 +390,7 @@ const evaluate_map: EvaluateMap = {
     const { node, scope } = path;
     while (evaluate(path.$child(node.test))) {
       const new_scope = scope.$child("loop");
-      new_scope.invasived = true;
+      new_scope.invasive = true;
       const result = evaluate(path.$child(node.body, new_scope));
 
       if (result === BREAK_SINGAL) {
@@ -407,7 +417,7 @@ const evaluate_map: EvaluateMap = {
       if (node.handler) {
         const param = <types.Identifier>node.handler.param;
         const new_scope = scope.$child("block");
-        new_scope.invasived = true; // 标记为侵入式Scope，不用再多构造啦
+        new_scope.invasive = true; // 标记为侵入式Scope，不用再多构造啦
         new_scope.$const(param.name, err);
         return evaluate(path.$child(node.handler, new_scope));
       } else {
@@ -621,7 +631,7 @@ const evaluate_map: EvaluateMap = {
     const { node, scope } = path;
     const func = function functionDeclaration(..._arguments) {
       const newScope = scope.$child("function");
-      newScope.invasived = true;
+      newScope.invasive = true;
       for (let i = 0; i < node.params.length; i++) {
         const param = node.params[i];
         if (types.isIdentifier(param)) {
@@ -840,7 +850,6 @@ const evaluate_map: EvaluateMap = {
     const { node, scope } = path;
     const func = function(...args) {
       const new_scope = scope.$child("function");
-      new_scope.invasived = true;
       for (let i = 0; i < node.params.length; i++) {
         const { name } = <types.Identifier>node.params[i];
         new_scope.$const(name, args[i]);

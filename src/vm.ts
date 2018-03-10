@@ -22,7 +22,7 @@ export class Vm {
       filename: "index.js"
     }
   ): any | null {
-    const scope = new Scope("block");
+    const scope = new Scope("block", null);
     scope.isTopLevel = true;
     scope.$const("this", this);
     scope.$setContext(context);

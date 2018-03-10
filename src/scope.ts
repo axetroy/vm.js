@@ -22,17 +22,21 @@ export class ScopeVar {
 }
 
 export class Scope {
+  // scope var
   private content: { [key: string]: ScopeVar } = {};
 
-  public invasived: boolean = false;
+  // the scope have invasive property
+  public invasive: boolean = false;
 
+  // is the top level scope
   public isTopLevel: boolean = false;
 
+  // scope context
   public context: Context;
 
   constructor(
     public readonly type: ScopeType,
-    public parent: Scope | null = null,
+    public parent: Scope | null,
     label?: string
   ) {
     this.context = new Context();
@@ -48,7 +52,7 @@ export class Scope {
     }
   }
 
-  $all() {
+  $all(): { [key: string]: any } {
     const map = {};
     for (let varName in this.content) {
       const val = this.content[varName];
@@ -131,4 +135,10 @@ export class Scope {
   $child(type: ScopeType, label?: string) {
     return new Scope(type, this, label);
   }
+}
+
+let a = 1;
+
+for (let i = 0; i < 2; i++) {
+  let a = i;
 }
