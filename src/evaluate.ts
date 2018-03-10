@@ -137,18 +137,18 @@ const evaluate_map: EvaluateMap = {
     const { node, scope } = path;
     const kind = node.kind;
 
-    for (const declartor of node.declarations) {
+    for (const declaration of node.declarations) {
       const varKeyValueMap: string[] = [];
       let varName: string;
       let varValue: any;
-      if (types.isIdentifier(declartor.id)) {
-        varKeyValueMap[declartor.id.name] = declartor.init
-          ? evaluate(path.$child(declartor.init))
+      if (types.isIdentifier(declaration.id)) {
+        varKeyValueMap[declaration.id.name] = declaration.init
+          ? evaluate(path.$child(declaration.init))
           : undefined;
-      } else if (types.isObjectPattern(declartor.id)) {
+      } else if (types.isObjectPattern(declaration.id)) {
         // @es2015 destrucuring
         const vars: { key: string; alias: string }[] = [];
-        declartor.id.properties.forEach(n => {
+        declaration.id.properties.forEach(n => {
           if (types.isObjectProperty(n)) {
             vars.push({
               key: <string>(<any>n.key).name,
@@ -156,24 +156,24 @@ const evaluate_map: EvaluateMap = {
             });
           }
         });
-        const obj = evaluate(path.$child(declartor.init));
+        const obj = evaluate(path.$child(declaration.init));
 
         for (let $var of vars) {
           if ($var.key in obj) {
             varKeyValueMap[$var.alias] = obj[$var.key];
           }
         }
-      } else if (types.isArrayPattern(declartor.id)) {
+      } else if (types.isArrayPattern(declaration.id)) {
         // @es2015 destrucuring
         // @flow
-        declartor.id.elements.forEach((n, i) => {
+        declaration.id.elements.forEach((n, i) => {
           if (types.isIdentifier(n)) {
             const $varName: string = n.typeAnnotation
               ? (<any>n.typeAnnotation.typeAnnotation).id.name
               : n.name;
 
-            if (types.isArrayExpression(declartor.init)) {
-              const el = declartor.init.elements[i];
+            if (types.isArrayExpression(declaration.init)) {
+              const el = declaration.init.elements[i];
               if (!el) {
                 varKeyValueMap[$varName] = undefined;
               } else {
@@ -291,13 +291,20 @@ const evaluate_map: EvaluateMap = {
   },
   ForStatement(path) {
     const { node, scope } = path;
+
+    // FIXME: for循环的作用域问题
     for (
-      const new_scope = scope.$child("loop"),
-        _ = node.init ? evaluate(path.$child(node.init, new_scope)) : null;
-      node.test ? evaluate(path.$child(node.test, new_scope)) : true;
-      node.update ? evaluate(path.$child(node.update, new_scope)) : void 0
+      const newScope = scope.$child("loop").$setInvasive(true),
+        _ = node.init ? evaluate(path.$child(node.init, newScope)) : null;
+      node.test ? evaluate(path.$child(node.test, newScope)) : true;
+      node.update ? evaluate(path.$child(node.update, newScope)) : void 0
     ) {
-      const result = evaluate(path.$child(node.body, new_scope));
+      const result = evaluate(
+        path.$child(
+          node.body,
+          newScope.$child("loop").$setInvasive(newScope.invasive)
+        )
+      );
       if (result === BREAK_SINGAL) {
         break;
       } else if (result === CONTINUE_SINGAL) {
@@ -305,6 +312,7 @@ const evaluate_map: EvaluateMap = {
       } else if (result === RETURN_SINGAL) {
         return result;
       }
+      node.update ? evaluate(path.$child(node.update, newScope)) : void 0;
     }
   },
   // @es2015 for of
@@ -537,14 +545,16 @@ const evaluate_map: EvaluateMap = {
   ArrayExpression(path) {
     const { node } = path;
     let newArray: any[] = [];
-    node.elements.forEach(item => {
-      if (types.isSpreadElement(item)) {
+    for (let item of node.elements) {
+      if (item === null) {
+        newArray.push(undefined);
+      } else if (types.isSpreadElement(item)) {
         const arr = evaluate(path.$child(item));
         newArray = (<any[]>[]).concat(newArray, _toConsumableArray(arr));
       } else {
         newArray.push(evaluate(path.$child(item)));
       }
-    });
+    }
     return newArray;
   },
   ObjectExpression(path) {

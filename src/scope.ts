@@ -42,6 +42,11 @@ export class Scope {
     this.context = new Context();
   }
 
+  $setInvasive(invasive: boolean) {
+    this.invasive = invasive;
+    return this;
+  }
+
   $setContext(context: Context) {
     this.context = context;
     for (let name in context) {
