@@ -7,8 +7,10 @@
     "test": "rm -rf ./build && tsc -p ./ && nyc ava ./build/test",
     "build": "rm -rf ./build && tsc -p ./ -d",
     "start": "npm run build && parcel ./doc/index.html -d vm.js",
-    "docs": "npm run build && parcel build doc/index.html -d ./vm.js && gh-pages -d ./vm.js",
-    "format": "prettier --write ./src/**/*.ts ./test/**/*.ts"
+    "docs":
+      "npm run build && parcel build doc/index.html -d ./vm.js && gh-pages -d ./vm.js",
+    "format": "prettier --write ./src/**/*.ts ./test/**/*.ts",
+    "precommit": "pretty-quick --staged"
   },
   "repository": {
     "type": "git",
@@ -32,10 +34,12 @@
     "babel-preset-react": "^6.24.1",
     "coveralls": "^3.0.0",
     "gh-pages": "^1.1.0",
+    "husky": "^0.14.3",
     "normalize.css": "^8.0.0",
     "nyc": "^11.4.1",
     "parcel-bundler": "^1.6.2",
     "prettier": "^1.11.1",
+    "pretty-quick": "^1.4.1",
     "react": "^16.2.0",
     "react-codemirror": "^1.0.0",
     "react-dom": "^16.2.0",
