@@ -28,6 +28,8 @@ export class Scope {
   // the scope have invasive property
   public invasive: boolean = false;
 
+  public redeclare: boolean = false; // !!dangerous
+
   // is the top level scope
   public isTopLevel: boolean = false;
 
@@ -89,6 +91,9 @@ export class Scope {
     if (!$var) {
       this.content[varName] = new ScopeVar("let", value, this);
       return true;
+    } else if (this.redeclare) {
+      this.content[varName] = new ScopeVar("let", value, this);
+      return true;
     } else {
       throw new ErrDuplicateDeclard(varName);
     }
@@ -97,6 +102,9 @@ export class Scope {
   $const(varName: string, value: any): boolean {
     const $var = this.content[varName];
     if (!$var) {
+      this.content[varName] = new ScopeVar("const", value, this);
+      return true;
+    } else if (this.redeclare) {
       this.content[varName] = new ScopeVar("const", value, this);
       return true;
     } else {
@@ -137,7 +145,7 @@ export class Scope {
       const: () => this.$const(raw_name, value)
     }[kind]();
   }
-  $child(type: ScopeType, label?: string) {
+  $child(type: ScopeType, label?: string): Scope {
     return new Scope(type, this, label);
   }
 }

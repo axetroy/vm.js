@@ -293,18 +293,19 @@ const evaluate_map: EvaluateMap = {
     const { node, scope } = path;
 
     // FIXME: for循环的作用域问题
-    for (
-      const newScope = scope.$child("loop").$setInvasive(true),
-        _ = node.init ? evaluate(path.$child(node.init, newScope)) : null;
-      node.test ? evaluate(path.$child(node.test, newScope)) : true;
-      node.update ? evaluate(path.$child(node.update, newScope)) : void 0
-    ) {
-      const result = evaluate(
-        path.$child(
-          node.body,
-          newScope.$child("loop").$setInvasive(newScope.invasive)
-        )
-      );
+    const newScope = scope.$child("loop").$setInvasive(true);
+
+    newScope.invasive = true;
+    newScope.redeclare = true;
+
+    const _ = node.init ? evaluate(path.$child(node.init, newScope)) : null;
+
+    for (;;) {
+      if (node.test && !evaluate(path.$child(node.test, newScope))) {
+        break;
+      }
+
+      const result = evaluate(path.$child(node.body, newScope));
       if (result === BREAK_SINGAL) {
         break;
       } else if (result === CONTINUE_SINGAL) {
