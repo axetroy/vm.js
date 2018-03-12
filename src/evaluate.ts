@@ -1189,7 +1189,9 @@ const evaluate_map: EvaluateMap = {
   MetaProperty(path) {},
   AwaitExpression(path) {},
   DoExpression(path) {
-    return evaluate(path.$child(path.node.body));
+    const newScope = path.scope.$child("block");
+    newScope.invasive = true;
+    return evaluate(path.$child(path.node.body, newScope));
   }
 };
 
