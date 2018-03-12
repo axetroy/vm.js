@@ -100,10 +100,9 @@ const evaluate_map: EvaluateMap = {
       }
     }
 
-    let new_scope = scope.invasive ? scope : scope.$child("block");
     let _result;
     for (const node of block.body) {
-      const result = (_result = evaluate(path.$child(node, new_scope)));
+      const result = (_result = evaluate(path.$child(node, scope)));
       if (
         result === BREAK_SINGAL ||
         result === CONTINUE_SINGAL ||
@@ -652,7 +651,6 @@ const evaluate_map: EvaluateMap = {
     const { node, scope } = path;
     const func = function functionDeclaration(..._arguments) {
       const newScope = scope.$child("function");
-      newScope.invasive = true;
       for (let i = 0; i < node.params.length; i++) {
         const param = node.params[i];
         if (types.isIdentifier(param)) {
