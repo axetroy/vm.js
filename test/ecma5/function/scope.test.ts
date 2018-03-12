@@ -118,7 +118,7 @@ module.exports = {get: get};
   );
   t.throws(function() {
     get();
-  }, new ErrDuplicateDeclard("a").message);
+  }, ErrDuplicateDeclard("a").message);
 });
 
 test("function scope can not redeclare with const", t => {
@@ -140,5 +140,5 @@ module.exports = {get: get};
   );
   t.throws(function() {
     get();
-  }, new ErrDuplicateDeclard("a").message);
+  }, ErrDuplicateDeclard("a").message);
 });

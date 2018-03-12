@@ -88,7 +88,7 @@ module.exports = {a: a};
     `,
       sandbox
     );
-  }, new ErrDuplicateDeclard("a").message);
+  }, ErrDuplicateDeclard("a").message);
 });
 
 // FIXME: it should throw an error

@@ -20,7 +20,7 @@ test("ForOfStatement-invalid Iterator", t => {
     `,
       sandbox
     );
-  }, new ErrInvalidIterable("obj").message);
+  }, ErrInvalidIterable("obj").message);
 });
 
 test("ForOfStatement-array", t => {

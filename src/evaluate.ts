@@ -80,7 +80,7 @@ const evaluate_map: EvaluateMap = {
     if ($var) {
       return $var.$get();
     } else {
-      throw new ErrNotDefined(node.name);
+      throw ErrNotDefined(node.name);
     }
   },
   RegExpLiteral(path) {
@@ -135,13 +135,13 @@ const evaluate_map: EvaluateMap = {
     return _result;
   },
   WithStatement(path) {
-    throw new ErrNotSupport(path.node.type);
+    throw ErrNotSupport(path.node.type);
   },
   DebuggerStatement(path) {
     debugger;
   },
   LabeledStatement(path) {
-    throw new ErrNotSupport(path.node.type);
+    throw ErrNotSupport(path.node.type);
   },
   BreakStatement(path) {
     return BREAK_SINGAL;
@@ -347,7 +347,7 @@ const evaluate_map: EvaluateMap = {
       if (!entity || !entity[Symbol.iterator]) {
         // FIXME: how to get function name
         // for (let value of get()){}
-        throw new ErrInvalidIterable((<types.Identifier>node.right).name);
+        throw ErrInvalidIterable((<types.Identifier>node.right).name);
       }
     }
 
@@ -565,7 +565,7 @@ const evaluate_map: EvaluateMap = {
     //     // this and class in same scope
 
     //     if (!classBodyScope.$find("@super")) {
-    //       throw ErrNoSuper;
+    //       throw ErrNoSuper();
     //     }
     //   }
     // }
@@ -814,7 +814,7 @@ const evaluate_map: EvaluateMap = {
         if (globalVar) {
           $var = globalVar;
         } else {
-          throw new ErrNotDefined(name);
+          throw ErrNotDefined(name);
         }
       } else {
         $var = <ScopeVar>$var_or_not;
@@ -843,7 +843,7 @@ const evaluate_map: EvaluateMap = {
         }
       };
     } else {
-      throw new ErrUnexpectedToken();
+      throw ErrUnexpectedToken();
     }
 
     return {
@@ -983,7 +983,7 @@ const evaluate_map: EvaluateMap = {
             // if not apply super in construtor
             // FIXME: should define the var in private scope
             if (!scope.$find("@super")) {
-              throw ErrNoSuper;
+              throw ErrNoSuper();
             }
           }
         } else {

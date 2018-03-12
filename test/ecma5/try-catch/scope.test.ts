@@ -107,7 +107,7 @@ module.exports = {a: a};
     `,
       sandbox
     );
-  }, new ErrDuplicateDeclard("a").message);
+  }, ErrDuplicateDeclard("a").message);
 });
 
 test("var in try-catch block and parent scope const some name var", t => {
@@ -128,5 +128,5 @@ module.exports = {a: a};
     `,
       sandbox
     );
-  }, new ErrDuplicateDeclard("a").message);
+  }, ErrDuplicateDeclard("a").message);
 });

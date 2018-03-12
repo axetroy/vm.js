@@ -95,7 +95,7 @@ export class Scope {
       this.content[varName] = new ScopeVar("let", value, this);
       return true;
     } else {
-      throw new ErrDuplicateDeclard(varName);
+      throw ErrDuplicateDeclard(varName);
     }
   }
 
@@ -108,7 +108,7 @@ export class Scope {
       this.content[varName] = new ScopeVar("const", value, this);
       return true;
     } else {
-      throw new ErrDuplicateDeclard(varName);
+      throw ErrDuplicateDeclard(varName);
     }
   }
 
@@ -123,7 +123,7 @@ export class Scope {
     if ($var) {
       if ($var.kind !== "var") {
         // only cover var with var, not const and let
-        throw new ErrDuplicateDeclard(varName);
+        throw ErrDuplicateDeclard(varName);
       } else {
         if (this.isTopLevel && this.context[varName]) {
           // top level context can not be cover

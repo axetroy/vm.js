@@ -254,7 +254,7 @@ module.exports = new People();
     `,
       sandbox
     );
-  }, ErrNoSuper.message);
+  }, ErrNoSuper().message);
 });
 
 test("ClassDeclaration-extends without super", t => {
@@ -282,7 +282,7 @@ new A(); // throw error
     `,
       sandbox
     );
-  }, ErrNoSuper.message);
+  }, ErrNoSuper().message);
 });
 
 test("ClassDeclaration-class name and length", t => {

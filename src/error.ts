@@ -1,39 +1,33 @@
-export class ErrNotDefined extends ReferenceError {
-  constructor(varName: string) {
-    super(`Uncaught ReferenceError: ${varName} is not defined`);
-  }
+export function ErrNotDefined(varName: string): ReferenceError {
+  return new ReferenceError(
+    `Uncaught ReferenceError: ${varName} is not defined`
+  );
 }
 
-export class ErrNotSupport extends SyntaxError {
-  constructor(syntax: string) {
-    super(`The Syntax '${syntax}' is not support`);
-  }
+export function ErrNotSupport(syntax: string): SyntaxError {
+  return new SyntaxError(`The Syntax '${syntax}' is not support`);
 }
 
-export class ErrDuplicateDeclard extends SyntaxError {
-  constructor(varName: string) {
-    super(`Identifier '${varName}' has already been declared`);
-  }
+export function ErrDuplicateDeclard(varName: string): SyntaxError {
+  return new SyntaxError(`Identifier '${varName}' has already been declared`);
 }
 
-export class ErrUnexpectedToken extends SyntaxError {
-  constructor(token: string = "") {
-    super(`Uncaught SyntaxError: Invalid or unexpected token '${token}'`);
-  }
+export function ErrUnexpectedToken(token: string = ""): SyntaxError {
+  return new SyntaxError(
+    `Uncaught SyntaxError: Invalid or unexpected token '${token}'`
+  );
 }
 
-export class ErrIsNot extends TypeError {
-  constructor(name: string, type: string) {
-    super(`Uncaught TypeError: ${name} is not ${type}`);
-  }
+export function ErrIsNot(name: string, type: string): TypeError {
+  return new TypeError(`Uncaught TypeError: ${name} is not ${type}`);
 }
 
-export class ErrInvalidIterable extends ErrIsNot {
-  constructor(name) {
-    super(name, "iterable");
-  }
+export function ErrInvalidIterable(name): TypeError {
+  return ErrIsNot(name, "iterable");
 }
 
-export const ErrNoSuper = new ReferenceError(
-  `Uncaught ReferenceError: Must call super constructor in derived class before accessing 'this' or returning from derived constructor`
-);
+export function ErrNoSuper(): ReferenceError {
+  return new ReferenceError(
+    `Uncaught ReferenceError: Must call super constructor in derived class before accessing 'this' or returning from derived constructor`
+  );
+}

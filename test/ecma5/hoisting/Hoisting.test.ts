@@ -29,7 +29,7 @@ let a = 123;
     `,
       sandbox
     );
-  }, new ErrNotDefined("a").message);
+  }, ErrNotDefined("a").message);
 });
 
 test("Const should not Hoisting", async t => {
@@ -43,7 +43,7 @@ const a = 123;
     `,
       sandbox
     );
-  }, new ErrNotDefined("a").message);
+  }, ErrNotDefined("a").message);
 });
 
 test("Function should not Hoisting", async t => {

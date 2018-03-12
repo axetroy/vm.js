@@ -46,7 +46,7 @@ module.exports = a;
     `,
       sandbox
     );
-  }, new ErrDuplicateDeclard("a").message);
+  }, ErrDuplicateDeclard("a").message);
 });
 
 test("VariableDeclaration-duplicate-const", t => {
@@ -63,7 +63,7 @@ module.exports = a;
     `,
       sandbox
     );
-  }, new ErrDuplicateDeclard("a").message);
+  }, ErrDuplicateDeclard("a").message);
 });
 
 test("VariableDeclaration-duplicate-with-context-let", t => {
@@ -79,7 +79,7 @@ module.exports = global;
       `,
       sandbox
     );
-  }, new ErrDuplicateDeclard("global").message);
+  }, ErrDuplicateDeclard("global").message);
 });
 
 test("VariableDeclaration-duplicate-with-context-const", t => {
@@ -95,7 +95,7 @@ module.exports = global;
       `,
       sandbox
     );
-  }, new ErrDuplicateDeclard("global").message);
+  }, ErrDuplicateDeclard("global").message);
 });
 
 test("VariableDeclaration-define let then cover", t => {

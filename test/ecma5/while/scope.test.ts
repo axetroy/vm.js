@@ -79,5 +79,5 @@ while(true){
     `,
       sandbox
     );
-  }, new ErrDuplicateDeclard("a").message);
+  }, ErrDuplicateDeclard("a").message);
 });

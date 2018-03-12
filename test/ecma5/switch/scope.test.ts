@@ -100,7 +100,7 @@ switch (a) {
     `,
       sandbox
     );
-  }, new ErrDuplicateDeclard("a").message);
+  }, ErrDuplicateDeclard("a").message);
 });
 
 test("var in switch block and parent scope const some name var", t => {
@@ -123,7 +123,7 @@ switch (a) {
     `,
       sandbox
     );
-  }, new ErrDuplicateDeclard("a").message);
+  }, ErrDuplicateDeclard("a").message);
 });
 
 test("switch scope should share scope in each case", t => {

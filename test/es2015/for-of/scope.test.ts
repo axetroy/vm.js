@@ -91,5 +91,5 @@ module.exports = {a: a};
     `,
       sandbox
     );
-  }, new ErrDuplicateDeclard("a").message);
+  }, ErrDuplicateDeclard("a").message);
 });
