@@ -20,6 +20,27 @@ import {
 import { Path } from "./path";
 import { EvaluateMap, EvaluateFunc } from "./type";
 
+import {
+  isArrayExpression,
+  isObjectPattern,
+  isFunctionDeclaration,
+  isVariableDeclaration,
+  isIdentifier,
+  isObjectProperty,
+  isArrayPattern,
+  isObjectExpression,
+  isReturnStatement,
+  isMemberExpression,
+  isSpreadElement,
+  isAssignmentPattern,
+  isRestElement,
+  isClassMethod,
+  isClassProperty,
+  isCallExpression,
+  isImportDefaultSpecifier,
+  isImportSpecifier
+} from "./packages/babel-types";
+
 const BREAK_SINGAL: {} = {};
 const CONTINUE_SINGAL: {} = {};
 const RETURN_SINGAL: { result: any } = { result: undefined };
@@ -32,9 +53,9 @@ const evaluate_map: EvaluateMap = {
     const { node: program, scope } = path;
     // hoisting
     for (const node of program.body) {
-      if (types.isFunctionDeclaration(node)) {
+      if (isFunctionDeclaration(node)) {
         evaluate(path.$child(node));
-      } else if (types.isVariableDeclaration(node)) {
+      } else if (isVariableDeclaration(node)) {
         for (const declaration of node.declarations) {
           if (node.kind === "var") {
             scope.$var((<types.Identifier>declaration.id).name, undefined);
@@ -44,7 +65,7 @@ const evaluate_map: EvaluateMap = {
     }
 
     for (const node of program.body) {
-      if (!types.isFunctionDeclaration(node)) {
+      if (!isFunctionDeclaration(node)) {
         evaluate(path.$child(node));
       }
     }
@@ -89,9 +110,9 @@ const evaluate_map: EvaluateMap = {
     const { node: block, scope } = path;
     // hoisting
     for (const node of block.body) {
-      if (types.isFunctionDeclaration(node)) {
+      if (isFunctionDeclaration(node)) {
         evaluate(path.$child(node));
-      } else if (types.isVariableDeclaration(node)) {
+      } else if (isVariableDeclaration(node)) {
         for (const declaration of node.declarations) {
           if (node.kind === "var") {
             scope.$var((<types.Identifier>declaration.id).name, undefined);
@@ -142,15 +163,15 @@ const evaluate_map: EvaluateMap = {
       const varKeyValueMap: string[] = [];
       let varName: string;
       let varValue: any;
-      if (types.isIdentifier(declaration.id)) {
+      if (isIdentifier(declaration.id)) {
         varKeyValueMap[declaration.id.name] = declaration.init
           ? evaluate(path.$child(declaration.init))
           : undefined;
-      } else if (types.isObjectPattern(declaration.id)) {
+      } else if (isObjectPattern(declaration.id)) {
         // @es2015 destrucuring
         const vars: { key: string; alias: string }[] = [];
         declaration.id.properties.forEach(n => {
-          if (types.isObjectProperty(n)) {
+          if (isObjectProperty(n)) {
             vars.push({
               key: <string>(<any>n.key).name,
               alias: <string>(<any>n.value).name
@@ -164,16 +185,16 @@ const evaluate_map: EvaluateMap = {
             varKeyValueMap[$var.alias] = obj[$var.key];
           }
         }
-      } else if (types.isArrayPattern(declaration.id)) {
+      } else if (isArrayPattern(declaration.id)) {
         // @es2015 destrucuring
         // @flow
         declaration.id.elements.forEach((n, i) => {
-          if (types.isIdentifier(n)) {
+          if (isIdentifier(n)) {
             const $varName: string = n.typeAnnotation
               ? (<any>n.typeAnnotation.typeAnnotation).id.name
               : n.name;
 
-            if (types.isArrayExpression(declaration.init)) {
+            if (isArrayExpression(declaration.init)) {
               const el = declaration.init.elements[i];
               if (!el) {
                 varKeyValueMap[$varName] = undefined;
@@ -206,13 +227,13 @@ const evaluate_map: EvaluateMap = {
   VariableDeclarator: path => {
     const { node, scope } = path;
     // @es2015 destructuring
-    if (types.isObjectPattern(node.id)) {
+    if (isObjectPattern(node.id)) {
       const newScope = scope.$child("block");
-      if (types.isObjectExpression(node.init)) {
+      if (isObjectExpression(node.init)) {
         evaluate_map.ObjectExpression(path.$child(node.init, newScope));
       }
       node.id.properties.forEach(n => {
-        if (types.isObjectProperty(n)) {
+        if (isObjectProperty(n)) {
           const propertyName: string = (<any>n).id.name;
           const $var = newScope.$find(propertyName);
           const varValue = $var ? $var.$get() : undefined;
@@ -220,7 +241,7 @@ const evaluate_map: EvaluateMap = {
           return varValue;
         }
       });
-    } else if (types.isObjectExpression(node.init)) {
+    } else if (isObjectExpression(node.init)) {
       const varName: string = (<types.Identifier>node.id).name;
       const varValue = evaluate(path.$child(node.init));
       scope.$var(varName, varValue);
@@ -256,7 +277,7 @@ const evaluate_map: EvaluateMap = {
           }
 
           const r = evaluate(path.$child(block, path.scope, { next: next }));
-          if (types.isReturnStatement(block)) {
+          if (isReturnStatement(block)) {
             return [2, r.result];
           }
           if (fieldContext.call) {
@@ -330,7 +351,7 @@ const evaluate_map: EvaluateMap = {
       }
     }
 
-    if (types.isVariableDeclaration(node.left)) {
+    if (isVariableDeclaration(node.left)) {
       /**
        * for (let value in array){ // value should define in block scope
        *
@@ -345,7 +366,7 @@ const evaluate_map: EvaluateMap = {
         newScope.$declar(node.left.kind, varName, value); // define in current scope
         evaluate(path.$child(node.body, newScope));
       }
-    } else if (types.isIdentifier(node.left)) {
+    } else if (isIdentifier(node.left)) {
       /**
        * for (value in array){  // value should define in parent scope
        *
@@ -489,11 +510,11 @@ const evaluate_map: EvaluateMap = {
     const { node, scope } = path;
     const { prefix } = node;
     let $var;
-    if (types.isIdentifier(node.argument)) {
+    if (isIdentifier(node.argument)) {
       const { name } = node.argument;
       $var = scope.$find(name);
       if (!$var) throw `${name} 未定义`;
-    } else if (types.isMemberExpression(node.argument)) {
+    } else if (isMemberExpression(node.argument)) {
       const argument = node.argument;
       const object = evaluate(path.$child(argument.object));
       let property = argument.computed
@@ -558,7 +579,7 @@ const evaluate_map: EvaluateMap = {
     for (let item of node.elements) {
       if (item === null) {
         newArray.push(undefined);
-      } else if (types.isSpreadElement(item)) {
+      } else if (isSpreadElement(item)) {
         const arr = evaluate(path.$child(item));
         newArray = (<any[]>[]).concat(newArray, _toConsumableArray(arr));
       } else {
@@ -595,7 +616,7 @@ const evaluate_map: EvaluateMap = {
     const { node, scope, ctx } = path;
     const { object } = ctx;
     const val = evaluate(path.$child(node.value));
-    if (types.isIdentifier(node.key)) {
+    if (isIdentifier(node.key)) {
       object[node.key.name] = val;
       scope.$const(node.key.name, val);
     } else {
@@ -605,9 +626,7 @@ const evaluate_map: EvaluateMap = {
   ObjectMethod(path) {
     const { node, scope } = path;
     const methodName: string = !node.computed
-      ? types.isIdentifier(node.key)
-        ? node.key.name
-        : evaluate(path.$child(node.key))
+      ? isIdentifier(node.key) ? node.key.name : evaluate(path.$child(node.key))
       : evaluate(path.$child(node.key));
     const method = function() {
       const _arguments = [].slice.call(arguments);
@@ -615,7 +634,7 @@ const evaluate_map: EvaluateMap = {
       newScope.$const("this", this);
       // define argument
       node.params.forEach((param, i) => {
-        if (types.isIdentifier(param)) {
+        if (isIdentifier(param)) {
           newScope.$const(param.name, _arguments[i]);
         } else {
           throw node;
@@ -653,12 +672,12 @@ const evaluate_map: EvaluateMap = {
       const newScope = scope.$child("function");
       for (let i = 0; i < node.params.length; i++) {
         const param = node.params[i];
-        if (types.isIdentifier(param)) {
+        if (isIdentifier(param)) {
           newScope.$const(param.name, _arguments[i]);
-        } else if (types.isAssignmentPattern(param)) {
+        } else if (isAssignmentPattern(param)) {
           // @es2015 default parameters
           evaluate(path.$child(param, newScope, { value: _arguments[i] }));
-        } else if (types.isRestElement(param)) {
+        } else if (isRestElement(param)) {
           // @es2015 rest parameters
           evaluate(
             path.$child(param, newScope, { value: _arguments.slice(i) })
@@ -723,7 +742,7 @@ const evaluate_map: EvaluateMap = {
       "~": () => ~evaluate(path.$child(node.argument)),
       void: () => void evaluate(path.$child(node.argument)),
       typeof: () => {
-        if (types.isIdentifier(node.argument)) {
+        if (isIdentifier(node.argument)) {
           const $var = scope.$find(node.argument.name);
           return $var ? typeof $var.$get() : "undefined";
         } else {
@@ -731,7 +750,7 @@ const evaluate_map: EvaluateMap = {
         }
       },
       delete: () => {
-        if (types.isMemberExpression(node.argument)) {
+        if (isMemberExpression(node.argument)) {
           const { object, property, computed } = node.argument;
           if (computed) {
             return delete evaluate(path.$child(object))[
@@ -742,7 +761,7 @@ const evaluate_map: EvaluateMap = {
               (<types.Identifier>property).name
             ];
           }
-        } else if (types.isIdentifier(node.argument)) {
+        } else if (isIdentifier(node.argument)) {
           const $this = scope.$find("this");
           if ($this) return $this.$get()[node.argument.name];
         }
@@ -755,7 +774,7 @@ const evaluate_map: EvaluateMap = {
     const func = evaluate(path.$child(node.callee));
     const args = node.arguments.map(arg => evaluate(path.$child(arg)));
 
-    if (types.isMemberExpression(node.callee)) {
+    if (isMemberExpression(node.callee)) {
       const object = evaluate(path.$child(node.callee.object));
       return func.apply(object, args);
     } else {
@@ -784,7 +803,7 @@ const evaluate_map: EvaluateMap = {
       $get(): any;
     };
 
-    if (types.isIdentifier(node.left)) {
+    if (isIdentifier(node.left)) {
       const { name } = node.left;
       const $var_or_not = scope.$find(name);
       if (!$var_or_not) {
@@ -807,7 +826,7 @@ const evaluate_map: EvaluateMap = {
           throw new TypeError("Assignment to constant variable.");
         }
       }
-    } else if (types.isMemberExpression(node.left)) {
+    } else if (isMemberExpression(node.left)) {
       const left = node.left;
       const object: any = evaluate(path.$child(left.object));
       const property: string = left.computed
@@ -914,13 +933,13 @@ const evaluate_map: EvaluateMap = {
   ClassBody(path) {
     const { node, scope } = path;
     const constructor: types.ClassMethod | void = <types.ClassMethod | void>node.body.find(
-      n => types.isClassMethod(n) && n.kind === "constructor"
+      n => isClassMethod(n) && n.kind === "constructor"
     );
     const methods: types.ClassMethod[] = <types.ClassMethod[]>node.body.filter(
-      n => types.isClassMethod(n) && n.kind !== "constructor"
+      n => isClassMethod(n) && n.kind !== "constructor"
     );
     const properties: types.ClassProperty[] = <types.ClassProperty[]>node.body.filter(
-      n => types.isClassProperty(n)
+      n => isClassProperty(n)
     );
 
     const parentNode = (<Path<types.ClassDeclaration>>path.parent).node;
@@ -943,7 +962,7 @@ const evaluate_map: EvaluateMap = {
         if (constructor) {
           // defined the params
           constructor.params.forEach((p: types.LVal, i) => {
-            if (types.isIdentifier(p)) {
+            if (isIdentifier(p)) {
               classScope.$const(p.name, args[i]);
             } else {
               throw new Error("Invalid params");
@@ -996,7 +1015,7 @@ const evaluate_map: EvaluateMap = {
 
             // defined the params
             method.params.forEach((p: types.LVal, i) => {
-              if (types.isIdentifier(p)) {
+              if (isIdentifier(p)) {
                 newScope.$const(p.name, args[i]);
               }
             });
@@ -1067,7 +1086,7 @@ const evaluate_map: EvaluateMap = {
     const parentPath = path.parent;
     if (parentPath) {
       // super()
-      if (types.isCallExpression(parentPath.node)) {
+      if (isCallExpression(parentPath.node)) {
         return function inherits(...args) {
           _possibleConstructorReturn(
             ClassEntity,
@@ -1078,7 +1097,7 @@ const evaluate_map: EvaluateMap = {
           );
           ClassBodyPath.scope.$const("@super", true);
         }.bind(ClassEntity);
-      } else if (types.isMemberExpression(parentPath.node)) {
+      } else if (isMemberExpression(parentPath.node)) {
         // super.eat()
         // then return the superclass prototype
         return SuperClass.prototype;
@@ -1100,9 +1119,9 @@ const evaluate_map: EvaluateMap = {
     const otherImport: string[] = []; // import property
     const moduleNane: string = evaluate(path.$child(node.source));
     node.specifiers.forEach(n => {
-      if (types.isImportDefaultSpecifier(n)) {
+      if (isImportDefaultSpecifier(n)) {
         defaultImport = evaluate_map.ImportDefaultSpecifier(path.$child(n));
-      } else if (types.isImportSpecifier(n)) {
+      } else if (isImportSpecifier(n)) {
         otherImport.push(evaluate_map.ImportSpecifier(path.$child(n)));
       } else {
         throw n;
