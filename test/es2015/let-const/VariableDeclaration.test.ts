@@ -126,3 +126,25 @@ module.exports = {name: name}
     );
   }, new TypeError("Assignment to constant variable.").message);
 });
+
+// FIXME: let and const should have block scope
+// test("block scope", t => {
+//   const sandbox: any = vm.createContext({});
+
+//   const { a, b } = vm.runInContext(
+//     `
+// var a = 1;
+// var b;
+// {
+//   // should have block scope
+//   const a = 2;
+//   b =a;
+// }
+// module.exports = {a:a, b:b}
+//     `,
+//     sandbox
+//   );
+
+//   t.deepEqual(a, 1);
+//   t.deepEqual(b, 2);
+// });
