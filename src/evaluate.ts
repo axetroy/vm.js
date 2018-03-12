@@ -446,7 +446,8 @@ const evaluate_map: EvaluateMap = {
   SwitchStatement(path) {
     const { node, scope } = path;
     const discriminant = evaluate(path.$child(node.discriminant)); // switch的条件
-    const new_scope = scope.$child("switch");
+    const newScope = scope.$child("switch");
+    newScope.invasive = true;
 
     let matched = false;
     for (const $case of node.cases) {
@@ -454,13 +455,13 @@ const evaluate_map: EvaluateMap = {
       if (
         !matched &&
         (!$case.test ||
-          discriminant === evaluate(path.$child($case.test, new_scope)))
+          discriminant === evaluate(path.$child($case.test, newScope)))
       ) {
         matched = true;
       }
 
       if (matched) {
-        const result = evaluate(path.$child($case, new_scope));
+        const result = evaluate(path.$child($case, newScope));
 
         if (result === BREAK_SINGAL) {
           break;
