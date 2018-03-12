@@ -76,10 +76,12 @@ const evaluate_map: EvaluateMap = {
     return path.node.value;
   },
   IfStatement(path) {
-    if (evaluate(path.$child(path.node.test))) {
-      return evaluate(path.$child(path.node.consequent));
+    const newScope = path.scope.$child("block");
+    newScope.invasive = true;
+    if (evaluate(path.$child(path.node.test, newScope))) {
+      return evaluate(path.$child(path.node.consequent, newScope));
     } else if (path.node.alternate) {
-      return evaluate(path.$child(path.node.alternate));
+      return evaluate(path.$child(path.node.alternate, newScope));
     }
   },
   EmptyStatement(path) {},
