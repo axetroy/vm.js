@@ -423,19 +423,24 @@ const evaluate_map: EvaluateMap = {
     const { node, scope } = path;
     try {
       const newScope = scope.$child("block");
+      newScope.invasive = true;
       return evaluate(path.$child(node.block, newScope));
     } catch (err) {
       if (node.handler) {
         const param = <types.Identifier>node.handler.param;
-        const new_scope = scope.$child("block");
-        new_scope.invasive = true; // 标记为侵入式Scope，不用再多构造啦
-        new_scope.$const(param.name, err);
-        return evaluate(path.$child(node.handler, new_scope));
+        const newScope = scope.$child("block");
+        newScope.invasive = true;
+        newScope.$const(param.name, err);
+        return evaluate(path.$child(node.handler, newScope));
       } else {
         throw err;
       }
     } finally {
-      if (node.finalizer) return evaluate(path.$child(node.finalizer));
+      if (node.finalizer) {
+        const newScope = scope.$child("block");
+        newScope.invasive = true;
+        return evaluate(path.$child(node.finalizer, newScope));
+      }
     }
   },
   SwitchStatement(path) {
