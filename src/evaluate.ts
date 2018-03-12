@@ -342,6 +342,7 @@ const evaluate_map: EvaluateMap = {
       // typescript will compile it to for(){}
       for (let value of entity) {
         const newScope = scope.$child("loop");
+        newScope.invasive = true;
         newScope.$declar(node.left.kind, varName, value); // define in current scope
         evaluate(path.$child(node.body, newScope));
       }
@@ -354,6 +355,7 @@ const evaluate_map: EvaluateMap = {
       const varName = node.left.name;
       for (let value of entity) {
         const newScope = scope.$child("loop");
+        newScope.invasive = true;
         scope.$var(varName, value); // define in parent scope
         evaluate(path.$child(node.body, newScope));
       }
