@@ -9,6 +9,7 @@ export interface INodeTypeMap {
   File: types.File;
   Program: types.Program;
   Identifier: types.Identifier;
+  NullLiteral: types.NullLiteral;
   StringLiteral: types.StringLiteral;
   NumericLiteral: types.NumericLiteral;
   BooleanLiteral: types.BooleanLiteral;

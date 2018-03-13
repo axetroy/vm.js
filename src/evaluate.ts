@@ -93,6 +93,9 @@ const visitors: EvaluateMap = {
   BooleanLiteral(path) {
     return path.node.value;
   },
+  NullLiteral(path) {
+    return null;
+  },
   IfStatement(path) {
     const newScope = path.scope.$child("block");
     newScope.invasive = true;
