@@ -794,6 +794,7 @@ const visitors: EvaluateMap = {
     if (isIdentifier(node.left)) {
       const { name } = node.left;
       const varOrNot = scope.$find(name);
+
       if (!varOrNot) {
         // here to define global var
         const globalScope = scope.$global;
@@ -1218,7 +1219,11 @@ const visitors: EvaluateMap = {
     next(evaluate(path.$child(path.node.argument))); // call next
   },
   SequenceExpression(path) {
-    //
+    let result;
+    for (const expression of path.node.expressions) {
+      result = evaluate(path.$child(expression));
+    }
+    return result;
   },
   TaggedTemplateExpression(path) {
     const str = path.node.quasi.quasis.map(v => v.value.cooked);
