@@ -1,7 +1,7 @@
 import test from "ava";
 import vm from "../../../src/vm";
 
-test("UnaryExpression-typeof", t => {
+test("typeof", t => {
   const sandbox: any = vm.createContext({});
 
   const type: any = vm.runInContext(
@@ -14,7 +14,7 @@ module.exports = typeof 123;
   t.deepEqual(type, "number");
 });
 
-test("UnaryExpression-typeof", t => {
+test("void", t => {
   const sandbox: any = vm.createContext({});
 
   const type: any = vm.runInContext(
@@ -27,7 +27,7 @@ module.exports = void 123;
   t.deepEqual(type, undefined);
 });
 
-test("UnaryExpression-delete", t => {
+test("delete", t => {
   const sandbox: any = vm.createContext({});
 
   const obj: any = vm.runInContext(
@@ -45,4 +45,60 @@ module.exports = obj;
 
   t.deepEqual(obj.a, undefined);
   t.deepEqual(Object.keys(obj).length, 0);
+});
+
+test("!", t => {
+  const sandbox: any = vm.createContext({});
+
+  const isTrue: any = vm.runInContext(
+    `
+const isTrue = !false;
+
+module.exports = isTrue;
+  `,
+    sandbox
+  );
+  t.true(isTrue);
+});
+
+test("+", t => {
+  const sandbox: any = vm.createContext({});
+
+  const num: any = vm.runInContext(
+    `
+const num = +("123");
+
+module.exports = num;
+  `,
+    sandbox
+  );
+  t.deepEqual(num, 123);
+});
+
+test("-", t => {
+  const sandbox: any = vm.createContext({});
+
+  const num: any = vm.runInContext(
+    `
+const num = -("123");
+
+module.exports = num;
+  `,
+    sandbox
+  );
+  t.deepEqual(num, -123);
+});
+
+test("~", t => {
+  const sandbox: any = vm.createContext({});
+
+  const num: any = vm.runInContext(
+    `
+const num = ~("123");
+
+module.exports = num;
+  `,
+    sandbox
+  );
+  t.deepEqual(num, -124);
 });
