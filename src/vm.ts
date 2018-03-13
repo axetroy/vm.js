@@ -8,9 +8,6 @@ export class Vm {
   public createContext(sandbox: ISandBox = {}): Context {
     return new Context(sandbox);
   }
-  public isContext(sandbox: any): sandbox is Context {
-    return sandbox instanceof Context;
-  }
   public runInContext(code: string, context: Context): any | null {
     const scope = new Scope("block", null);
     scope.isTopLevel = true;
