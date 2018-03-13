@@ -1,7 +1,7 @@
 import test from "ava";
 import vm from "../../../src/vm";
 
-test("DoWhileStatement-1", t => {
+test("basic", t => {
   const sandbox: any = vm.createContext({});
 
   const obj: any = vm.runInContext(
@@ -22,62 +22,44 @@ module.exports = obj;
   t.deepEqual(obj.i, 3);
 });
 
-test("DoWhileStatement var in do block should cover the parent scope", t => {
-  const sandbox: any = vm.createContext({});
-
-  const a: any = vm.runInContext(
-    `
-var a = 1;
-
-do {
-  var a = 2; // parent scope have a = 1, here is the child scope
-} while (false);
-
-module.exports = a;
-  `,
-    sandbox
-  );
-  t.deepEqual(a, 2);
-});
-
-test("DoWhileStatement let in do block should define in it's scope", t => {
+test("break in do block", t => {
   const sandbox: any = vm.createContext({});
 
   const obj: any = vm.runInContext(
     `
-var a = 1;
-var b;
-
+const obj = {
+  i: 0
+};
 do {
-  let a = 2;  // have his own scope
-  b = a;
-} while (false)
+  obj.i++;
+  break;
+} while (obj.i < 3);
 
-module.exports = {a: a, b: b};
+module.exports = obj;
   `,
     sandbox
   );
-  t.deepEqual(obj.a, 1);
-  t.deepEqual(obj.b, 2);
+  t.deepEqual(obj.i, 1);
 });
 
-test("DoWhileStatement const in do block should define in it's scope", t => {
+test("do-while in function with return, it should cross block scope", t => {
   const sandbox: any = vm.createContext({});
 
-  const obj: any = vm.runInContext(
+  const get: any = vm.runInContext(
     `
-var a = 1;
-var b;
+function get() {
+  const obj = {
+    i: 0
+  };
+  do {
+    obj.i++;
+    return obj;
+  } while (obj.i < 3);
+}
 
-do {
-  const a = 2;  // have his own scope
-  b = a;
-} while (false)
-
-module.exports = {a: a, b: b};
+module.exports =  get;
   `,
     sandbox
   );
-  t.deepEqual(obj.a, 1);
-  t.deepEqual(obj.b, 2);
+  t.deepEqual(get(), { i: 1 });
 });
