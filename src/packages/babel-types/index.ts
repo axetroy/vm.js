@@ -15,7 +15,6 @@ import {
   ObjectPattern,
   ObjectProperty,
   RestElement,
-  ReturnStatement,
   SpreadElement,
   VariableDeclaration
 } from "babel-types";
@@ -54,10 +53,6 @@ export function isObjectProperty(node: Node): node is ObjectProperty {
 
 export function isArrayPattern(node: Node): node is ArrayPattern {
   return is(node, "ArrayPattern");
-}
-
-export function isReturnStatement(node: Node): node is ReturnStatement {
-  return is(node, "ReturnStatement");
 }
 
 export function isMemberExpression(node: Node): node is MemberExpression {
