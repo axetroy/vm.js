@@ -323,7 +323,7 @@ module.exports = People;
 //     `,
 //       sandbox
 //     );
-//   }, ErrNoSuper.message);
+//   }, ErrNoSuper().message);
 // });
 
 test("ClassDeclaration-extends auto super without constructor", t => {
