@@ -13,7 +13,7 @@ cache:
     - node_modules
 
 script:
-  - npm test
+  - npm run lint &&npm test
 
 after_script:
   - ./node_modules/.bin/nyc report --reporter=text-lcov | ./node_modules/.bin/coveralls

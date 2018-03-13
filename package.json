@@ -10,7 +10,7 @@
     "docs":
       "npm run build && parcel build doc/index.html -d ./vm.js && gh-pages -d ./vm.js",
     "format": "prettier --write ./src/**/*.ts ./test/**/*.ts",
-    "precommit": "npm run lint && npm run test && pretty-quick --staged",
+    "precommit": "npm run lint && pretty-quick --staged",
     "tslint-check": "tslint-config-prettier-check ./tslint.json",
     "lint": "tslint -p ./ -c tslint.json"
   },
