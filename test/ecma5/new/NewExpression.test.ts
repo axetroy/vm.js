@@ -4,18 +4,26 @@ import vm from "../../../src/vm";
 test("NewExpression", t => {
   const sandbox: any = vm.createContext({});
 
-  const output: any = vm.runInContext(
+  const { people, People }: any = vm.runInContext(
     `
-function People(name){
+function People(name, age){
   this.name = name;
 }
 
-module.exports = new People("axetroy");
-module.exports.People = People;
+module.exports = {
+  people: new People("axetroy", 12),
+  People: People
+};
   `,
     sandbox
   );
 
-  t.deepEqual(output.People.length, 1);
-  t.deepEqual(output.name, "axetroy");
+  // constructor
+  t.deepEqual(People.length, 2);
+  t.deepEqual(People.name, "People");
+
+  // entity
+  t.true(people instanceof People);
+  t.deepEqual(people.name, "axetroy");
+  t.true(people.prototype.constructor === People);
 });

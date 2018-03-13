@@ -293,6 +293,7 @@ const visitors: EvaluateMap = {
       scope.$var(functionName, generatorFunc);
     } else {
       const func = visitors.FunctionExpression(path.$child(node as any));
+
       Object.defineProperties(func, {
         length: { value: node.params.length },
         name: { value: functionName }
@@ -906,9 +907,11 @@ const visitors: EvaluateMap = {
   NewExpression(path) {
     const { node } = path;
     const func = evaluate(path.$child(node.callee));
-    Object.defineProperty(func, "length", { value: node.arguments.length });
-    const args = node.arguments.map(arg => evaluate(path.$child(arg)));
-    return new (func.bind.apply(func, [null].concat(args)))();
+    const args: any[] = node.arguments.map(arg => evaluate(path.$child(arg)));
+    const entity = new func(...args);
+    entity.prototype = entity.prototype || {};
+    entity.prototype.constructor = func;
+    return entity;
   },
 
   // ES2015
