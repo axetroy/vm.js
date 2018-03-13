@@ -2,7 +2,7 @@ import { Node } from "babel-types";
 import { Scope } from "./scope";
 import { ScopeType } from "./type";
 
-interface ICtx {
+export interface ICtx {
   [k: string]: any;
 }
 
