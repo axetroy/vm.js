@@ -24,27 +24,26 @@ It base on [https://github.com/bramblex/jsjs](https://github.com/bramblex/jsjs)
 
 * [x] ECMA5
 * [x] es2015
-  * [x] let and const
-  * [x] import and export
-  * [x] block scoped functions
-  * [x] arrow functions
-  * [x] block scoping
-  * [x] classes
-  * [x] computed properties
-  * [x] destructuring
-  * [x] for-of
-  * [x] function name
-  * [x] literals
-  * [x] object super
-  * [x] default and rest-parameters
-  * [x] shorthand properties
-  * [x] spread
-  * [x] template literals
+  * [x] Let and const
+  * [x] Block scoping
+  * [x] Es6 modules
+  * [x] Arrow functions
+  * [x] Class
+  * [x] Computed properties
+  * [x] Destructuring
+  * [x] For of
+  * [x] Function/Class name
+  * [x] Literals
+  * [x] Object super
+  * [x] Default and rest parameters
+  * [x] Shorthand properties
+  * [x] Spread
+  * [x] Template literals
   * [x] Lifting template literal restriction
-  * [ ] unicode-regex
+  * [ ] Unicode-regex
   * [x] Generator function
 * [ ] es2016
-  * [x] exponentiation operator
+  * [x] Exponentiation operator
 * [ ] es2017
   * [x] Trailing commas in function parameter lists and calls
   * [ ] Async functions
