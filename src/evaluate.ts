@@ -19,6 +19,8 @@ import {
 import { IVar, Var } from "./var";
 // tslint:disable-next-line
 import { EvaluateFunc, EvaluateMap, Kind } from "./type";
+// tslint:disable-next-line
+import { Signal } from "./signal";
 
 import {
   isArrayExpression,
@@ -36,14 +38,9 @@ import {
   isObjectPattern,
   isObjectProperty,
   isRestElement,
-  isReturnStatement,
   isSpreadElement,
   isVariableDeclaration
 } from "./packages/babel-types";
-
-const BREAK_SINGAL: {} = {};
-const CONTINUE_SINGAL: {} = {};
-const RETURN_SINGAL: { result: any } = { result: undefined };
 
 const visitors: EvaluateMap = {
   File(path) {
@@ -126,11 +123,7 @@ const visitors: EvaluateMap = {
     let tempResult;
     for (const node of block.body) {
       const result = (tempResult = evaluate(path.$child(node, scope)));
-      if (
-        result === BREAK_SINGAL ||
-        result === CONTINUE_SINGAL ||
-        result === RETURN_SINGAL
-      ) {
+      if (result instanceof Signal) {
         return result;
       }
     }
@@ -147,23 +140,23 @@ const visitors: EvaluateMap = {
     throw ErrNotSupport(path.node.type);
   },
   BreakStatement(path) {
-    return BREAK_SINGAL;
+    return new Signal("break");
   },
   ContinueStatement(path) {
-    return CONTINUE_SINGAL;
+    return new Signal("continue");
   },
   ReturnStatement(path) {
-    RETURN_SINGAL.result = path.node.argument
-      ? evaluate(path.$child(path.node.argument))
-      : undefined;
-    return RETURN_SINGAL;
+    return new Signal(
+      "return",
+      path.node.argument ? evaluate(path.$child(path.node.argument)) : undefined
+    );
   },
   VariableDeclaration(path) {
     const { node, scope } = path;
     const kind = node.kind;
 
     for (const declaration of node.declarations) {
-      const varKeyValueMap: string[] = [];
+      const varKeyValueMap: { [k: string]: any } = {};
       if (isIdentifier(declaration.id)) {
         varKeyValueMap[declaration.id.name] = declaration.init
           ? evaluate(path.$child(declaration.init))
@@ -281,8 +274,9 @@ const visitors: EvaluateMap = {
           }
 
           const r = evaluate(path.$child(block, path.scope, { next }));
-          if (isReturnStatement(block)) {
-            return [2, r.result];
+
+          if (Signal.is(r, "return")) {
+            return [2, r.value];
           }
           if (fieldContext.call) {
             return [4, fieldContext.value];
@@ -330,11 +324,11 @@ const visitors: EvaluateMap = {
       }
 
       const result = evaluate(path.$child(node.body, newScope));
-      if (result === BREAK_SINGAL) {
+      if (Signal.is(result, "break")) {
         break;
-      } else if (result === CONTINUE_SINGAL) {
+      } else if (Signal.is(result, "continue")) {
         continue;
-      } else if (result === RETURN_SINGAL) {
+      } else if (Signal.is(result, "return")) {
         return result;
       }
       if (node.update) {
@@ -401,11 +395,11 @@ const visitors: EvaluateMap = {
         newScope.$declar(kind, name, value);
 
         const result = evaluate(path.$child(node.body, newScope));
-        if (result === BREAK_SINGAL) {
+        if (Signal.is(result, "break")) {
           break;
-        } else if (result === CONTINUE_SINGAL) {
+        } else if (Signal.is(result, "continue")) {
           continue;
-        } else if (result === RETURN_SINGAL) {
+        } else if (Signal.is(result, "return")) {
           return result;
         }
       }
@@ -418,11 +412,11 @@ const visitors: EvaluateMap = {
       const newScope = scope.$child("loop");
       newScope.invasive = true; // do while循环具有侵入性，定义var的时候，是覆盖父级变量
       const result = evaluate(path.$child(node.body, newScope)); // 先把do的执行一遍
-      if (result === BREAK_SINGAL) {
+      if (Signal.is(result, "break")) {
         break;
-      } else if (result === CONTINUE_SINGAL) {
+      } else if (Signal.is(result, "continue")) {
         continue;
-      } else if (result === RETURN_SINGAL) {
+      } else if (Signal.is(result, "return")) {
         return result;
       }
     } while (evaluate(path.$child(node.test)));
@@ -434,11 +428,11 @@ const visitors: EvaluateMap = {
       newScope.invasive = true;
       const result = evaluate(path.$child(node.body, newScope));
 
-      if (result === BREAK_SINGAL) {
+      if (Signal.is(result, "break")) {
         break;
-      } else if (result === CONTINUE_SINGAL) {
+      } else if (Signal.is(result, "continue")) {
         continue;
-      } else if (result === RETURN_SINGAL) {
+      } else if (Signal.is(result, "return")) {
         return result;
       }
     }
@@ -493,9 +487,11 @@ const visitors: EvaluateMap = {
       if (matched) {
         const result = evaluate(path.$child($case, newScope));
 
-        if (result === BREAK_SINGAL) {
+        if (Signal.is(result, "break")) {
           break;
-        } else if (result === CONTINUE_SINGAL || result === RETURN_SINGAL) {
+        } else if (Signal.is(result, "continue")) {
+          continue;
+        } else if (Signal.is(result, "return")) {
           return result;
         }
       }
@@ -505,11 +501,7 @@ const visitors: EvaluateMap = {
     const { node } = path;
     for (const stmt of node.consequent) {
       const result = evaluate(path.$child(stmt));
-      if (
-        result === BREAK_SINGAL ||
-        result === CONTINUE_SINGAL ||
-        result === RETURN_SINGAL
-      ) {
+      if (result instanceof Signal) {
         return result;
       }
     }
@@ -627,7 +619,9 @@ const visitors: EvaluateMap = {
         }
       });
       const result = evaluate(path.$child(node.body, newScope));
-      return result.result ? result.result : result;
+      if (Signal.is(result, "return")) {
+        return result.value;
+      }
     };
     Object.defineProperties(method, {
       length: {
@@ -671,8 +665,10 @@ const visitors: EvaluateMap = {
       newScope.$const("this", this);
       newScope.$const("arguments", arguments);
       const result = evaluate(path.$child(node.body, newScope));
-      if (result === RETURN_SINGAL) {
-        return result.result;
+      if (result instanceof Signal) {
+        return result.value;
+      } else {
+        return result;
       }
     };
 
@@ -931,8 +927,8 @@ const visitors: EvaluateMap = {
       newScope.$const("arguments", args);
       const result = evaluate(path.$child(node.body, newScope));
 
-      if (result === RETURN_SINGAL) {
-        return result.result;
+      if (result instanceof Signal) {
+        return result.value;
       } else {
         return result;
       }
@@ -1061,10 +1057,9 @@ const visitors: EvaluateMap = {
                 ClassEntity: this
               })
             );
-            if (result === RETURN_SINGAL) {
-              return result.result ? result.result : result;
-            } else {
-              return result;
+
+            if (Signal.is(result, "return")) {
+              return result.value;
             }
           };
 
