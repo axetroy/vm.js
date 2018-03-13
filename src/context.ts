@@ -1,56 +1,57 @@
-export interface Sandbox$ {
+export interface ISandBox {
   [k: string]: any;
 }
 
 import g from "./global";
 
-const defaultContext: Sandbox$ = {
-  console,
-
-  setTimeout,
-  setInterval,
-
-  clearTimeout,
+const defaultContext: ISandBox = {
+  Array,
+  Boolean,
   clearInterval,
-
-  encodeURI,
-  encodeURIComponent,
+  clearTimeout,
+  console,
+  Date,
   decodeURI,
   decodeURIComponent,
+  encodeURI,
+  encodeURIComponent,
+  Error,
   escape,
-  unescape,
-
+  EvalError,
   Infinity,
-  NaN,
   isFinite,
   isNaN,
+  JSON,
+  Math,
+  NaN,
+  Number,
+  Object,
   parseFloat,
   parseInt,
-  Object,
-  Boolean,
-  Error,
-  EvalError,
+  Promise: typeof Promise !== "undefined" ? Promise : undefined,
+  Proxy: typeof Proxy !== "undefined" ? Proxy : undefined,
   RangeError,
   ReferenceError,
+  Reflect: typeof Reflect !== "undefined" ? Reflect : undefined,
+  RegExp,
+  setInterval,
+  setTimeout,
+  String,
+  Symbol: typeof Symbol !== "undefined" ? Symbol : undefined,
   SyntaxError,
   TypeError,
-  URIError,
-  Number,
-  Math,
-  Date,
-  String,
-  RegExp,
-  Array,
-  JSON,
-  Promise
+  unescape,
+  URIError
 };
 
 export default class Context {
   public global: any = g;
-  constructor(externalContext: Sandbox$ = {}) {
-    const ctx = Object.assign(defaultContext, externalContext);
-    for (let attr in ctx) {
-      this[attr] = ctx[attr];
+  constructor(externalContext: ISandBox = {}) {
+    const ctx = { ...defaultContext, ...externalContext };
+    for (const attr in ctx) {
+      if (ctx.hasOwnProperty(attr)) {
+        this[attr] = ctx[attr];
+      }
     }
   }
 }

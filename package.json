@@ -10,7 +10,9 @@
     "docs":
       "npm run build && parcel build doc/index.html -d ./vm.js && gh-pages -d ./vm.js",
     "format": "prettier --write ./src/**/*.ts ./test/**/*.ts",
-    "precommit": "pretty-quick --staged"
+    "precommit": "npm run lint && pretty-quick --staged",
+    "tslint-check": "tslint-config-prettier-check ./tslint.json",
+    "lint": "tslint -p ./ -c tslint.json"
   },
   "repository": {
     "type": "git",
@@ -43,6 +45,9 @@
     "react": "^16.2.0",
     "react-codemirror": "^1.0.0",
     "react-dom": "^16.2.0",
+    "ts-lint": "^4.5.1",
+    "tslint": "^5.9.1",
+    "tslint-config-prettier": "^1.9.0",
     "typescript": "^2.7.2"
   }
 }

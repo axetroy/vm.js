@@ -1,17 +1,31 @@
 import { Node } from "babel-types";
-import { Scope, ScopeType } from "./scope";
+import { Scope } from "./scope";
+import { ScopeType } from "./type";
+
+interface ICtx {
+  [k: string]: any;
+}
 
 export class Path<T extends Node> {
   constructor(
     public node: T,
     public parent: Path<Node> | null,
     public scope: Scope,
-    public ctx: any = {}
+    public ctx: ICtx = {}
   ) {}
-  $child<Child extends Node>(
+  /**
+   * Generate child scope
+   * @template Child
+   * @param {Child} node
+   * @param {(ScopeType | Scope)} [scope]
+   * @param {ICtx} [ctx={}]
+   * @returns {Path<Child>}
+   * @memberof Path
+   */
+  public $child<Child extends Node>(
     node: Child,
     scope?: ScopeType | Scope,
-    ctx: any = {}
+    ctx: ICtx = {}
   ): Path<Child> {
     return new Path(
       node,
@@ -22,7 +36,13 @@ export class Path<T extends Node> {
       { ...this.ctx, ...ctx }
     );
   }
-  $findParent(type: string): Path<Node> | null {
+  /**
+   * Find scope scope with type
+   * @param {string} type
+   * @returns {(Path<Node> | null)}
+   * @memberof Path
+   */
+  public $findParent(type: string): Path<Node> | null {
     if (this.parent) {
       return this.parent.node.type === type
         ? this.parent

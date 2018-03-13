@@ -1,6 +1,6 @@
 import test from "ava";
-import vm from "../../../src/vm";
 import { ErrDuplicateDeclard } from "../../../src/error";
+import vm from "../../../src/vm";
 
 test("function have it's own scope even with var", t => {
   const sandbox: any = vm.createContext({});

@@ -1,6 +1,6 @@
 import test from "ava";
-import vm from "../../../src/vm";
 import { ErrDuplicateDeclard } from "../../../src/error";
+import vm from "../../../src/vm";
 
 test("var in if block should cover the parent scope", t => {
   const sandbox: any = vm.createContext({});

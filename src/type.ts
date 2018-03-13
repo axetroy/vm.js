@@ -1,8 +1,11 @@
 import * as types from "babel-types";
-import { Scope } from "./scope";
 import { Path } from "./path";
 
-export interface NodeTypeMap {
+export type ScopeType = "function" | "loop" | "switch" | "block" | "class";
+
+export type Kind = "const" | "var" | "let";
+
+export interface INodeTypeMap {
   File: types.File;
   Program: types.Program;
   Identifier: types.Identifier;
@@ -79,7 +82,7 @@ export interface NodeTypeMap {
 }
 
 export type EvaluateMap = {
-  [key in keyof NodeTypeMap]: (path: Path<NodeTypeMap[key]>) => any
+  [key in keyof INodeTypeMap]: (path: Path<INodeTypeMap[key]>) => any
 };
 
 export type EvaluateFunc = (path: Path<types.Node>) => any;

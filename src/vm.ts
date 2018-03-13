@@ -1,27 +1,17 @@
 import { parse } from "babylon";
-import Context, { Sandbox$ } from "./context";
-import { Scope } from "./scope";
+import Context, { ISandBox } from "./context";
 import evaluate from "./evaluate";
 import { Path } from "./path";
-
-export interface Options {
-  filename?: string;
-}
+import { Scope } from "./scope";
 
 export class Vm {
-  createContext(sandbox: Sandbox$ = {}): Context {
+  public createContext(sandbox: ISandBox = {}): Context {
     return new Context(sandbox);
   }
-  isContext(sandbox: any): boolean {
+  public isContext(sandbox: any): sandbox is Context {
     return sandbox instanceof Context;
   }
-  runInContext(
-    code: string,
-    context: Context,
-    ops: Options = {
-      filename: "index.js"
-    }
-  ): any | null {
+  public runInContext(code: string, context: Context): any | null {
     const scope = new Scope("block", null);
     scope.isTopLevel = true;
     scope.$const("this", this);
@@ -36,10 +26,12 @@ export class Vm {
     // require can be cover
     if (!scope.$find("require")) {
       const requireFunc =
-        typeof require === "function"
-          ? require
-          : typeof context["require"] === "function"
-            ? context["require"]
+        // tslint:disable-next-line
+        typeof context["require"] === "function"
+          ? // tslint:disable-next-line
+            context["require"]
+          : typeof require === "function"
+            ? require
             : function _require(id: string) {
                 return {};
               };
@@ -49,29 +41,22 @@ export class Vm {
     const ast = parse(code, {
       sourceType: "module",
       plugins: [
-        // estree,
-        // "jsx",
-        "flow",
-        // "classConstructorCall",
-        "doExpressions",
-        "objectRestSpread",
-        "decorators",
+        "asyncGenerators",
         "classProperties",
+        "decorators",
+        "doExpressions",
         "exportExtensions",
-        "asyncGenerators"
-        // "functionBind",
-        // "functionSent",
-        // "dynamicImport"
+        "flow",
+        "objectRestSpread"
       ]
     });
 
     const path = new Path(ast, null, scope, {});
-
-    ast && evaluate(path);
+    evaluate(path);
 
     // exports
-    const module_var = scope.$find("module");
-    return module_var ? module_var.$get().exports : null;
+    const moduleVar = scope.$find("module");
+    return moduleVar ? moduleVar.value.exports : null;
   }
 }
 

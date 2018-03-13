@@ -1,6 +1,6 @@
 import test from "ava";
-import vm from "../../../src/vm";
 import { ErrNoSuper } from "../../../src/error";
+import vm from "../../../src/vm";
 
 test("ClassDeclaration-contructor", t => {
   const sandbox: any = vm.createContext({});

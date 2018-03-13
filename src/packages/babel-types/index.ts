@@ -1,23 +1,23 @@
 import {
-  Node,
   ArrayExpression,
-  ObjectExpression,
-  FunctionDeclaration,
-  VariableDeclaration,
-  Identifier,
-  ObjectPattern,
-  ObjectProperty,
   ArrayPattern,
-  ReturnStatement,
-  MemberExpression,
-  SpreadElement,
   AssignmentPattern,
-  RestElement,
+  CallExpression,
   ClassMethod,
   ClassProperty,
-  CallExpression,
+  FunctionDeclaration,
+  Identifier,
   ImportDefaultSpecifier,
-  ImportSpecifier
+  ImportSpecifier,
+  MemberExpression,
+  Node,
+  ObjectExpression,
+  ObjectPattern,
+  ObjectProperty,
+  RestElement,
+  ReturnStatement,
+  SpreadElement,
+  VariableDeclaration
 } from "babel-types";
 
 function is(node: Node, type: string): boolean {

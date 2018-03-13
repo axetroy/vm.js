@@ -1,30 +1,9 @@
-import { ErrDuplicateDeclard } from "./error";
 import Context from "./context";
-
-export type ScopeType = "function" | "loop" | "switch" | "block" | "class";
-
-export type Kind = "const" | "var" | "let";
-
-export class ScopeVar {
-  constructor(public kind: Kind, public value: any, public scope: Scope) {
-    this.value = value;
-    this.kind = kind;
-  }
-
-  $set(value: any): boolean {
-    this.value = value;
-    return true;
-  }
-
-  $get(): any {
-    return this.value;
-  }
-}
+import { ErrDuplicateDeclard } from "./error";
+import { Kind, ScopeType } from "./type";
+import { Var } from "./var";
 
 export class Scope {
-  // scope var
-  private content: { [key: string]: ScopeVar } = {};
-
   // the scope have invasive property
   public invasive: boolean = false;
 
@@ -36,6 +15,9 @@ export class Scope {
   // scope context
   public context: Context;
 
+  // scope var
+  private content: { [key: string]: Var<any> } = {};
+
   constructor(
     public readonly type: ScopeType,
     public parent: Scope | null,
@@ -44,14 +26,14 @@ export class Scope {
     this.context = new Context();
   }
 
-  $setInvasive(invasive: boolean) {
+  public $setInvasive(invasive: boolean) {
     this.invasive = invasive;
     return this;
   }
 
-  $setContext(context: Context) {
+  public $setContext(context: Context) {
     this.context = context;
-    for (let name in context) {
+    for (const name in context) {
       if (context.hasOwnProperty(name)) {
         // here should use $var
         this.$var(name, context[name]);
@@ -59,16 +41,18 @@ export class Scope {
     }
   }
 
-  $all(): { [key: string]: any } {
+  public $all(): { [key: string]: any } {
     const map = {};
-    for (let varName in this.content) {
-      const val = this.content[varName];
-      map[varName] = val instanceof ScopeVar ? val.$get() : undefined;
+    for (const varName in this.content) {
+      if (this.content.hasOwnProperty(varName)) {
+        const val = this.content[varName];
+        map[varName] = val.value;
+      }
     }
     return map;
   }
 
-  $find(varName: string): ScopeVar | null {
+  public $find(varName: string): Var<any> | null {
     if (this.content.hasOwnProperty(varName)) {
       return this.content[varName];
     } else if (this.parent) {
@@ -86,33 +70,34 @@ export class Scope {
     }
   }
 
-  $let(varName: string, value: any): boolean {
+  public $let(varName: string, value: any): boolean {
     const $var = this.content[varName];
     if (!$var) {
-      this.content[varName] = new ScopeVar("let", value, this);
+      this.content[varName] = new Var("let", varName, value, this);
       return true;
     } else if (this.redeclare) {
-      this.content[varName] = new ScopeVar("let", value, this);
+      this.content[varName] = new Var("let", varName, value, this);
       return true;
     } else {
       throw ErrDuplicateDeclard(varName);
     }
   }
 
-  $const(varName: string, value: any): boolean {
+  public $const(varName: string, value: any): boolean {
     const $var = this.content[varName];
     if (!$var) {
-      this.content[varName] = new ScopeVar("const", value, this);
+      this.content[varName] = new Var("const", varName, value, this);
       return true;
     } else if (this.redeclare) {
-      this.content[varName] = new ScopeVar("const", value, this);
+      this.content[varName] = new Var("const", varName, value, this);
       return true;
     } else {
       throw ErrDuplicateDeclard(varName);
     }
   }
 
-  $var(varName: string, value: any): boolean {
+  public $var(varName: string, value: any): boolean {
+    // tslint:disable-next-line
     let scope: Scope = this;
 
     while (scope.parent !== null && scope.type !== "function") {
@@ -129,29 +114,23 @@ export class Scope {
           // top level context can not be cover
           // here we do nothing
         } else {
-          this.content[varName] = new ScopeVar("var", value, this);
+          this.content[varName] = new Var("var", varName, value, this);
         }
       }
     } else {
-      this.content[varName] = new ScopeVar("var", value, this);
+      this.content[varName] = new Var("var", varName, value, this);
     }
     return true;
   }
 
-  $declar(kind: Kind, raw_name: string, value: any): boolean {
+  public $declar(kind: Kind, rawName: string, value: any): boolean {
     return {
-      var: () => this.$var(raw_name, value),
-      let: () => this.$let(raw_name, value),
-      const: () => this.$const(raw_name, value)
+      const: () => this.$const(rawName, value),
+      let: () => this.$let(rawName, value),
+      var: () => this.$var(rawName, value)
     }[kind]();
   }
-  $child(type: ScopeType, label?: string): Scope {
+  public $child(type: ScopeType, label?: string): Scope {
     return new Scope(type, this, label);
   }
-}
-
-let a = 1;
-
-for (let i = 0; i < 2; i++) {
-  let a = i;
 }
