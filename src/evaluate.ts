@@ -167,14 +167,14 @@ const visitors: EvaluateMap = {
       } else if (isObjectPattern(declaration.id)) {
         // @es2015 destrucuring
         const vars: Array<{ key: string; alias: string }> = [];
-        declaration.id.properties.forEach(n => {
+        for (const n of declaration.id.properties) {
           if (isObjectProperty(n)) {
             vars.push({
               key: (n.key as any).name as string,
               alias: (n.value as any).name as string
             });
           }
-        });
+        }
         const obj = evaluate(path.$child(declaration.init));
 
         for (const $var of vars) {
@@ -227,7 +227,7 @@ const visitors: EvaluateMap = {
     if (isObjectPattern(node.id)) {
       const newScope = scope.$child("block");
       if (isObjectExpression(node.init)) {
-        visitors.ObjectExpression(path.$child(node.init, newScope));
+        evaluate(path.$child(node.init, newScope));
       }
       for (const n of node.id.properties) {
         if (isObjectProperty(n)) {
@@ -278,7 +278,7 @@ const visitors: EvaluateMap = {
 
           const r = evaluate(path.$child(block, path.scope, { next }));
 
-          if (Signal.is(r, "return")) {
+          if (Signal.isReturn(r)) {
             return [2, r.value];
           }
           if (fieldContext.call) {
@@ -328,11 +328,11 @@ const visitors: EvaluateMap = {
       }
 
       const result = evaluate(path.$child(node.body, newScope));
-      if (Signal.is(result, "break")) {
+      if (Signal.isBreak(result)) {
         break;
-      } else if (Signal.is(result, "continue")) {
+      } else if (Signal.isContinue(result)) {
         continue;
-      } else if (Signal.is(result, "return")) {
+      } else if (Signal.isReturn(result)) {
         return result;
       }
       if (node.update) {
@@ -399,11 +399,11 @@ const visitors: EvaluateMap = {
         newScope.$declar(kind, name, value);
 
         const result = evaluate(path.$child(node.body, newScope));
-        if (Signal.is(result, "break")) {
+        if (Signal.isBreak(result)) {
           break;
-        } else if (Signal.is(result, "continue")) {
+        } else if (Signal.isContinue(result)) {
           continue;
-        } else if (Signal.is(result, "return")) {
+        } else if (Signal.isReturn(result)) {
           return result;
         }
       }
@@ -416,11 +416,11 @@ const visitors: EvaluateMap = {
       const newScope = scope.$child("loop");
       newScope.invasive = true; // do while循环具有侵入性，定义var的时候，是覆盖父级变量
       const result = evaluate(path.$child(node.body, newScope)); // 先把do的执行一遍
-      if (Signal.is(result, "break")) {
+      if (Signal.isBreak(result)) {
         break;
-      } else if (Signal.is(result, "continue")) {
+      } else if (Signal.isContinue(result)) {
         continue;
-      } else if (Signal.is(result, "return")) {
+      } else if (Signal.isReturn(result)) {
         return result;
       }
     } while (evaluate(path.$child(node.test)));
@@ -432,11 +432,11 @@ const visitors: EvaluateMap = {
       newScope.invasive = true;
       const result = evaluate(path.$child(node.body, newScope));
 
-      if (Signal.is(result, "break")) {
+      if (Signal.isBreak(result)) {
         break;
-      } else if (Signal.is(result, "continue")) {
+      } else if (Signal.isContinue(result)) {
         continue;
-      } else if (Signal.is(result, "return")) {
+      } else if (Signal.isReturn(result)) {
         return result;
       }
     }
@@ -491,11 +491,11 @@ const visitors: EvaluateMap = {
       if (matched) {
         const result = evaluate(path.$child($case, newScope));
 
-        if (Signal.is(result, "break")) {
+        if (Signal.isBreak(result)) {
           break;
-        } else if (Signal.is(result, "continue")) {
+        } else if (Signal.isContinue(result)) {
           continue;
-        } else if (Signal.is(result, "return")) {
+        } else if (Signal.isReturn(result)) {
           return result;
         }
       }
@@ -623,17 +623,13 @@ const visitors: EvaluateMap = {
         }
       });
       const result = evaluate(path.$child(node.body, newScope));
-      if (Signal.is(result, "return")) {
+      if (Signal.isReturn(result)) {
         return result.value;
       }
     };
     Object.defineProperties(method, {
-      length: {
-        value: node.params.length
-      },
-      name: {
-        value: methodName
-      }
+      length: { value: node.params.length },
+      name: { value: methodName }
     });
     switch (node.kind) {
       case "get":
@@ -1065,7 +1061,7 @@ const visitors: EvaluateMap = {
               })
             );
 
-            if (Signal.is(result, "return")) {
+            if (Signal.isReturn(result)) {
               return result.value;
             }
           };

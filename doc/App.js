@@ -1,4 +1,4 @@
-import React, {Component} from "react";
+import React, { Component } from "react";
 import CodeMirror from "react-codemirror";
 
 import "./App.css";
@@ -7,17 +7,6 @@ import "codemirror/mode/javascript/javascript";
 
 import vm from "../build/src/vm";
 import pkg from "../package";
-
-const ctx = {};
-
-for (let key in window) {
-  const val = window[key];
-  if (typeof val === "function") {
-    ctx[key] = window[key].bind(window);
-  } else {
-    ctx[key] = window[key];
-  }
-}
 
 export default class App extends Component {
   constructor(props) {
@@ -62,11 +51,23 @@ axetroy.hi("friend");
   }
   runCode(code) {
     try {
+      const ctx = {};
+
+      for (let key in window) {
+        const val = window[key];
+        if (typeof val === "function") {
+          ctx[key] = window[key].bind(window);
+        } else {
+          ctx[key] = window[key];
+        }
+      }
+
+      ctx.require = require;
       const sandbox = vm.createContext(ctx);
       vm.runInContext(code, sandbox);
     } catch (err) {
       console.error(err);
-      this.setState({error: err.stack});
+      this.setState({ error: err.stack });
     }
   }
   render() {
@@ -90,7 +91,7 @@ axetroy.hi("friend");
             <path
               d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2"
               fill="currentColor"
-              style={{transformOrigin: "130px 106px"}}
+              style={{ transformOrigin: "130px 106px" }}
               className="octo-arm"
             />
             <path
@@ -101,9 +102,9 @@ axetroy.hi("friend");
           </svg>
         </a>
         <div className="container">
-          <div style={{margin: "2rem 0"}}>
-            <h3 style={{textAlign: "center"}}>vm.js@{pkg.version}</h3>
-            <p style={{textAlign: "center", color: "#ccc", margin: "0.5rem"}}>
+          <div style={{ margin: "2rem 0" }}>
+            <h3 style={{ textAlign: "center" }}>vm.js@{pkg.version}</h3>
+            <p style={{ textAlign: "center", color: "#ccc", margin: "0.5rem" }}>
               Javascript Interpreter, run Javascript code in ECMAScript
             </p>
             <p>
@@ -138,7 +139,7 @@ axetroy.hi("friend");
                 cursorBlinkRate: 530
               }}
             />
-            <div style={{textAlign: "center", margin: "1rem"}}>
+            <div style={{ textAlign: "center", margin: "1rem" }}>
               <button
                 type="button"
                 className="btn"
@@ -147,7 +148,7 @@ axetroy.hi("friend");
                 Run the code!
               </button>
             </div>
-            <pre style={{overflow: "scroll"}}>{this.state.error}</pre>
+            <pre style={{ overflow: "scroll" }}>{this.state.error}</pre>
           </div>
         </div>
       </div>
