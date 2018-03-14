@@ -9,11 +9,12 @@
     "noImplicitAny": false,
     "noImplicitThis": false,
     "rootDirs": ["."],
-    "inlineSourceMap": true,
+    // "inlineSourceMap": true,
     "inlineSources": true,
     "outDir": "./build",
     "typeRoots": ["node_modules/@types"],
-    "types": ["node"]
+    "types": ["node"],
+    "sourceMap": true
   },
   "include": ["src/**/*.ts", "test/**/*.ts"]
 }
