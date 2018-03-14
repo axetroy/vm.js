@@ -2,7 +2,7 @@
   "name": "vm.js",
   "version": "0.0.1",
   "description": "Javascript Interpreter, run Javascript code in ECMAScript",
-  "main": "index.js",
+  "main": "./build/src/vm.js",
   "scripts": {
     "test": "rm -rf ./build && tsc -p ./ && nyc ava ./build/test",
     "build": "rm -rf ./build && tsc -p ./ -d",

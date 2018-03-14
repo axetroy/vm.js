@@ -12,13 +12,25 @@
 
 Run Javascript code in ECMAScript, without eval(), new Function(), setTimeout()...
 
-It still in development...
-
-The first version will be release when support es2015 completely. comming soon.
-
 It base on [https://github.com/bramblex/jsjs](https://github.com/bramblex/jsjs)
 
 [Try it out](https://axetroy.github.io/vm.js)
+
+## Usage
+
+```javascript
+import vm from "@axetroy/vm";
+
+const sanbox = {};
+
+const context = vm.createContext(sanbox);
+
+try {
+  vm.runInContext(`console.log("Hello world");`, context);
+} catch (err) {
+  console.error(err);
+}
+```
 
 ## Support
 
@@ -26,7 +38,7 @@ It base on [https://github.com/bramblex/jsjs](https://github.com/bramblex/jsjs)
 * [x] es2015
   * [x] Let and const
   * [x] Block scoping
-  * [x] Es6 modules
+  * [x] ES modules
   * [x] Arrow functions
   * [x] Class
   * [x] Computed properties
@@ -49,7 +61,7 @@ It base on [https://github.com/bramblex/jsjs](https://github.com/bramblex/jsjs)
   * [ ] Async functions
   * [ ] Shared memory and atomics
 * [ ] es2018
-  * [ ] asynchronous iteration
+  * [ ] Asynchronous iteration
   * [ ] Promise.prototype.finally()
   * [ ] s (dotAll) flag for regular expressions
   * [ ] RegExp named capture groups

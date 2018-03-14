@@ -1,0 +1,17 @@
+node_modules
+.vscode
+*.log
+.nyc_output
+.DS_Store
+vm.js
+.cache
+build/test
+test
+doc
+.travis.yml
+.babelrc
+.gitignore
+tsconfig.json
+src
+tslint.json
+*.lock
