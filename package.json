@@ -1,5 +1,5 @@
 {
-  "name": "vm.js",
+  "name": "@axetroy/vm",
   "version": "0.1.0",
   "description": "Javascript Interpreter, run Javascript code in ECMAScript",
   "main": "./build/src/vm.js",
