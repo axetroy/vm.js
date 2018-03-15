@@ -3,11 +3,11 @@
 [![Greenkeeper badge](https://badges.greenkeeper.io/axetroy/vm.js.svg)](https://greenkeeper.io/)
 [![Build Status](https://travis-ci.org/axetroy/vm.js.svg?branch=master)](https://travis-ci.org/axetroy/vm.js)
 [![Coverage Status](https://coveralls.io/repos/github/axetroy/vm.js/badge.svg?branch=master)](https://coveralls.io/github/axetroy/vm.js?branch=master)
-[![Dependency](https://david-dm.org/axetroy/vm.js.svg)](https://david-dm.org/axetroy/vm.js)
+[![Dependency](https://david-dm.org/axetroy/vm.svg)](https://david-dm.org/axetroy/vm)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 [![Prettier](https://img.shields.io/badge/Code%20Style-Prettier-green.svg)](https://github.com/prettier/prettier)
 ![Node](https://img.shields.io/badge/node-%3E=7.6-blue.svg?style=flat-square)
-[![npm version](https://badge.fury.io/js/%40axetroy%2Fvm.js.svg)](https://badge.fury.io/js/%40axetroy%2Fvm.js)
+[![npm version](https://badge.fury.io/js/%40axetroy%2Fvm.svg)](https://badge.fury.io/js/%40axetroy%2Fvm)
 ![Size](https://github-size-badge.herokuapp.com/axetroy/vm.js.svg)
 
 Run Javascript code in ECMAScript, without eval(), new Function(), setTimeout()...
