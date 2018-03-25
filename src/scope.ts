@@ -108,7 +108,10 @@ export class Scope {
     // tslint:disable-next-line
     let scope: Scope = this;
 
-    while (scope.parent !== null && scope.type !== "function") {
+    while (
+      scope.parent !== null &&
+      (scope.type !== "function" && scope.type !== "class")
+    ) {
       scope = scope.parent;
     }
 

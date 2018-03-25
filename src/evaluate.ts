@@ -316,7 +316,6 @@ const visitors: EvaluateMap = {
   ForStatement(path) {
     const { node, scope } = path;
 
-    // FIXME: for循环的作用域问题
     const forScope = scope.createChild("loop");
 
     forScope.invasive = true; // 有块级作用域
@@ -557,6 +556,12 @@ const visitors: EvaluateMap = {
   },
   ThisExpression(path) {
     const { scope } = path;
+    // use this in class constructor it it never call super();
+    if (scope.type === "class") {
+      if (!scope.hasOwnBinding("this")) {
+        throw ErrNoSuper();
+      }
+    }
     const thisVar = scope.hasBinding("this");
     return thisVar ? thisVar.value : null;
   },
@@ -995,8 +1000,7 @@ const visitors: EvaluateMap = {
 
       function ClassConstructor(...args) {
         _classCallCheck(this, ClassConstructor);
-        const classScope = scope.createChild("function");
-        classScope.var("this", this);
+        const classScope = scope.createChild("class");
 
         // define class property
         properties.forEach(p => {
@@ -1013,26 +1017,24 @@ const visitors: EvaluateMap = {
             }
           });
 
+          if (!SuperClass) {
+            classScope.const("this", this);
+          }
+
           for (const n of constructor.body.body) {
             evaluate(
               path.createChild(n, classScope, {
                 SuperClass,
                 ClassConstructor,
                 ClassConstructorArguments: args,
-                ClassEntity: this
+                ClassEntity: this,
+                classScope
               })
             );
           }
-
-          if (parentNode.superClass) {
-            // if not apply super in constructor
-            // FIXME: should define the var in private scope
-            if (!scope.hasBinding("@super")) {
-              throw ErrNoSuper();
-            }
-          }
         } else {
-          // apply super
+          classScope.const("this", this);
+          // apply super if constructor not exist
           _possibleConstructorReturn(
             this,
             (
@@ -1040,7 +1042,10 @@ const visitors: EvaluateMap = {
               Object.getPrototypeOf(ClassConstructor)
             ).apply(this, args)
           );
-          scope.const("@super", true);
+        }
+
+        if (!classScope.hasOwnBinding("this")) {
+          throw ErrNoSuper();
         }
 
         return this;
@@ -1091,7 +1096,7 @@ const visitors: EvaluateMap = {
         })
         .concat([{ key: "constructor", value: ClassConstructor }]);
 
-      // define clsss methods
+      // define class methods
       _createClass(ClassConstructor, classMethods);
 
       return ClassConstructor;
@@ -1114,7 +1119,7 @@ const visitors: EvaluateMap = {
   },
   Super(path) {
     const { ctx } = path;
-    const { SuperClass, ClassConstructor, ClassEntity } = ctx;
+    const { SuperClass, ClassConstructor, ClassEntity, classScope } = ctx;
     const ClassBodyPath = path.$findParent("ClassBody");
     // make sure it include in ClassDeclaration
     if (!ClassBodyPath) {
@@ -1124,6 +1129,9 @@ const visitors: EvaluateMap = {
     if (parentPath) {
       // super()
       if (isCallExpression(parentPath.node)) {
+        if (classScope) {
+          classScope.const("this", ClassEntity);
+        }
         return function inherits(...args) {
           _possibleConstructorReturn(
             ClassEntity,
@@ -1132,7 +1140,6 @@ const visitors: EvaluateMap = {
               Object.getPrototypeOf(ClassConstructor)
             ).apply(ClassEntity, args)
           );
-          ClassBodyPath.scope.const("@super", true);
         }.bind(ClassEntity);
       } else if (isMemberExpression(parentPath.node)) {
         // super.eat()

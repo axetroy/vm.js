@@ -257,7 +257,7 @@ module.exports = new People();
   }, ErrNoSuper().message);
 });
 
-test("ClassDeclaration-extends without super", t => {
+test("ClassDeclaration-extends without super-2", t => {
   const sandbox: any = vm.createContext({});
 
   t.throws(function() {
@@ -304,27 +304,27 @@ module.exports = People;
   t.deepEqual(People.name, "People");
 });
 
-// test("ClassDeclaration-extends use this before super", t => {
-//   const sandbox: any = vm.createContext({});
+test("ClassDeclaration-extends use this before super", t => {
+  const sandbox: any = vm.createContext({});
 
-//   t.throws(function() {
-//     vm.runInContext(
-//       `
-// class Life{
-// }
-// class People extends Life{
-//   constructor(name){
-//     this.name = 123; // it should throw an error, use 'this' before super()
-//     super()
-//   }
-// }
+  t.throws(function() {
+    vm.runInContext(
+      `
+class Life{
+}
+class People extends Life{
+  constructor(name){
+    this.name = 123; // it should throw an error, use 'this' before super()
+    super()
+  }
+}
 
-// new People();
-//     `,
-//       sandbox
-//     );
-//   }, ErrNoSuper().message);
-// });
+new People();
+    `,
+      sandbox
+    );
+  }, ErrNoSuper().message);
+});
 
 test("ClassDeclaration-extends auto super without constructor", t => {
   const sandbox: any = vm.createContext({});
