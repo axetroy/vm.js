@@ -70,6 +70,7 @@ try {
   * [x] Class property
   * [x] Do expression
   * [ ] Try with optional catch
+  * [ ] Decorator
 
 ## Contributors
 
