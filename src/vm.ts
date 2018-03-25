@@ -14,17 +14,17 @@ import { Scope } from "./scope";
 export function runInContext(code: string, context: Context) {
   const scope = new Scope("block", null);
   scope.isTopLevel = true;
-  scope.$const("this", this);
-  scope.$setContext(context);
+  scope.const("this", this);
+  scope.setContext(context);
 
   // define module
   const $exports = {};
   const $module = { exports: $exports };
-  scope.$const("module", $module);
-  scope.$var("exports", $exports);
+  scope.const("module", $module);
+  scope.var("exports", $exports);
 
   // require can be cover
-  if (!scope.$find("require")) {
+  if (!scope.hasBinding("require")) {
     const requireFunc =
       // tslint:disable-next-line
       typeof context["require"] === "function"
@@ -35,7 +35,7 @@ export function runInContext(code: string, context: Context) {
           : function _require(id: string) {
               return {};
             };
-    scope.$var("require", requireFunc);
+    scope.var("require", requireFunc);
   }
 
   const ast = parse(code, {
@@ -55,7 +55,7 @@ export function runInContext(code: string, context: Context) {
   evaluate(path);
 
   // exports
-  const moduleVar = scope.$find("module");
+  const moduleVar = scope.hasBinding("module");
   return moduleVar ? moduleVar.value.exports : null;
 }
 

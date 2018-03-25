@@ -26,22 +26,22 @@ export class Scope {
     this.context = new Context();
   }
 
-  public $setInvasive(invasive: boolean) {
+  public setInvasive(invasive: boolean) {
     this.invasive = invasive;
     return this;
   }
 
-  public $setContext(context: Context) {
+  public setContext(context: Context) {
     this.context = context;
     for (const name in context) {
       if (context.hasOwnProperty(name)) {
         // here should use $var
-        this.$var(name, context[name]);
+        this.var(name, context[name]);
       }
     }
   }
 
-  public $all(): { [key: string]: any } {
+  public all(): { [key: string]: any } {
     const map = {};
     for (const varName in this.content) {
       if (this.content.hasOwnProperty(varName)) {
@@ -52,25 +52,33 @@ export class Scope {
     return map;
   }
 
-  public $find(varName: string): Var<any> | null {
+  public hasBinding(varName: string): Var<any> | false {
     if (this.content.hasOwnProperty(varName)) {
       return this.content[varName];
     } else if (this.parent) {
-      return this.parent.$find(varName);
+      return this.parent.hasBinding(varName);
     } else {
-      return null;
+      return false;
     }
   }
 
-  get $global(): Scope {
+  public hasOwnBinding(varName: string): Var<any> | false {
+    if (this.content.hasOwnProperty(varName)) {
+      return this.content[varName];
+    } else {
+      return false;
+    }
+  }
+
+  get global(): Scope {
     if (this.parent) {
-      return this.parent.$global;
+      return this.parent.global;
     } else {
       return this;
     }
   }
 
-  public $let(varName: string, value: any): boolean {
+  public let(varName: string, value: any): boolean {
     const $var = this.content[varName];
     if (!$var) {
       this.content[varName] = new Var("let", varName, value, this);
@@ -83,7 +91,7 @@ export class Scope {
     }
   }
 
-  public $const(varName: string, value: any): boolean {
+  public const(varName: string, value: any): boolean {
     const $var = this.content[varName];
     if (!$var) {
       this.content[varName] = new Var("const", varName, value, this);
@@ -96,7 +104,7 @@ export class Scope {
     }
   }
 
-  public $var(varName: string, value: any): boolean {
+  public var(varName: string, value: any): boolean {
     // tslint:disable-next-line
     let scope: Scope = this;
 
@@ -123,14 +131,14 @@ export class Scope {
     return true;
   }
 
-  public $declar(kind: Kind, rawName: string, value: any): boolean {
+  public declare(kind: Kind, rawName: string, value: any): boolean {
     return {
-      const: () => this.$const(rawName, value),
-      let: () => this.$let(rawName, value),
-      var: () => this.$var(rawName, value)
+      const: () => this.const(rawName, value),
+      let: () => this.let(rawName, value),
+      var: () => this.var(rawName, value)
     }[kind]();
   }
-  public $child(type: ScopeType, label?: string): Scope {
+  public createChild(type: ScopeType, label?: string): Scope {
     return new Scope(type, this, label);
   }
 }

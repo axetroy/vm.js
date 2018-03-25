@@ -44,18 +44,18 @@ import {
 
 const visitors: EvaluateMap = {
   File(path) {
-    evaluate(path.$child(path.node.program));
+    evaluate(path.createChild(path.node.program));
   },
   Program(path) {
     const { node: program, scope } = path;
     // hoisting
     for (const node of program.body) {
       if (isFunctionDeclaration(node)) {
-        evaluate(path.$child(node));
+        evaluate(path.createChild(node));
       } else if (isVariableDeclaration(node)) {
         for (const declaration of node.declarations) {
           if (node.kind === "var") {
-            scope.$var((declaration.id as types.Identifier).name, undefined);
+            scope.var((declaration.id as types.Identifier).name, undefined);
           }
         }
       }
@@ -63,7 +63,7 @@ const visitors: EvaluateMap = {
 
     for (const node of program.body) {
       if (!isFunctionDeclaration(node)) {
-        evaluate(path.$child(node));
+        evaluate(path.createChild(node));
       }
     }
   },
@@ -73,7 +73,7 @@ const visitors: EvaluateMap = {
     if (node.name === "undefined") {
       return undefined;
     }
-    const $var = scope.$find(node.name);
+    const $var = scope.hasBinding(node.name);
     if ($var) {
       return $var.value;
     } else {
@@ -97,12 +97,12 @@ const visitors: EvaluateMap = {
     return null;
   },
   IfStatement(path) {
-    const newScope = path.scope.$child("block");
+    const newScope = path.scope.createChild("block");
     newScope.invasive = true;
-    if (evaluate(path.$child(path.node.test, newScope))) {
-      return evaluate(path.$child(path.node.consequent, newScope));
+    if (evaluate(path.createChild(path.node.test, newScope))) {
+      return evaluate(path.createChild(path.node.consequent, newScope));
     } else if (path.node.alternate) {
-      return evaluate(path.$child(path.node.alternate, newScope));
+      return evaluate(path.createChild(path.node.alternate, newScope));
     }
   },
   EmptyStatement(path) {
@@ -113,11 +113,11 @@ const visitors: EvaluateMap = {
     // hoisting
     for (const node of block.body) {
       if (isFunctionDeclaration(node)) {
-        evaluate(path.$child(node));
+        evaluate(path.createChild(node));
       } else if (isVariableDeclaration(node)) {
         for (const declaration of node.declarations) {
           if (node.kind === "var") {
-            scope.$var((declaration.id as types.Identifier).name, undefined);
+            scope.var((declaration.id as types.Identifier).name, undefined);
           }
         }
       }
@@ -125,7 +125,7 @@ const visitors: EvaluateMap = {
 
     let tempResult;
     for (const node of block.body) {
-      const result = (tempResult = evaluate(path.$child(node, scope)));
+      const result = (tempResult = evaluate(path.createChild(node, scope)));
       if (result instanceof Signal) {
         return result;
       }
@@ -151,7 +151,9 @@ const visitors: EvaluateMap = {
   ReturnStatement(path) {
     return new Signal(
       "return",
-      path.node.argument ? evaluate(path.$child(path.node.argument)) : undefined
+      path.node.argument
+        ? evaluate(path.createChild(path.node.argument))
+        : undefined
     );
   },
   VariableDeclaration(path) {
@@ -162,10 +164,9 @@ const visitors: EvaluateMap = {
       const varKeyValueMap: { [k: string]: any } = {};
       if (isIdentifier(declaration.id)) {
         varKeyValueMap[declaration.id.name] = declaration.init
-          ? evaluate(path.$child(declaration.init))
+          ? evaluate(path.createChild(declaration.init))
           : undefined;
       } else if (isObjectPattern(declaration.id)) {
-        // @es2015 destrucuring
         const vars: Array<{ key: string; alias: string }> = [];
         for (const n of declaration.id.properties) {
           if (isObjectProperty(n)) {
@@ -175,7 +176,7 @@ const visitors: EvaluateMap = {
             });
           }
         }
-        const obj = evaluate(path.$child(declaration.init));
+        const obj = evaluate(path.createChild(declaration.init));
 
         for (const $var of vars) {
           if ($var.key in obj) {
@@ -196,7 +197,7 @@ const visitors: EvaluateMap = {
               if (!el) {
                 varKeyValueMap[$varName] = undefined;
               } else {
-                const result = evaluate(path.$child(el));
+                const result = evaluate(path.createChild(el));
                 varKeyValueMap[$varName] = result;
               }
             } else {
@@ -211,12 +212,12 @@ const visitors: EvaluateMap = {
       for (const varName in varKeyValueMap) {
         if (scope.invasive && kind === "var") {
           if (scope.parent) {
-            scope.parent.$declar(kind, varName, varKeyValueMap[varName]);
+            scope.parent.declare(kind, varName, varKeyValueMap[varName]);
           } else {
-            scope.$declar(kind, varName, varKeyValueMap[varName]);
+            scope.declare(kind, varName, varKeyValueMap[varName]);
           }
         } else {
-          scope.$declar(kind, varName, varKeyValueMap[varName]);
+          scope.declare(kind, varName, varKeyValueMap[varName]);
         }
       }
     }
@@ -225,23 +226,23 @@ const visitors: EvaluateMap = {
     const { node, scope } = path;
     // @es2015 destructuring
     if (isObjectPattern(node.id)) {
-      const newScope = scope.$child("block");
+      const newScope = scope.createChild("block");
       if (isObjectExpression(node.init)) {
-        evaluate(path.$child(node.init, newScope));
+        evaluate(path.createChild(node.init, newScope));
       }
       for (const n of node.id.properties) {
         if (isObjectProperty(n)) {
           const propertyName: string = (n as any).id.name;
-          const $var = newScope.$find(propertyName);
+          const $var = newScope.hasBinding(propertyName);
           const varValue = $var ? $var.value : undefined;
-          scope.$var(propertyName, varValue);
+          scope.var(propertyName, varValue);
           return varValue;
         }
       }
     } else if (isObjectExpression(node.init)) {
       const varName: string = (node.id as types.Identifier).name;
-      const varValue = evaluate(path.$child(node.init));
-      scope.$var(varName, varValue);
+      const varValue = evaluate(path.createChild(node.init));
+      scope.var(varName, varValue);
       return varValue;
     } else {
       throw node;
@@ -276,7 +277,7 @@ const visitors: EvaluateMap = {
             _a.sent();
           }
 
-          const r = evaluate(path.$child(block, path.scope, { next }));
+          const r = evaluate(path.createChild(block, path.scope, { next }));
 
           if (Signal.isReturn(r)) {
             return [2, r.value];
@@ -292,10 +293,10 @@ const visitors: EvaluateMap = {
 
         return __generator(__this, handler);
       };
-      // function declartion can be duplicate
-      scope.$var(functionName, generatorFunc);
+      // function can be duplicate
+      scope.var(functionName, generatorFunc);
     } else {
-      const func = visitors.FunctionExpression(path.$child(node as any));
+      const func = visitors.FunctionExpression(path.createChild(node as any));
 
       Object.defineProperties(func, {
         length: { value: node.params.length },
@@ -303,31 +304,31 @@ const visitors: EvaluateMap = {
       });
 
       // function declartion can be duplicate
-      scope.$var(functionName, func);
+      scope.var(functionName, func);
     }
   },
   ExpressionStatement(path) {
-    return evaluate(path.$child(path.node.expression));
+    return evaluate(path.createChild(path.node.expression));
   },
   ForStatement(path) {
     const { node, scope } = path;
 
     // FIXME: for循环的作用域问题
-    const newScope = scope.$child("loop").$setInvasive(true);
+    const newScope = scope.createChild("loop").setInvasive(true);
 
     newScope.invasive = true;
     newScope.redeclare = true;
 
     if (node.init) {
-      evaluate(path.$child(node.init, newScope));
+      evaluate(path.createChild(node.init, newScope));
     }
 
     for (;;) {
-      if (node.test && !evaluate(path.$child(node.test, newScope))) {
+      if (node.test && !evaluate(path.createChild(node.test, newScope))) {
         break;
       }
 
-      const result = evaluate(path.$child(node.body, newScope));
+      const result = evaluate(path.createChild(node.body, newScope));
       if (Signal.isBreak(result)) {
         break;
       } else if (Signal.isContinue(result)) {
@@ -336,14 +337,14 @@ const visitors: EvaluateMap = {
         return result;
       }
       if (node.update) {
-        evaluate(path.$child(node.update, newScope));
+        evaluate(path.createChild(node.update, newScope));
       }
     }
   },
   // @es2015 for of
   ForOfStatement(path) {
     const { node, scope } = path;
-    const entity = evaluate(path.$child(node.right));
+    const entity = evaluate(path.createChild(node.right));
     // not support for of, it mean not support native for of
     if (typeof Symbol !== "undefined") {
       if (!entity || !entity[Symbol.iterator]) {
@@ -363,10 +364,10 @@ const visitors: EvaluateMap = {
       const varName = (declarator.id as types.Identifier).name;
       // typescript will compile it to for(){}
       for (const value of entity) {
-        const newScope = scope.$child("loop");
+        const newScope = scope.createChild("loop");
         newScope.invasive = true;
-        newScope.$declar(node.left.kind, varName, value); // define in current scope
-        evaluate(path.$child(node.body, newScope));
+        newScope.declare(node.left.kind, varName, value); // define in current scope
+        evaluate(path.createChild(node.body, newScope));
       }
     } else if (isIdentifier(node.left)) {
       /**
@@ -376,10 +377,10 @@ const visitors: EvaluateMap = {
        */
       const varName = node.left.name;
       for (const value of entity) {
-        const newScope = scope.$child("loop");
+        const newScope = scope.createChild("loop");
         newScope.invasive = true;
-        scope.$var(varName, value); // define in parent scope
-        evaluate(path.$child(node.body, newScope));
+        scope.var(varName, value); // define in parent scope
+        evaluate(path.createChild(node.body, newScope));
       }
     }
   },
@@ -389,16 +390,16 @@ const visitors: EvaluateMap = {
     const decl = (node.left as types.VariableDeclaration).declarations[0];
     const name = (decl.id as types.Identifier).name;
 
-    const right = evaluate(path.$child(node.right));
+    const right = evaluate(path.createChild(node.right));
 
     for (const value in right) {
       if (Object.hasOwnProperty.call(right, value)) {
-        const newScope = scope.$child("loop");
+        const newScope = scope.createChild("loop");
         newScope.invasive = true;
 
-        newScope.$declar(kind, name, value);
+        newScope.declare(kind, name, value);
 
-        const result = evaluate(path.$child(node.body, newScope));
+        const result = evaluate(path.createChild(node.body, newScope));
         if (Signal.isBreak(result)) {
           break;
         } else if (Signal.isContinue(result)) {
@@ -413,9 +414,9 @@ const visitors: EvaluateMap = {
     const { node, scope } = path;
     // do while don't have his own scope
     do {
-      const newScope = scope.$child("loop");
+      const newScope = scope.createChild("loop");
       newScope.invasive = true; // do while循环具有侵入性，定义var的时候，是覆盖父级变量
-      const result = evaluate(path.$child(node.body, newScope)); // 先把do的执行一遍
+      const result = evaluate(path.createChild(node.body, newScope)); // 先把do的执行一遍
       if (Signal.isBreak(result)) {
         break;
       } else if (Signal.isContinue(result)) {
@@ -423,14 +424,14 @@ const visitors: EvaluateMap = {
       } else if (Signal.isReturn(result)) {
         return result;
       }
-    } while (evaluate(path.$child(node.test)));
+    } while (evaluate(path.createChild(node.test)));
   },
   WhileStatement(path) {
     const { node, scope } = path;
-    while (evaluate(path.$child(node.test))) {
-      const newScope = scope.$child("loop");
+    while (evaluate(path.createChild(node.test))) {
+      const newScope = scope.createChild("loop");
       newScope.invasive = true;
-      const result = evaluate(path.$child(node.body, newScope));
+      const result = evaluate(path.createChild(node.body, newScope));
 
       if (Signal.isBreak(result)) {
         break;
@@ -442,39 +443,39 @@ const visitors: EvaluateMap = {
     }
   },
   ThrowStatement(path) {
-    throw evaluate(path.$child(path.node.argument));
+    throw evaluate(path.createChild(path.node.argument));
   },
   CatchClause(path) {
-    return evaluate(path.$child(path.node.body));
+    return evaluate(path.createChild(path.node.body));
   },
   TryStatement(path) {
     const { node, scope } = path;
     try {
-      const newScope = scope.$child("block");
+      const newScope = scope.createChild("block");
       newScope.invasive = true;
-      return evaluate(path.$child(node.block, newScope));
+      return evaluate(path.createChild(node.block, newScope));
     } catch (err) {
       if (node.handler) {
         const param = node.handler.param as types.Identifier;
-        const newScope = scope.$child("block");
+        const newScope = scope.createChild("block");
         newScope.invasive = true;
-        newScope.$const(param.name, err);
-        return evaluate(path.$child(node.handler, newScope));
+        newScope.const(param.name, err);
+        return evaluate(path.createChild(node.handler, newScope));
       } else {
         throw err;
       }
     } finally {
       if (node.finalizer) {
-        const newScope = scope.$child("block");
+        const newScope = scope.createChild("block");
         newScope.invasive = true;
-        evaluate(path.$child(node.finalizer, newScope));
+        evaluate(path.createChild(node.finalizer, newScope));
       }
     }
   },
   SwitchStatement(path) {
     const { node, scope } = path;
-    const discriminant = evaluate(path.$child(node.discriminant)); // switch的条件
-    const newScope = scope.$child("switch");
+    const discriminant = evaluate(path.createChild(node.discriminant)); // switch的条件
+    const newScope = scope.createChild("switch");
     newScope.invasive = true;
 
     let matched = false;
@@ -483,13 +484,13 @@ const visitors: EvaluateMap = {
       if (
         !matched &&
         (!$case.test ||
-          discriminant === evaluate(path.$child($case.test, newScope)))
+          discriminant === evaluate(path.createChild($case.test, newScope)))
       ) {
         matched = true;
       }
 
       if (matched) {
-        const result = evaluate(path.$child($case, newScope));
+        const result = evaluate(path.createChild($case, newScope));
 
         if (Signal.isBreak(result)) {
           break;
@@ -504,7 +505,7 @@ const visitors: EvaluateMap = {
   SwitchCase(path) {
     const { node } = path;
     for (const stmt of node.consequent) {
-      const result = evaluate(path.$child(stmt));
+      const result = evaluate(path.createChild(stmt));
       if (result instanceof Signal) {
         return result;
       }
@@ -516,15 +517,15 @@ const visitors: EvaluateMap = {
     let $var;
     if (isIdentifier(node.argument)) {
       const { name } = node.argument;
-      $var = scope.$find(name);
+      $var = scope.hasBinding(name);
       if (!$var) {
         throw new Error(`${name} 未定义`);
       }
     } else if (isMemberExpression(node.argument)) {
       const argument = node.argument;
-      const object = evaluate(path.$child(argument.object));
+      const object = evaluate(path.createChild(argument.object));
       const property = argument.computed
-        ? evaluate(path.$child(argument.property))
+        ? evaluate(path.createChild(argument.property))
         : (argument.property as types.Identifier).name;
       $var = {
         set(value: any) {
@@ -546,11 +547,11 @@ const visitors: EvaluateMap = {
         $var.set(v + 1);
         return prefix ? ++v : v++;
       }
-    }[node.operator](evaluate(path.$child(node.argument)));
+    }[node.operator](evaluate(path.createChild(node.argument)));
   },
   ThisExpression(path) {
     const { scope } = path;
-    const thisVar = scope.$find("this");
+    const thisVar = scope.hasBinding("this");
     return thisVar ? thisVar.value : null;
   },
   ArrayExpression(path) {
@@ -560,10 +561,10 @@ const visitors: EvaluateMap = {
       if (item === null) {
         newArray.push(undefined);
       } else if (isSpreadElement(item)) {
-        const arr = evaluate(path.$child(item));
+        const arr = evaluate(path.createChild(item));
         newArray = ([] as any[]).concat(newArray, _toConsumableArray(arr));
       } else {
-        newArray.push(evaluate(path.$child(item)));
+        newArray.push(evaluate(path.createChild(item)));
       }
     }
     return newArray;
@@ -571,7 +572,7 @@ const visitors: EvaluateMap = {
   ObjectExpression(path) {
     const { node, scope } = path;
     const object = {};
-    const newScope = scope.$child("block");
+    const newScope = scope.createChild("block");
     const computedProperties: Array<
       types.ObjectProperty | types.ObjectMethod
     > = [];
@@ -584,12 +585,12 @@ const visitors: EvaluateMap = {
         computedProperties.push(tempProperty);
         continue;
       }
-      evaluate(path.$child(property, newScope, { object }));
+      evaluate(path.createChild(property, newScope, { object }));
     }
 
     // eval the computed properties
     for (const property of computedProperties) {
-      evaluate(path.$child(property, newScope, { object }));
+      evaluate(path.createChild(property, newScope, { object }));
     }
 
     return object;
@@ -597,32 +598,34 @@ const visitors: EvaluateMap = {
   ObjectProperty(path) {
     const { node, scope, ctx } = path;
     const { object } = ctx;
-    const val = evaluate(path.$child(node.value));
+    const val = evaluate(path.createChild(node.value));
     if (isIdentifier(node.key)) {
       object[node.key.name] = val;
-      scope.$const(node.key.name, val);
+      scope.const(node.key.name, val);
     } else {
-      object[evaluate(path.$child(node.key))] = val;
+      object[evaluate(path.createChild(node.key))] = val;
     }
   },
   ObjectMethod(path) {
     const { node, scope } = path;
     const methodName: string = !node.computed
-      ? isIdentifier(node.key) ? node.key.name : evaluate(path.$child(node.key))
-      : evaluate(path.$child(node.key));
+      ? isIdentifier(node.key)
+        ? node.key.name
+        : evaluate(path.createChild(node.key))
+      : evaluate(path.createChild(node.key));
     const method = function() {
       const args = [].slice.call(arguments);
-      const newScope = scope.$child("function");
-      newScope.$const("this", this);
+      const newScope = scope.createChild("function");
+      newScope.const("this", this);
       // define argument
       node.params.forEach((param, i) => {
         if (isIdentifier(param)) {
-          newScope.$const(param.name, args[i]);
+          newScope.const(param.name, args[i]);
         } else {
           throw node;
         }
       });
-      const result = evaluate(path.$child(node.body, newScope));
+      const result = evaluate(path.createChild(node.body, newScope));
       if (Signal.isReturn(result)) {
         return result.value;
       }
@@ -634,7 +637,7 @@ const visitors: EvaluateMap = {
     switch (node.kind) {
       case "get":
         Object.defineProperty(path.ctx.object, methodName, { get: method });
-        scope.$const(methodName, method);
+        scope.const(methodName, method);
         break;
       case "set":
         Object.defineProperty(path.ctx.object, methodName, { set: method });
@@ -649,22 +652,22 @@ const visitors: EvaluateMap = {
   FunctionExpression(path) {
     const { node, scope } = path;
     const func = function functionDeclaration(...args) {
-      const newScope = scope.$child("function");
+      const newScope = scope.createChild("function");
       for (let i = 0; i < node.params.length; i++) {
         const param = node.params[i];
         if (isIdentifier(param)) {
-          newScope.$const(param.name, args[i]);
+          newScope.const(param.name, args[i]);
         } else if (isAssignmentPattern(param)) {
           // @es2015 default parameters
-          evaluate(path.$child(param, newScope, { value: args[i] }));
+          evaluate(path.createChild(param, newScope, { value: args[i] }));
         } else if (isRestElement(param)) {
           // @es2015 rest parameters
-          evaluate(path.$child(param, newScope, { value: args.slice(i) }));
+          evaluate(path.createChild(param, newScope, { value: args.slice(i) }));
         }
       }
-      newScope.$const("this", this);
-      newScope.$const("arguments", arguments);
-      const result = evaluate(path.$child(node.body, newScope));
+      newScope.const("this", this);
+      newScope.const("arguments", arguments);
+      const result = evaluate(path.createChild(node.body, newScope));
       if (result instanceof Signal) {
         return result.value;
       } else {
@@ -717,41 +720,41 @@ const visitors: EvaluateMap = {
       in: (a, b) => a in b,
       instanceof: (a, b) => a instanceof b
     }[node.operator](
-      evaluate(path.$child(node.left)),
-      evaluate(path.$child(node.right))
+      evaluate(path.createChild(node.left)),
+      evaluate(path.createChild(node.right))
     );
   },
   UnaryExpression(path) {
     const { node, scope } = path;
     return {
-      "-": () => -evaluate(path.$child(node.argument)),
-      "+": () => +evaluate(path.$child(node.argument)),
-      "!": () => !evaluate(path.$child(node.argument)),
+      "-": () => -evaluate(path.createChild(node.argument)),
+      "+": () => +evaluate(path.createChild(node.argument)),
+      "!": () => !evaluate(path.createChild(node.argument)),
       // tslint:disable-next-line
-      "~": () => ~evaluate(path.$child(node.argument)),
-      void: () => void evaluate(path.$child(node.argument)),
+      "~": () => ~evaluate(path.createChild(node.argument)),
+      void: () => void evaluate(path.createChild(node.argument)),
       typeof: (): string => {
         if (isIdentifier(node.argument)) {
-          const $var = scope.$find(node.argument.name);
+          const $var = scope.hasBinding(node.argument.name);
           return $var ? typeof $var.value : "undefined";
         } else {
-          return typeof evaluate(path.$child(node.argument));
+          return typeof evaluate(path.createChild(node.argument));
         }
       },
       delete: () => {
         if (isMemberExpression(node.argument)) {
           const { object, property, computed } = node.argument;
           if (computed) {
-            return delete evaluate(path.$child(object))[
-              evaluate(path.$child(property))
+            return delete evaluate(path.createChild(object))[
+              evaluate(path.createChild(property))
             ];
           } else {
-            return delete evaluate(path.$child(object))[
+            return delete evaluate(path.createChild(object))[
               (property as types.Identifier).name
             ];
           }
         } else if (isIdentifier(node.argument)) {
-          const $this = scope.$find("this");
+          const $this = scope.hasBinding("this");
           if ($this) {
             return $this.value[node.argument.name];
           }
@@ -762,14 +765,14 @@ const visitors: EvaluateMap = {
 
   CallExpression(path) {
     const { node, scope } = path;
-    const func = evaluate(path.$child(node.callee));
-    const args = node.arguments.map(arg => evaluate(path.$child(arg)));
+    const func = evaluate(path.createChild(node.callee));
+    const args = node.arguments.map(arg => evaluate(path.createChild(arg)));
 
     if (isMemberExpression(node.callee)) {
-      const object = evaluate(path.$child(node.callee.object));
+      const object = evaluate(path.createChild(node.callee.object));
       return func.apply(object, args);
     } else {
-      const thisVar = scope.$find("this");
+      const thisVar = scope.hasBinding("this");
       return func.apply(thisVar ? thisVar.value : null, args);
     }
   },
@@ -778,10 +781,10 @@ const visitors: EvaluateMap = {
     const { object, property, computed } = node;
 
     const propertyName: string = computed
-      ? evaluate(path.$child(property))
+      ? evaluate(path.createChild(property))
       : (property as types.Identifier).name;
 
-    const obj = evaluate(path.$child(object));
+    const obj = evaluate(path.createChild(object));
     const target = obj[propertyName];
 
     return typeof target === "function" ? target.bind(obj) : target;
@@ -792,13 +795,13 @@ const visitors: EvaluateMap = {
 
     if (isIdentifier(node.left)) {
       const { name } = node.left;
-      const varOrNot = scope.$find(name);
+      const varOrNot = scope.hasBinding(name);
 
       if (!varOrNot) {
         // here to define global var
-        const globalScope = scope.$global;
-        globalScope.$var(name, evaluate(path.$child(node.right)));
-        const globalVar = globalScope.$find(name);
+        const globalScope = scope.global;
+        globalScope.var(name, evaluate(path.createChild(node.right)));
+        const globalVar = globalScope.hasBinding(name);
         if (globalVar) {
           $var = globalVar;
         } else {
@@ -816,9 +819,9 @@ const visitors: EvaluateMap = {
       }
     } else if (isMemberExpression(node.left)) {
       const left = node.left;
-      const object: any = evaluate(path.$child(left.object));
+      const object: any = evaluate(path.createChild(left.object));
       const property: string = left.computed
-        ? evaluate(path.$child(left.property))
+        ? evaluate(path.createChild(left.property))
         : (left.property as types.Identifier).name;
       $var = {
         kind: "var",
@@ -888,26 +891,30 @@ const visitors: EvaluateMap = {
         $var.set($var.value & v);
         return $var.value;
       }
-    }[node.operator](evaluate(path.$child(node.right)));
+    }[node.operator](evaluate(path.createChild(node.right)));
   },
   LogicalExpression(path) {
     const { node } = path;
     return {
       "||": () =>
-        evaluate(path.$child(node.left)) || evaluate(path.$child(node.right)),
+        evaluate(path.createChild(node.left)) ||
+        evaluate(path.createChild(node.right)),
       "&&": () =>
-        evaluate(path.$child(node.left)) && evaluate(path.$child(node.right))
+        evaluate(path.createChild(node.left)) &&
+        evaluate(path.createChild(node.right))
     }[node.operator]();
   },
   ConditionalExpression(path) {
-    return evaluate(path.$child(path.node.test))
-      ? evaluate(path.$child(path.node.consequent))
-      : evaluate(path.$child(path.node.alternate));
+    return evaluate(path.createChild(path.node.test))
+      ? evaluate(path.createChild(path.node.consequent))
+      : evaluate(path.createChild(path.node.alternate));
   },
   NewExpression(path) {
     const { node } = path;
-    const func = evaluate(path.$child(node.callee));
-    const args: any[] = node.arguments.map(arg => evaluate(path.$child(arg)));
+    const func = evaluate(path.createChild(node.callee));
+    const args: any[] = node.arguments.map(arg =>
+      evaluate(path.createChild(arg))
+    );
     const entity = new func(...args);
     entity.prototype = entity.prototype || {};
     entity.prototype.constructor = func;
@@ -918,17 +925,17 @@ const visitors: EvaluateMap = {
   ArrowFunctionExpression(path) {
     const { node, scope } = path;
     const func = (...args) => {
-      const newScope = scope.$child("function");
+      const newScope = scope.createChild("function");
       for (let i = 0; i < node.params.length; i++) {
         const { name } = node.params[i] as types.Identifier;
-        newScope.$const(name, args[i]);
+        newScope.const(name, args[i]);
       }
 
-      const lastThis = scope.$find("this");
+      const lastThis = scope.hasBinding("this");
 
-      newScope.$const("this", lastThis ? lastThis.value : null);
-      newScope.$const("arguments", args);
-      const result = evaluate(path.$child(node.body, newScope));
+      newScope.const("this", lastThis ? lastThis.value : null);
+      newScope.const("arguments", args);
+      const result = evaluate(path.createChild(node.body, newScope));
 
       if (result instanceof Signal) {
         return result.value;
@@ -949,7 +956,7 @@ const visitors: EvaluateMap = {
     return ([] as types.Node[])
       .concat(node.expressions, node.quasis)
       .sort((a, b) => a.start - b.start)
-      .map(element => evaluate(path.$child(element)))
+      .map(element => evaluate(path.createChild(element)))
       .join("");
   },
   TemplateElement(path) {
@@ -957,9 +964,9 @@ const visitors: EvaluateMap = {
   },
   ClassDeclaration(path) {
     const ClassConstructor = evaluate(
-      path.$child(path.node.body, path.scope.$child("class"))
+      path.createChild(path.node.body, path.scope.createChild("class"))
     );
-    path.scope.$const(path.node.id.name, ClassConstructor);
+    path.scope.const(path.node.id.name, ClassConstructor);
   },
   ClassBody(path) {
     const { node, scope } = path;
@@ -982,19 +989,19 @@ const visitors: EvaluateMap = {
 
       function ClassConstructor(...args) {
         _classCallCheck(this, ClassConstructor);
-        const classScope = scope.$child("function");
-        classScope.$var("this", this);
+        const classScope = scope.createChild("function");
+        classScope.var("this", this);
 
         // define class property
         properties.forEach(p => {
-          this[p.key.name] = evaluate(path.$child(p.value, classScope));
+          this[p.key.name] = evaluate(path.createChild(p.value, classScope));
         });
 
         if (constructor) {
           // defined the params
           constructor.params.forEach((p: types.LVal, i) => {
             if (isIdentifier(p)) {
-              classScope.$const(p.name, args[i]);
+              classScope.const(p.name, args[i]);
             } else {
               throw new Error("Invalid params");
             }
@@ -1002,7 +1009,7 @@ const visitors: EvaluateMap = {
 
           for (const n of constructor.body.body) {
             evaluate(
-              path.$child(n, classScope, {
+              path.createChild(n, classScope, {
                 SuperClass,
                 ClassConstructor,
                 ClassConstructorArguments: args,
@@ -1014,7 +1021,7 @@ const visitors: EvaluateMap = {
           if (parentNode.superClass) {
             // if not apply super in constructor
             // FIXME: should define the var in private scope
-            if (!scope.$find("@super")) {
+            if (!scope.hasBinding("@super")) {
               throw ErrNoSuper();
             }
           }
@@ -1027,7 +1034,7 @@ const visitors: EvaluateMap = {
               Object.getPrototypeOf(ClassConstructor)
             ).apply(this, args)
           );
-          scope.$const("@super", true);
+          scope.const("@super", true);
         }
 
         return this;
@@ -1041,19 +1048,19 @@ const visitors: EvaluateMap = {
 
       const classMethods = methods
         .map((method: types.ClassMethod) => {
-          const newScope = scope.$child("function");
+          const newScope = scope.createChild("function");
           const func = function(...args) {
-            newScope.$var("this", this);
+            newScope.var("this", this);
 
             // defined the params
             method.params.forEach((p: types.LVal, i) => {
               if (isIdentifier(p)) {
-                newScope.$const(p.name, args[i]);
+                newScope.const(p.name, args[i]);
               }
             });
 
             const result = evaluate(
-              path.$child(method.body, newScope, {
+              path.createChild(method.body, newScope, {
                 SuperClass,
                 ClassConstructor,
                 ClassMethodArguments: args,
@@ -1085,7 +1092,7 @@ const visitors: EvaluateMap = {
     })(
       parentNode.superClass
         ? (() => {
-            const $var = scope.$find((parentNode.superClass as any).name);
+            const $var = scope.hasBinding((parentNode.superClass as any).name);
             return $var ? $var.value : null;
           })()
         : null
@@ -1094,7 +1101,7 @@ const visitors: EvaluateMap = {
     return Class;
   },
   ClassMethod(path) {
-    return evaluate(path.$child(path.node.body));
+    return evaluate(path.createChild(path.node.body));
   },
   ClassExpression(path) {
     //
@@ -1119,7 +1126,7 @@ const visitors: EvaluateMap = {
               Object.getPrototypeOf(ClassConstructor)
             ).apply(ClassEntity, args)
           );
-          ClassBodyPath.scope.$const("@super", true);
+          ClassBodyPath.scope.const("@super", true);
         }.bind(ClassEntity);
       } else if (isMemberExpression(parentPath.node)) {
         // super.eat()
@@ -1129,45 +1136,45 @@ const visitors: EvaluateMap = {
     }
   },
   SpreadElement(path) {
-    return evaluate(path.$child(path.node.argument));
+    return evaluate(path.createChild(path.node.argument));
   },
   // @experimental Object rest spread
   SpreadProperty(path) {
     const { node, ctx } = path;
     const { object } = ctx;
-    Object.assign(object, evaluate(path.$child(node.argument)));
+    Object.assign(object, evaluate(path.createChild(node.argument)));
   },
   ImportDeclaration(path) {
     const { node, scope } = path;
     let defaultImport: string = ""; // default import object
     const otherImport: string[] = []; // import property
-    const moduleNane: string = evaluate(path.$child(node.source));
+    const moduleName: string = evaluate(path.createChild(node.source));
     node.specifiers.forEach(n => {
       if (isImportDefaultSpecifier(n)) {
-        defaultImport = visitors.ImportDefaultSpecifier(path.$child(n));
+        defaultImport = visitors.ImportDefaultSpecifier(path.createChild(n));
       } else if (isImportSpecifier(n)) {
-        otherImport.push(visitors.ImportSpecifier(path.$child(n)));
+        otherImport.push(visitors.ImportSpecifier(path.createChild(n)));
       } else {
         throw n;
       }
     });
 
-    const requireVar = scope.$find("require");
+    const requireVar = scope.hasBinding("require");
 
     if (requireVar) {
       const requireFunc = requireVar.value;
 
-      const targetModule: any = requireFunc(moduleNane) || {};
+      const targetModule: any = requireFunc(moduleName) || {};
 
       if (defaultImport) {
-        scope.$const(
+        scope.const(
           defaultImport,
           targetModule.default ? targetModule.default : targetModule
         );
       }
 
       otherImport.forEach((varName: string) => {
-        scope.$const(varName, targetModule[varName]);
+        scope.const(varName, targetModule[varName]);
       });
     }
   },
@@ -1179,48 +1186,50 @@ const visitors: EvaluateMap = {
   },
   ExportDefaultDeclaration(path) {
     const { node, scope } = path;
-    const moduleVar = scope.$find("module");
+    const moduleVar = scope.hasBinding("module");
     if (moduleVar) {
       const moduleObject = moduleVar.value;
       moduleObject.exports = {
         ...moduleObject.exports,
-        ...evaluate(path.$child(node.declaration))
+        ...evaluate(path.createChild(node.declaration))
       };
     }
   },
   ExportNamedDeclaration(path) {
     const { node } = path;
-    node.specifiers.forEach(n => evaluate(path.$child(n)));
+    node.specifiers.forEach(n => evaluate(path.createChild(n)));
   },
   ExportSpecifier(path) {
     const { node, scope } = path;
-    const moduleVar = scope.$find("module");
+    const moduleVar = scope.hasBinding("module");
     if (moduleVar) {
       const moduleObject = moduleVar.value;
-      moduleObject.exports[node.local.name] = evaluate(path.$child(node.local));
+      moduleObject.exports[node.local.name] = evaluate(
+        path.createChild(node.local)
+      );
     }
   },
   AssignmentPattern(path) {
     const { node, scope, ctx } = path;
     const { value } = ctx;
-    scope.$const(
+    scope.const(
       node.left.name,
-      value === undefined ? evaluate(path.$child(node.right)) : value
+      value === undefined ? evaluate(path.createChild(node.right)) : value
     );
   },
   RestElement(path) {
     const { node, scope, ctx } = path;
     const { value } = ctx;
-    scope.$const((node.argument as types.Identifier).name, value);
+    scope.const((node.argument as types.Identifier).name, value);
   },
   YieldExpression(path) {
     const { next } = path.ctx;
-    next(evaluate(path.$child(path.node.argument))); // call next
+    next(evaluate(path.createChild(path.node.argument))); // call next
   },
   SequenceExpression(path) {
     let result;
     for (const expression of path.node.expressions) {
-      result = evaluate(path.$child(expression));
+      result = evaluate(path.createChild(expression));
     }
     return result;
   },
@@ -1228,9 +1237,9 @@ const visitors: EvaluateMap = {
     const str = path.node.quasi.quasis.map(v => v.value.cooked);
     const raw = path.node.quasi.quasis.map(v => v.value.raw);
     const templateObject = _taggedTemplateLiteral(str, raw);
-    const func = evaluate(path.$child(path.node.tag));
+    const func = evaluate(path.createChild(path.node.tag));
     const expressionResultList =
-      path.node.quasi.expressions.map(n => evaluate(path.$child(n))) || [];
+      path.node.quasi.expressions.map(n => evaluate(path.createChild(n))) || [];
     return func(templateObject, ...expressionResultList);
   },
   MetaProperty(path) {
@@ -1240,9 +1249,9 @@ const visitors: EvaluateMap = {
     //
   },
   DoExpression(path) {
-    const newScope = path.scope.$child("block");
+    const newScope = path.scope.createChild("block");
     newScope.invasive = true;
-    return evaluate(path.$child(path.node.body, newScope));
+    return evaluate(path.createChild(path.node.body, newScope));
   }
 };
 

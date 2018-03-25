@@ -22,7 +22,7 @@ export class Path<T extends Node> {
    * @returns {Path<Child>}
    * @memberof Path
    */
-  public $child<Child extends Node>(
+  public createChild<Child extends Node>(
     node: Child,
     scope?: ScopeType | Scope,
     ctx: ICtx = {}
@@ -31,7 +31,7 @@ export class Path<T extends Node> {
       node,
       this,
       scope
-        ? typeof scope === "string" ? this.scope.$child(scope) : scope
+        ? typeof scope === "string" ? this.scope.createChild(scope) : scope
         : this.scope,
       { ...this.ctx, ...ctx }
     );
