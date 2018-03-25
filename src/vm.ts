@@ -12,7 +12,7 @@ import { Scope } from "./scope";
  * @returns
  */
 export function runInContext(code: string, context: Context) {
-  const scope = new Scope("block", null);
+  const scope = new Scope("root", null);
   scope.isTopLevel = true;
   scope.const("this", this);
   scope.setContext(context);

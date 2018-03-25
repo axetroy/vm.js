@@ -52,21 +52,21 @@ export class Scope {
     return map;
   }
 
-  public hasBinding(varName: string): Var<any> | false {
+  public hasBinding(varName: string): Var<any> | void {
     if (this.content.hasOwnProperty(varName)) {
       return this.content[varName];
     } else if (this.parent) {
       return this.parent.hasBinding(varName);
     } else {
-      return false;
+      return undefined;
     }
   }
 
-  public hasOwnBinding(varName: string): Var<any> | false {
+  public hasOwnBinding(varName: string): Var<any> | void {
     if (this.content.hasOwnProperty(varName)) {
       return this.content[varName];
     } else {
-      return false;
+      return undefined;
     }
   }
 
@@ -110,7 +110,7 @@ export class Scope {
 
     while (
       scope.parent !== null &&
-      (scope.type !== "function" && scope.type !== "class")
+      (scope.type !== "function" && scope.type !== "constructor")
     ) {
       scope = scope.parent;
     }
@@ -144,9 +144,9 @@ export class Scope {
   public createChild(type: ScopeType, label?: string): Scope {
     return new Scope(type, this, label);
   }
-  public fork(): Scope {
+  public fork(type?: ScopeType): Scope {
     // forks a new scope
-    const newScope = new Scope("block", null);
+    const newScope = new Scope(type || this.type, null);
 
     // copy the properties
     newScope.invasive = this.invasive;

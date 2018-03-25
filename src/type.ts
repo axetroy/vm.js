@@ -2,11 +2,23 @@ import * as t from "babel-types";
 import { Path } from "./path";
 
 export type ScopeType =
-  | "function"
-  | "loop"
+  | "root"
+  | "function" // isolated scope
+  | "method" // isolated scope
+  | "constructor" // isolated scope
+  | "for"
+  | "forIn"
+  | "forOf"
+  | "while"
+  | "doWhile"
   | "do"
   | "switch"
-  | "block"
+  | "if"
+  | "elseIf"
+  | "object"
+  | "try"
+  | "catch"
+  | "finally"
   | "class";
 
 export type Kind = "const" | "var" | "let";
