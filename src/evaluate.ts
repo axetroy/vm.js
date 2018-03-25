@@ -21,6 +21,7 @@ import { IVar, Var } from "./var";
 import { EvaluateFunc, EvaluateMap, Kind } from "./type";
 // tslint:disable-next-line
 import { Signal } from "./signal";
+import { Scope } from "./scope";
 
 import {
   isArrayExpression,
@@ -1119,7 +1120,8 @@ const visitors: EvaluateMap = {
   },
   Super(path) {
     const { ctx } = path;
-    const { SuperClass, ClassConstructor, ClassEntity, classScope } = ctx;
+    const { SuperClass, ClassConstructor, ClassEntity } = ctx;
+    const classScope: Scope = ctx.classScope;
     const ClassBodyPath = path.$findParent("ClassBody");
     // make sure it include in ClassDeclaration
     if (!ClassBodyPath) {
@@ -1129,7 +1131,7 @@ const visitors: EvaluateMap = {
     if (parentPath) {
       // super()
       if (isCallExpression(parentPath.node)) {
-        if (classScope) {
+        if (classScope && !classScope.hasOwnBinding("this")) {
           classScope.const("this", ClassEntity);
         }
         return function inherits(...args) {

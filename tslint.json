@@ -2,7 +2,8 @@
   "extends": ["tslint:latest", "tslint-config-prettier"],
   "rules": {
     "object-literal-sort-keys": false,
-    "no-unused-variable": true
+    "no-unused-variable": true,
+    "ordered-imports": false
   },
   "linterOptions": {
     "exclude": ["./test/**/*.ts"]

@@ -1,6 +1,5 @@
 # vm.js
 
-[![Greenkeeper badge](https://badges.greenkeeper.io/axetroy/vm.js.svg)](https://greenkeeper.io/)
 [![Build Status](https://travis-ci.org/axetroy/vm.js.svg?branch=master)](https://travis-ci.org/axetroy/vm.js)
 [![Coverage Status](https://coveralls.io/repos/github/axetroy/vm.js/badge.svg?branch=master)](https://coveralls.io/github/axetroy/vm.js?branch=master)
 [![Dependency](https://david-dm.org/axetroy/vm.svg)](https://david-dm.org/axetroy/vm)

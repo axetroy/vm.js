@@ -1,7 +1,13 @@
 import * as t from "babel-types";
 import { Path } from "./path";
 
-export type ScopeType = "function" | "loop" | "switch" | "block" | "class";
+export type ScopeType =
+  | "function"
+  | "loop"
+  | "do"
+  | "switch"
+  | "block"
+  | "class";
 
 export type Kind = "const" | "var" | "let";
 
