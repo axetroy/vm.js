@@ -41,7 +41,7 @@ export class Scope {
     }
   }
 
-  public all(): { [key: string]: any } {
+  public raw(): { [key: string]: any } {
     const map = {};
     for (const varName in this.content) {
       if (this.content.hasOwnProperty(varName)) {
@@ -140,5 +140,25 @@ export class Scope {
   }
   public createChild(type: ScopeType, label?: string): Scope {
     return new Scope(type, this, label);
+  }
+  public fork(): Scope {
+    // forks a new scope
+    const newScope = new Scope("block", null);
+
+    // copy the properties
+    newScope.invasive = this.invasive;
+    newScope.redeclare = this.redeclare;
+    newScope.isTopLevel = this.isTopLevel;
+    newScope.context = this.context;
+    newScope.parent = this.parent;
+
+    // copy the vars
+    for (const varName in this.content) {
+      if (this.content.hasOwnProperty(varName)) {
+        const $var = this.content[varName];
+        newScope.declare($var.kind, $var.name, $var.value);
+      }
+    }
+    return newScope;
   }
 }

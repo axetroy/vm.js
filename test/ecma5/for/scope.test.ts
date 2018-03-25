@@ -91,25 +91,24 @@ module.exports = {a: a};
   }, ErrDuplicateDeclard("a").message);
 });
 
-// FIXME: it should throw an error
-// test("var in for block and parent scope const some name var", t => {
-//   const sandbox: any = vm.createContext({});
+test("var in for block and parent scope const some name var", t => {
+  const sandbox: any = vm.createContext({});
 
-//   t.throws(function() {
-//     vm.runInContext(
-//       `
-// let a = 1;  // define let var
+  t.throws(function() {
+    vm.runInContext(
+      `
+let a = 1;  // define let var
 
-// const arr = [1, 2, 3];
+const arr = [1, 2, 3];
 
-// for (let i = 0; i < arr.length; i++) {
-//   let a = i;
-//   let a = 0;  // it should throw an error
-// }
+for (let i = 0; i < arr.length; i++) {
+  let a = i;
+  let a = 0;  // it should throw an error
+}
 
-// module.exports = {a: a};
-//     `,
-//       sandbox
-//     );
-//   }, new ErrDuplicateDeclard("a").message);
-// });
+module.exports = {a: a};
+    `,
+      sandbox
+    );
+  }, ErrDuplicateDeclard("a").message);
+});

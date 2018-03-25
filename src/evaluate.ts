@@ -314,21 +314,24 @@ const visitors: EvaluateMap = {
     const { node, scope } = path;
 
     // FIXME: for循环的作用域问题
-    const newScope = scope.createChild("loop").setInvasive(true);
+    const forScope = scope.createChild("loop");
 
-    newScope.invasive = true;
-    newScope.redeclare = true;
+    forScope.invasive = true; // 有块级作用域
 
     if (node.init) {
-      evaluate(path.createChild(node.init, newScope));
+      evaluate(path.createChild(node.init, forScope));
     }
 
     for (;;) {
-      if (node.test && !evaluate(path.createChild(node.test, newScope))) {
+      // every loop will create it's own scope
+      // it should inherit from forScope
+      const loopScope = forScope.fork();
+
+      if (node.test && !evaluate(path.createChild(node.test, forScope))) {
         break;
       }
 
-      const result = evaluate(path.createChild(node.body, newScope));
+      const result = evaluate(path.createChild(node.body, loopScope));
       if (Signal.isBreak(result)) {
         break;
       } else if (Signal.isContinue(result)) {
@@ -337,7 +340,7 @@ const visitors: EvaluateMap = {
         return result;
       }
       if (node.update) {
-        evaluate(path.createChild(node.update, newScope));
+        evaluate(path.createChild(node.update, forScope));
       }
     }
   },
