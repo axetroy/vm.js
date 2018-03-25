@@ -110,6 +110,7 @@ const visitors: EvaluateMap = {
   },
   BlockStatement(path) {
     const { node: block, scope } = path;
+
     // hoisting
     for (const node of block.body) {
       if (isFunctionDeclaration(node)) {
@@ -130,6 +131,8 @@ const visitors: EvaluateMap = {
         return result;
       }
     }
+    // to support do-expression
+    // anyway, return the last item
     return tempResult;
   },
   WithStatement(path) {
