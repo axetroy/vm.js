@@ -33,7 +33,7 @@ try {
 ## Support
 
 * [x] ECMA5
-* [x] es2015
+* [x] ES2015
   * [x] Let and const
   * [x] Block scoping
   * [x] ES modules
@@ -52,13 +52,13 @@ try {
   * [x] Lifting template literal restriction
   * [ ] Unicode-regex
   * [x] Generator function
-* [ ] es2016
+* [ ] ES2016
   * [x] Exponentiation operator
-* [ ] es2017
+* [ ] ES2017
   * [x] Trailing commas in function parameter lists and calls
   * [ ] Async functions
   * [ ] Shared memory and atomics
-* [ ] es2018
+* [ ] ES2018
   * [ ] Asynchronous iteration
   * [ ] Promise.prototype.finally()
   * [ ] s (dotAll) flag for regular expressions
