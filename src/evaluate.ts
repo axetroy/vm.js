@@ -14,7 +14,8 @@ import {
   _inherits,
   _possibleConstructorReturn,
   _taggedTemplateLiteral,
-  _toConsumableArray
+  _toConsumableArray,
+  __awaiter
 } from "./runtime";
 import { IVar, Var } from "./var";
 // tslint:disable-next-line
@@ -282,10 +283,54 @@ const visitors: EvaluateMap = {
   FunctionDeclaration(path) {
     const { node, scope } = path;
     const { name: functionName } = node.id;
-    if (node.async === true) {
-      // TODO: support async await
+
+    let func;
+
+    if (node.async) {
+      // FIXME: support async function
+      func = function() {
+        return __awaiter(this, void 0, void 0, () => {
+          // tslint:disable-next-line
+          const __this = this;
+
+          // tslint:disable-next-line
+          function handler(_a) {
+            const functionBody = node.body;
+            const block = functionBody.body[_a.label];
+            // the last block
+            if (!block) {
+              return [2, undefined];
+            }
+
+            const fieldContext = {
+              call: false,
+              value: null
+            };
+            function next(value) {
+              fieldContext.value = value;
+              fieldContext.call = true;
+              _a.sent();
+            }
+
+            const r = evaluate(path.createChild(block, path.scope, { next }));
+
+            if (Signal.isReturn(r)) {
+              return [2 /* return */, r.value];
+            }
+            if (fieldContext.call) {
+              return [4 /* yield */, fieldContext.value];
+            } else {
+              // next block
+              _a.label++;
+              return handler(_a);
+            }
+          }
+
+          return __generator(__this, handler);
+        });
+      };
     } else if (node.generator) {
-      const generatorFunc = function() {
+      func = function() {
         // tslint:disable-next-line
         const __this = this;
 
@@ -324,19 +369,17 @@ const visitors: EvaluateMap = {
 
         return __generator(__this, handler);
       };
-      // function can be duplicate
-      scope.var(functionName, generatorFunc);
     } else {
-      const func = visitors.FunctionExpression(path.createChild(node as any));
-
-      Object.defineProperties(func, {
-        length: { value: node.params.length || 0 },
-        name: { value: functionName }
-      });
-
-      // Function can repeat declaration
-      scope.var(functionName, func);
+      func = visitors.FunctionExpression(path.createChild(node as any));
     }
+
+    Object.defineProperties(func, {
+      length: { value: node.params.length || 0 },
+      name: { value: functionName }
+    });
+
+    // Function can repeat declaration
+    scope.var(functionName, func);
   },
   ExpressionStatement(path) {
     return evaluate(path.createChild(path.node.expression));
@@ -1297,7 +1340,8 @@ const visitors: EvaluateMap = {
     //
   },
   AwaitExpression(path) {
-    //
+    const { next } = path.ctx;
+    next(evaluate(path.createChild(path.node.argument))); // call next
   },
   DoExpression(path) {
     const newScope = path.scope.createChild("do");
