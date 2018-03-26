@@ -2,7 +2,6 @@
 
 [![Build Status](https://travis-ci.org/axetroy/vm.js.svg?branch=master)](https://travis-ci.org/axetroy/vm.js)
 [![Coverage Status](https://coveralls.io/repos/github/axetroy/vm.js/badge.svg?branch=master)](https://coveralls.io/github/axetroy/vm.js?branch=master)
-[![Dependency](https://david-dm.org/axetroy/vm.svg)](https://david-dm.org/axetroy/vm)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 [![Prettier](https://img.shields.io/badge/Code%20Style-Prettier-green.svg)](https://github.com/prettier/prettier)
 ![Node](https://img.shields.io/badge/node-%3E=7.6-blue.svg?style=flat-square)
@@ -20,7 +19,7 @@ It base on [https://github.com/bramblex/jsjs](https://github.com/bramblex/jsjs)
 ```javascript
 import vm from "@axetroy/vm";
 
-const sanbox = {};
+const sanbox = { console: console };
 
 const context = vm.createContext(sanbox);
 
