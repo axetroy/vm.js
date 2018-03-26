@@ -15,7 +15,7 @@ export function runInContext(code: string, context: Context) {
   const scope = new Scope("root", null);
   scope.isTopLevel = true;
   scope.invasive = true;
-  scope.const("this", this);
+  scope.const("this", undefined);
   scope.setContext(context);
 
   // define module

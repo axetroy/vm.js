@@ -27,7 +27,7 @@ test("ArrowFunctionExpression-2", t => {
 
   const func = vm.runInContext(
     `
-const func = () => "hello " + this.aabbcc;
+const func = () => "hello " + this;
 
 module.exports = func;
   `,
