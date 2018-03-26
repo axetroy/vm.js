@@ -19,7 +19,8 @@ export type ScopeType =
   | "try"
   | "catch"
   | "finally"
-  | "class";
+  | "class"
+  | "block";
 
 export type Kind = "const" | "var" | "let";
 

@@ -15,6 +15,8 @@ export class Scope {
   // scope context
   public context: Context;
 
+  public isolated: boolean = true; // 孤立的作用域，表示在BlockStatement不会创建新的作用域，默认会创建
+
   // scope var
   private content: { [key: string]: Var<any> } = {};
 

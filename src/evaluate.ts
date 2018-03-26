@@ -98,12 +98,13 @@ const visitors: EvaluateMap = {
     return null;
   },
   IfStatement(path) {
-    const newScope = path.scope.createChild("if");
-    newScope.invasive = true;
-    if (evaluate(path.createChild(path.node.test, newScope))) {
-      return evaluate(path.createChild(path.node.consequent, newScope));
+    const ifScope = path.scope.createChild("if");
+    ifScope.invasive = true;
+    ifScope.isolated = false;
+    if (evaluate(path.createChild(path.node.test, ifScope))) {
+      return evaluate(path.createChild(path.node.consequent, ifScope));
     } else if (path.node.alternate) {
-      return evaluate(path.createChild(path.node.alternate, newScope));
+      return evaluate(path.createChild(path.node.alternate, ifScope));
     }
   },
   EmptyStatement(path) {
@@ -112,6 +113,19 @@ const visitors: EvaluateMap = {
   BlockStatement(path) {
     const { node: block, scope } = path;
 
+    let blockScope: Scope = !scope.isolated
+      ? scope
+      : scope.createChild("block");
+
+    if (scope.isolated) {
+      blockScope = scope.createChild("block");
+      blockScope.invasive = true;
+    } else {
+      blockScope = scope;
+    }
+
+    blockScope.isolated = true;
+
     // hoisting
     for (const node of block.body) {
       if (isFunctionDeclaration(node)) {
@@ -119,7 +133,18 @@ const visitors: EvaluateMap = {
       } else if (isVariableDeclaration(node)) {
         for (const declaration of node.declarations) {
           if (node.kind === "var") {
-            scope.var((declaration.id as types.Identifier).name, undefined);
+            if (!scope.isolated && scope.invasive) {
+              if (scope.parent) {
+                scope.parent.var(
+                  (declaration.id as types.Identifier).name,
+                  undefined
+                );
+              } else {
+                scope.var((declaration.id as types.Identifier).name, undefined);
+              }
+            } else {
+              scope.var((declaration.id as types.Identifier).name, undefined);
+            }
           }
         }
       }
@@ -127,7 +152,9 @@ const visitors: EvaluateMap = {
 
     let tempResult;
     for (const node of block.body) {
-      const result = (tempResult = evaluate(path.createChild(node, scope)));
+      const result = (tempResult = evaluate(
+        path.createChild(node, blockScope)
+      ));
       if (result instanceof Signal) {
         return result;
       }
@@ -303,11 +330,11 @@ const visitors: EvaluateMap = {
       const func = visitors.FunctionExpression(path.createChild(node as any));
 
       Object.defineProperties(func, {
-        length: { value: node.params.length },
+        length: { value: node.params.length || 0 },
         name: { value: functionName }
       });
 
-      // function declartion can be duplicate
+      // Function can repeat declaration
       scope.var(functionName, func);
     }
   },
@@ -333,6 +360,8 @@ const visitors: EvaluateMap = {
       if (node.test && !evaluate(path.createChild(node.test, forScope))) {
         break;
       }
+
+      loopScope.isolated = false;
 
       const result = evaluate(path.createChild(node.body, loopScope));
       if (Signal.isBreak(result)) {
@@ -369,10 +398,11 @@ const visitors: EvaluateMap = {
       const declarator: types.VariableDeclarator = node.left.declarations[0];
       const varName = (declarator.id as types.Identifier).name;
       for (const value of entity) {
-        const newScope = scope.createChild("forOf");
-        newScope.invasive = true;
-        newScope.declare(node.left.kind, varName, value); // define in current scope
-        evaluate(path.createChild(node.body, newScope));
+        const forOfScope = scope.createChild("forOf");
+        forOfScope.invasive = true;
+        forOfScope.isolated = false;
+        forOfScope.declare(node.left.kind, varName, value); // define in current scope
+        evaluate(path.createChild(node.body, forOfScope));
       }
     } else if (isIdentifier(node.left)) {
       /**
@@ -382,10 +412,10 @@ const visitors: EvaluateMap = {
        */
       const varName = node.left.name;
       for (const value of entity) {
-        const newScope = scope.createChild("forOf");
-        newScope.invasive = true;
+        const forOfScope = scope.createChild("forOf");
+        forOfScope.invasive = true;
         scope.var(varName, value); // define in parent scope
-        evaluate(path.createChild(node.body, newScope));
+        evaluate(path.createChild(node.body, forOfScope));
       }
     }
   },
@@ -399,12 +429,12 @@ const visitors: EvaluateMap = {
 
     for (const value in right) {
       if (Object.hasOwnProperty.call(right, value)) {
-        const newScope = scope.createChild("forIn");
-        newScope.invasive = true;
+        const forInScope = scope.createChild("forIn");
+        forInScope.invasive = true;
+        forInScope.declare(kind, name, value);
+        forInScope.isolated = false;
 
-        newScope.declare(kind, name, value);
-
-        const result = evaluate(path.createChild(node.body, newScope));
+        const result = evaluate(path.createChild(node.body, forInScope));
         if (Signal.isBreak(result)) {
           break;
         } else if (Signal.isContinue(result)) {
@@ -419,9 +449,10 @@ const visitors: EvaluateMap = {
     const { node, scope } = path;
     // do while don't have his own scope
     do {
-      const newScope = scope.createChild("doWhile");
-      newScope.invasive = true; // do while循环具有侵入性，定义var的时候，是覆盖父级变量
-      const result = evaluate(path.createChild(node.body, newScope)); // 先把do的执行一遍
+      const doWhileScope = scope.createChild("doWhile");
+      doWhileScope.invasive = true; // do while循环具有侵入性，定义var的时候，是覆盖父级变量
+      doWhileScope.isolated = false;
+      const result = evaluate(path.createChild(node.body, doWhileScope)); // 先把do的执行一遍
       if (Signal.isBreak(result)) {
         break;
       } else if (Signal.isContinue(result)) {
@@ -433,11 +464,12 @@ const visitors: EvaluateMap = {
   },
   WhileStatement(path) {
     const { node, scope } = path;
-    while (evaluate(path.createChild(node.test))) {
-      const newScope = scope.createChild("while");
-      newScope.invasive = true;
-      const result = evaluate(path.createChild(node.body, newScope));
 
+    while (evaluate(path.createChild(node.test))) {
+      const whileScope = scope.createChild("while");
+      whileScope.invasive = true;
+      whileScope.isolated = false;
+      const result = evaluate(path.createChild(node.body, whileScope)); // 先把do的执行一遍
       if (Signal.isBreak(result)) {
         break;
       } else if (Signal.isContinue(result)) {
@@ -456,32 +488,36 @@ const visitors: EvaluateMap = {
   TryStatement(path) {
     const { node, scope } = path;
     try {
-      const newScope = scope.createChild("try");
-      newScope.invasive = true;
-      return evaluate(path.createChild(node.block, newScope));
+      const tryScope = scope.createChild("try");
+      tryScope.invasive = true;
+      tryScope.isolated = false;
+      return evaluate(path.createChild(node.block, tryScope));
     } catch (err) {
       if (node.handler) {
         const param = node.handler.param as types.Identifier;
-        const newScope = scope.createChild("catch");
-        newScope.invasive = true;
-        newScope.const(param.name, err);
-        return evaluate(path.createChild(node.handler, newScope));
+        const catchScope = scope.createChild("catch");
+        catchScope.invasive = true;
+        catchScope.isolated = false;
+        catchScope.const(param.name, err);
+        return evaluate(path.createChild(node.handler, catchScope));
       } else {
         throw err;
       }
     } finally {
       if (node.finalizer) {
-        const newScope = scope.createChild("finally");
-        newScope.invasive = true;
-        evaluate(path.createChild(node.finalizer, newScope));
+        const finallyScope = scope.createChild("finally");
+        finallyScope.invasive = true;
+        finallyScope.isolated = false;
+        evaluate(path.createChild(node.finalizer, finallyScope));
       }
     }
   },
   SwitchStatement(path) {
     const { node, scope } = path;
     const discriminant = evaluate(path.createChild(node.discriminant)); // switch的条件
-    const newScope = scope.createChild("switch");
-    newScope.invasive = true;
+    const switchScope = scope.createChild("switch");
+    switchScope.invasive = true;
+    switchScope.isolated = false;
 
     let matched = false;
     for (const $case of node.cases) {
@@ -489,13 +525,13 @@ const visitors: EvaluateMap = {
       if (
         !matched &&
         (!$case.test ||
-          discriminant === evaluate(path.createChild($case.test, newScope)))
+          discriminant === evaluate(path.createChild($case.test, switchScope)))
       ) {
         matched = true;
       }
 
       if (matched) {
-        const result = evaluate(path.createChild($case, newScope));
+        const result = evaluate(path.createChild($case, switchScope));
 
         if (Signal.isBreak(result)) {
           break;
@@ -663,22 +699,26 @@ const visitors: EvaluateMap = {
   FunctionExpression(path) {
     const { node, scope } = path;
     const func = function functionDeclaration(...args) {
-      const newScope = scope.createChild("function");
+      const funcScope = scope.createChild("function");
       for (let i = 0; i < node.params.length; i++) {
         const param = node.params[i];
         if (isIdentifier(param)) {
-          newScope.const(param.name, args[i]);
+          funcScope.const(param.name, args[i]);
         } else if (isAssignmentPattern(param)) {
           // @es2015 default parameters
-          evaluate(path.createChild(param, newScope, { value: args[i] }));
+          evaluate(path.createChild(param, funcScope, { value: args[i] }));
         } else if (isRestElement(param)) {
           // @es2015 rest parameters
-          evaluate(path.createChild(param, newScope, { value: args.slice(i) }));
+          evaluate(
+            path.createChild(param, funcScope, { value: args.slice(i) })
+          );
         }
       }
-      newScope.const("this", this);
-      newScope.const("arguments", arguments);
-      const result = evaluate(path.createChild(node.body, newScope));
+      funcScope.const("this", this);
+      funcScope.const("arguments", arguments);
+      funcScope.isolated = false;
+
+      const result = evaluate(path.createChild(node.body, funcScope));
       if (result instanceof Signal) {
         return result.value;
       } else {
@@ -687,12 +727,8 @@ const visitors: EvaluateMap = {
     };
 
     Object.defineProperties(func, {
-      length: {
-        value: node.params.length
-      },
-      name: {
-        value: node.id ? node.id.name : "" // Anonymous function
-      }
+      length: { value: node.params.length },
+      name: { value: node.id ? node.id.name : "" } // Anonymous function
     });
 
     return func;
@@ -1122,7 +1158,7 @@ const visitors: EvaluateMap = {
     const { ctx } = path;
     const { SuperClass, ClassConstructor, ClassEntity } = ctx;
     const classScope: Scope = ctx.classScope;
-    const ClassBodyPath = path.$findParent("ClassBody");
+    const ClassBodyPath = path.findParent("ClassBody");
     // make sure it include in ClassDeclaration
     if (!ClassBodyPath) {
       throw new Error("super() only can use in ClassDeclaration");

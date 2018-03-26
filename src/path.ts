@@ -42,11 +42,11 @@ export class Path<T extends Node> {
    * @returns {(Path<Node> | null)}
    * @memberof Path
    */
-  public $findParent(type: string): Path<Node> | null {
+  public findParent(type: string): Path<Node> | null {
     if (this.parent) {
       return this.parent.node.type === type
         ? this.parent
-        : this.parent.$findParent(type);
+        : this.parent.findParent(type);
     } else {
       return null;
     }
