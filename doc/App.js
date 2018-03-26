@@ -16,23 +16,34 @@ export default class App extends Component {
 class Animal {
   constructor() {
     this.runable = true;
+    this.breathable = true;
   }
 }
 
-class People extends Animal{
+class Human extends Animal{
+  nameable = true;
   constructor(myName) {
     super();
     this.name = myName;
   }
 }
 
-class Developer extends People{
-  constructor(name){
-    super(name);
+class Developer extends Human{
+  codeable = true;
+  constructor(developerName){
+    super(developerName);
     this.hiredable = true;
   }
   hi(name){
-    alert(\`Hi \${name}, I am \${this.name}, \${this.hiredable ? "I am loking for a job": "I am working now"}.\nI hope this Interpreter can help you.\`);
+    alert(JSON.stringify({
+      message: \`Hi \${name}, I am \${this.name}\`,
+      name: this.name,                // inherit from Human
+      nameable: this.nameable,        // inherit from Human
+      hiredable: this.hiredable,      // get from Developer
+      codeable: this.codeable,        // get from Developer
+      runable: this.runable,          // inherit from Animal
+      breathable: this.breathable     // inherit from Animal
+    }, null, 2))
   }
 }
 
