@@ -180,7 +180,7 @@ const visitors: EvaluateMap = {
   },
   LabeledStatement(path) {
     const label = path.node.label as types.Identifier;
-    evaluate(
+    return evaluate(
       path.createChild(path.node.body, path.scope, { labelName: label.name })
     );
   },
@@ -416,15 +416,6 @@ const visitors: EvaluateMap = {
       evaluate(path.createChild(node.init, forScope));
     }
 
-    const labelVarName: string = "@label-" + labelName;
-    const labelBreakVarName: string = "@break-" + labelName;
-
-    // set the label for loop
-    if (labelName) {
-      // var label
-      forScope.const(labelVarName, labelName);
-    }
-
     function update(): void {
       if (node.update) {
         evaluate(path.createChild(node.update, forScope));
@@ -441,44 +432,36 @@ const visitors: EvaluateMap = {
       const loopScope = forScope.fork("for_child");
       loopScope.isolated = false;
 
-      if (!test() || forScope.hasOwnBinding(labelBreakVarName)) {
+      if (!test()) {
         break;
       }
 
-      const result = evaluate(
+      const signal = evaluate(
         path.createChild(node.body, loopScope, { labelName: undefined })
       );
 
-      if (Signal.isBreak(result)) {
-        if (result.value) {
-          // Break specified loop
-          // first, find the scope
-          const labelScope = loopScope.locate("@label-" + result.value);
-
-          // if scope exist, set break mark
-          if (labelScope && labelScope.origin) {
-            labelScope.origin.var("@break-" + result.value, true);
-            return new Signal("break", result.value);
-          }
+      if (Signal.isBreak(signal)) {
+        if (!signal.value) {
+          break;
         }
-
-        break;
-      } else if (Signal.isContinue(result)) {
-        if (result.value) {
-          if (result.value === labelName) {
+        if (signal.value === labelName) {
+          break;
+        }
+        return new Signal("break", signal.value);
+      } else if (Signal.isContinue(signal)) {
+        if (signal.value) {
+          if (signal.value === labelName) {
             update();
             continue;
           }
-          return new Signal("continue", result.value);
+          return new Signal("continue", signal.value);
         }
         continue;
-      } else if (Signal.isReturn(result)) {
-        return result;
+      } else if (Signal.isReturn(signal)) {
+        return signal;
       }
 
-      if (!forScope.hasOwnBinding(labelBreakVarName)) {
-        update();
-      }
+      update();
     }
   },
   // @es2015 for of
