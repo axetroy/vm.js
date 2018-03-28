@@ -6,6 +6,6 @@
     "ordered-imports": false
   },
   "linterOptions": {
-    "exclude": ["./test/**/*.ts"]
+    "exclude": ["./test/**/*.ts", "./src/**/*.test.ts"]
   }
 }
