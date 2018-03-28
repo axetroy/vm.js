@@ -13,7 +13,7 @@ import { Scope } from "./scope";
  */
 export function runInContext(code: string, context: Context) {
   const scope = new Scope("root", null);
-  scope.isTopLevel = true;
+  scope.level = 0;
   scope.invasive = true;
   scope.const("this", undefined);
   scope.setContext(context);

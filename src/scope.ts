@@ -7,15 +7,17 @@ export class Scope {
   // the scope have invasive property
   public invasive: boolean = false;
 
-  public redeclare: boolean = false; // !!dangerous
-
-  // is the top level scope
-  public isTopLevel: boolean = false;
+  // the level of scope.
+  // level === 0 mean root scope
+  public level: number = 0;
 
   // scope context
   public context: Context;
 
-  public isolated: boolean = true; // 孤立的作用域，表示在BlockStatement不会创建新的作用域，默认会创建
+  // isolated scope.
+  // if isolated = true
+  // it will create a new scope in blockStatement
+  public isolated: boolean = true;
 
   // the scope fork from witch scope
   public origin: Scope | null = null;
@@ -23,19 +25,15 @@ export class Scope {
   // scope var
   private content: { [key: string]: Var<any> } = {};
 
-  constructor(
-    public readonly type: ScopeType,
-    public parent: Scope | null,
-    label?: string
-  ) {
+  constructor(public readonly type: ScopeType, public parent: Scope | null) {
     this.context = new Context();
   }
 
-  public setInvasive(invasive: boolean) {
-    this.invasive = invasive;
-    return this;
-  }
-
+  /**
+   * Set context of a scope
+   * @param {Context} context
+   * @memberof Scope
+   */
   public setContext(context: Context) {
     this.context = context;
     for (const name in context) {
@@ -46,29 +44,12 @@ export class Scope {
     }
   }
 
-  public raw(): { [key: string]: any } {
-    const map = {};
-    for (const varName in this.content) {
-      if (this.content.hasOwnProperty(varName)) {
-        const val = this.content[varName];
-        map[varName] = val.value;
-      }
-    }
-    return map;
-  }
-
-  public locate(varName: string): Scope | null {
-    if (this.hasOwnBinding(varName)) {
-      return this;
-    } else {
-      if (this.parent) {
-        return this.parent.locate.call(this.parent, varName);
-      } else {
-        return null;
-      }
-    }
-  }
-
+  /**
+   * check the scope have binding a var
+   * @param {string} varName
+   * @returns {(Var<any> | void)}
+   * @memberof Scope
+   */
   public hasBinding(varName: string): Var<any> | void {
     if (this.content.hasOwnProperty(varName)) {
       return this.content[varName];
@@ -79,6 +60,12 @@ export class Scope {
     }
   }
 
+  /**
+   * check scope have binding a var in current scope
+   * @param {string} varName
+   * @returns {(Var<any> | void)}
+   * @memberof Scope
+   */
   public hasOwnBinding(varName: string): Var<any> | void {
     if (this.content.hasOwnProperty(varName)) {
       return this.content[varName];
@@ -87,6 +74,12 @@ export class Scope {
     }
   }
 
+  /**
+   * get root scope
+   * @readonly
+   * @type {Scope}
+   * @memberof Scope
+   */
   get global(): Scope {
     if (this.parent) {
       return this.parent.global;
@@ -95,32 +88,47 @@ export class Scope {
     }
   }
 
+  /**
+   * Declaring variables with let
+   * @param {string} varName
+   * @param {*} value
+   * @returns {boolean}
+   * @memberof Scope
+   */
   public let(varName: string, value: any): boolean {
     const $var = this.content[varName];
     if (!$var) {
       this.content[varName] = new Var("let", varName, value, this);
       return true;
-    } else if (this.redeclare) {
-      this.content[varName] = new Var("let", varName, value, this);
-      return true;
     } else {
       throw ErrDuplicateDeclard(varName);
     }
   }
 
+  /**
+   * Declaring variables with const
+   * @param {string} varName
+   * @param {*} value
+   * @returns {boolean}
+   * @memberof Scope
+   */
   public const(varName: string, value: any): boolean {
     const $var = this.content[varName];
     if (!$var) {
       this.content[varName] = new Var("const", varName, value, this);
       return true;
-    } else if (this.redeclare) {
-      this.content[varName] = new Var("const", varName, value, this);
-      return true;
     } else {
       throw ErrDuplicateDeclard(varName);
     }
   }
 
+  /**
+   * Declaring variables with var
+   * @param {string} varName
+   * @param {*} value
+   * @returns {boolean}
+   * @memberof Scope
+   */
   public var(varName: string, value: any): boolean {
     // tslint:disable-next-line
     let targetScope: Scope = this;
@@ -139,7 +147,7 @@ export class Scope {
         // only cover var with var, not const and let
         throw ErrDuplicateDeclard(varName);
       } else {
-        if (targetScope.isTopLevel && targetScope.context[varName]) {
+        if (targetScope.level === 0 && targetScope.context[varName]) {
           // top level context can not be cover
           // here we do nothing
         } else {
@@ -164,10 +172,14 @@ export class Scope {
     return true;
   }
 
-  public del(varName: string) {
-    delete this.content[varName];
-  }
-
+  /**
+   * Declaring variables
+   * @param {Kind} kind
+   * @param {string} rawName
+   * @param {*} value
+   * @returns {boolean}
+   * @memberof Scope
+   */
   public declare(kind: Kind, rawName: string, value: any): boolean {
     return {
       const: () => this.const(rawName, value),
@@ -175,17 +187,41 @@ export class Scope {
       var: () => this.var(rawName, value)
     }[kind]();
   }
-  public createChild(type: ScopeType, label?: string): Scope {
-    return new Scope(type, this, label);
+
+  /**
+   * Delete variables
+   * @param {string} varName
+   * @memberof Scope
+   */
+  public del(varName: string) {
+    delete this.content[varName];
   }
+
+  /**
+   * Create a child scope
+   * @param {ScopeType} type
+   * @returns {Scope}
+   * @memberof Scope
+   */
+  public createChild(type: ScopeType): Scope {
+    const childScope = new Scope(type, this);
+    childScope.level = this.level + 1;
+    return childScope;
+  }
+
+  /**
+   * Fork a scope
+   * @param {ScopeType} [type]
+   * @returns {Scope}
+   * @memberof Scope
+   */
   public fork(type?: ScopeType): Scope {
     // forks a new scope
     const siblingScope = new Scope(type || this.type, null);
 
     // copy the properties
     siblingScope.invasive = this.invasive;
-    siblingScope.redeclare = this.redeclare;
-    siblingScope.isTopLevel = this.isTopLevel;
+    siblingScope.level = this.level;
     siblingScope.context = this.context;
     siblingScope.parent = this.parent;
     siblingScope.origin = this;
@@ -198,5 +234,23 @@ export class Scope {
       }
     }
     return siblingScope;
+  }
+
+  /**
+   * Locate a scope with var
+   * @param {string} varName
+   * @returns {(Scope | null)}
+   * @memberof Scope
+   */
+  public locate(varName: string): Scope | void {
+    if (this.hasOwnBinding(varName)) {
+      return this;
+    } else {
+      if (this.parent) {
+        return this.parent.locate.call(this.parent, varName);
+      } else {
+        return undefined;
+      }
+    }
   }
 }
