@@ -71,6 +71,16 @@ try {
   * [ ] Try with optional catch
   * [ ] Decorator
 
+## Test
+
+I have write a lot of test case for this, look at [here](https://github.com/axetroy/vm.js/tree/master/test)
+
+Now it still in development, got a lot of work to do and more detail to resolve.
+
+I will release the first stable version after write 500 test case.
+
+If you want to join it. welcome to PR.
+
 ## Contributors
 
 <!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->

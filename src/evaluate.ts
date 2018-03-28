@@ -466,11 +466,19 @@ const visitors: EvaluateMap = {
   },
   // @es2015 for of
   ForOfStatement(path) {
-    const { node, scope } = path;
+    const { node, scope, ctx } = path;
+    const labelName: string | void = ctx.labelName;
     const entity = evaluate(path.createChild(node.right));
+    const SymbolConst: any =
+      typeof Symbol !== "undefined"
+        ? Symbol
+        : (() => {
+            const $var = scope.hasBinding("Symbol");
+            return $var ? $var.value : undefined;
+          })();
     // not support for of, it mean not support native for of
-    if (typeof Symbol !== "undefined") {
-      if (!entity || !entity[Symbol.iterator]) {
+    if (SymbolConst) {
+      if (!entity || !entity[SymbolConst.iterator]) {
         // FIXME: how to get function name
         // for (let value of get()){}
         throw ErrInvalidIterable((node.right as types.Identifier).name);
@@ -490,7 +498,26 @@ const visitors: EvaluateMap = {
         forOfScope.invasive = true;
         forOfScope.isolated = false;
         forOfScope.declare(node.left.kind, varName, value); // define in current scope
-        evaluate(path.createChild(node.body, forOfScope));
+        const signal = evaluate(path.createChild(node.body, forOfScope));
+        if (Signal.isBreak(signal)) {
+          if (!signal.value) {
+            break;
+          }
+          if (signal.value === labelName) {
+            break;
+          }
+          return signal;
+        } else if (Signal.isContinue(signal)) {
+          if (!signal.value) {
+            continue;
+          }
+          if (signal.value === labelName) {
+            continue;
+          }
+          return signal;
+        } else if (Signal.isReturn(signal)) {
+          return signal;
+        }
       }
     } else if (isIdentifier(node.left)) {
       /**
@@ -503,7 +530,26 @@ const visitors: EvaluateMap = {
         const forOfScope = scope.createChild("forOf");
         forOfScope.invasive = true;
         scope.var(varName, value); // define in parent scope
-        evaluate(path.createChild(node.body, forOfScope));
+        const signal = evaluate(path.createChild(node.body, forOfScope));
+        if (Signal.isBreak(signal)) {
+          if (!signal.value) {
+            break;
+          }
+          if (signal.value === labelName) {
+            break;
+          }
+          return signal;
+        } else if (Signal.isContinue(signal)) {
+          if (!signal.value) {
+            continue;
+          }
+          if (signal.value === labelName) {
+            continue;
+          }
+          return signal;
+        } else if (Signal.isReturn(signal)) {
+          return signal;
+        }
       }
     }
   },
