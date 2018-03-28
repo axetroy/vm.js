@@ -738,7 +738,7 @@ const visitors: EvaluateMap = {
       const { name } = node.argument;
       $var = scope.hasBinding(name);
       if (!$var) {
-        throw new Error(`${name} 未定义`);
+        throw ErrNotDefined(name);
       }
     } else if (isMemberExpression(node.argument)) {
       const argument = node.argument;
