@@ -549,19 +549,32 @@ const visitors: EvaluateMap = {
     }
   },
   DoWhileStatement(path) {
-    const { node, scope } = path;
+    const { node, scope, ctx } = path;
+    const labelName: string | void = ctx.labelName;
     // do while don't have his own scope
     do {
       const doWhileScope = scope.createChild("doWhile");
-      doWhileScope.invasive = true; // do while循环具有侵入性，定义var的时候，是覆盖父级变量
+      doWhileScope.invasive = true;
       doWhileScope.isolated = false;
-      const result = evaluate(path.createChild(node.body, doWhileScope)); // 先把do的执行一遍
-      if (Signal.isBreak(result)) {
-        break;
-      } else if (Signal.isContinue(result)) {
-        continue;
-      } else if (Signal.isReturn(result)) {
-        return result;
+      const signal = evaluate(path.createChild(node.body, doWhileScope));
+      if (Signal.isBreak(signal)) {
+        if (!signal.value) {
+          break;
+        }
+        if (signal.value === labelName) {
+          break;
+        }
+        return signal;
+      } else if (Signal.isContinue(signal)) {
+        if (!signal.value) {
+          continue;
+        }
+        if (signal.value === labelName) {
+          continue;
+        }
+        return signal;
+      } else if (Signal.isReturn(signal)) {
+        return signal;
       }
     } while (evaluate(path.createChild(node.test)));
   },
@@ -573,7 +586,7 @@ const visitors: EvaluateMap = {
       const whileScope = scope.createChild("while");
       whileScope.invasive = true;
       whileScope.isolated = false;
-      const signal = evaluate(path.createChild(node.body, whileScope)); // 先把do的执行一遍
+      const signal = evaluate(path.createChild(node.body, whileScope));
       if (Signal.isBreak(signal)) {
         if (!signal.value) {
           break;
