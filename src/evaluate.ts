@@ -418,7 +418,6 @@ const visitors: EvaluateMap = {
 
     const labelVarName: string = "@label-" + labelName;
     const labelBreakVarName: string = "@break-" + labelName;
-    const labelContinueVarName: string = "@continue-" + labelName;
 
     // set the label for loop
     if (labelName) {
@@ -470,10 +469,6 @@ const visitors: EvaluateMap = {
             update();
             continue;
           }
-          // Continue specified loop
-          // first, find the scope
-          const labelScope = loopScope.locate("@label-" + result.value);
-
           return new Signal("continue", result.value);
         }
         continue;
