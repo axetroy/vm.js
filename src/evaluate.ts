@@ -135,14 +135,21 @@ const visitors: EvaluateMap = {
         for (const declaration of node.declarations) {
           if (node.kind === "var") {
             if (!scope.isolated && scope.invasive) {
-              if (scope.parent) {
-                scope.parent.var(
-                  (declaration.id as types.Identifier).name,
-                  undefined
-                );
-              } else {
-                scope.var((declaration.id as types.Identifier).name, undefined);
-              }
+              const targetScope = (function get(s: Scope) {
+                if (s.parent) {
+                  if (s.parent.invasive) {
+                    return get(s.parent);
+                  } else {
+                    return s.parent;
+                  }
+                } else {
+                  return s;
+                }
+              })(scope);
+              targetScope.parent.var(
+                (declaration.id as types.Identifier).name,
+                undefined
+              );
             } else {
               scope.var((declaration.id as types.Identifier).name, undefined);
             }
@@ -172,13 +179,18 @@ const visitors: EvaluateMap = {
     debugger;
   },
   LabeledStatement(path) {
-    throw ErrNotSupport(path.node.type);
+    const label = path.node.label as types.Identifier;
+    evaluate(
+      path.createChild(path.node.body, path.scope, { labelName: label.name })
+    );
   },
   BreakStatement(path) {
-    return new Signal("break");
+    const label = path.node.label;
+    return new Signal("break", label ? label.name : undefined);
   },
   ContinueStatement(path) {
-    return new Signal("continue");
+    const label = path.node.label;
+    return new Signal("continue", label ? label.name : undefined);
   },
   ReturnStatement(path) {
     return new Signal(
@@ -243,11 +255,19 @@ const visitors: EvaluateMap = {
 
       for (const varName in varKeyValueMap) {
         if (scope.invasive && kind === "var") {
-          if (scope.parent) {
-            scope.parent.declare(kind, varName, varKeyValueMap[varName]);
-          } else {
-            scope.declare(kind, varName, varKeyValueMap[varName]);
-          }
+          const targetScope = (function get(s: Scope) {
+            if (s.parent) {
+              if (s.parent.invasive) {
+                return get(s.parent);
+              } else {
+                return s.parent;
+              }
+            } else {
+              return s;
+            }
+          })(scope);
+
+          targetScope.declare(kind, varName, varKeyValueMap[varName]);
         } else {
           scope.declare(kind, varName, varKeyValueMap[varName]);
         }
@@ -385,37 +405,84 @@ const visitors: EvaluateMap = {
     return evaluate(path.createChild(path.node.expression));
   },
   ForStatement(path) {
-    const { node, scope } = path;
-
+    const { node, scope, ctx } = path;
+    const labelName = ctx.labelName as string | void;
     const forScope = scope.createChild("for");
 
     forScope.invasive = true; // 有块级作用域
 
+    // init loop
     if (node.init) {
       evaluate(path.createChild(node.init, forScope));
+    }
+
+    const labelVarName: string = "@label-" + labelName;
+    const labelBreakVarName: string = "@break-" + labelName;
+    const labelContinueVarName: string = "@continue-" + labelName;
+
+    // set the label for loop
+    if (labelName) {
+      // var label
+      forScope.const(labelVarName, labelName);
+    }
+
+    function update(): void {
+      if (node.update) {
+        evaluate(path.createChild(node.update, forScope));
+      }
+    }
+
+    function test(): boolean {
+      return node.test ? evaluate(path.createChild(node.test, forScope)) : true;
     }
 
     for (;;) {
       // every loop will create it's own scope
       // it should inherit from forScope
-      const loopScope = forScope.fork();
+      const loopScope = forScope.fork("for_child");
+      loopScope.isolated = false;
 
-      if (node.test && !evaluate(path.createChild(node.test, forScope))) {
+      if (!test() || forScope.hasOwnBinding(labelBreakVarName)) {
         break;
       }
 
-      loopScope.isolated = false;
+      const result = evaluate(
+        path.createChild(node.body, loopScope, { labelName: undefined })
+      );
 
-      const result = evaluate(path.createChild(node.body, loopScope));
       if (Signal.isBreak(result)) {
+        if (result.value) {
+          // Break specified loop
+          // first, find the scope
+          const labelScope = loopScope.locate("@label-" + result.value);
+
+          // if scope exist, set break mark
+          if (labelScope && labelScope.origin) {
+            labelScope.origin.var("@break-" + result.value, true);
+            return new Signal("break", result.value);
+          }
+        }
+
         break;
       } else if (Signal.isContinue(result)) {
+        if (result.value) {
+          if (result.value === labelName) {
+            update();
+            continue;
+          }
+          // Continue specified loop
+          // first, find the scope
+          const labelScope = loopScope.locate("@label-" + result.value);
+
+          return new Signal("continue", result.value);
+        }
         continue;
       } else if (Signal.isReturn(result)) {
         return result;
       }
-      if (node.update) {
-        evaluate(path.createChild(node.update, forScope));
+
+      if (!forScope.hasOwnBinding(labelBreakVarName)) {
+        update();
       }
     }
   },

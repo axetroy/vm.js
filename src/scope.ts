@@ -17,6 +17,9 @@ export class Scope {
 
   public isolated: boolean = true; // 孤立的作用域，表示在BlockStatement不会创建新的作用域，默认会创建
 
+  // the scope fork from witch scope
+  public origin: Scope | null = null;
+
   // scope var
   private content: { [key: string]: Var<any> } = {};
 
@@ -52,6 +55,18 @@ export class Scope {
       }
     }
     return map;
+  }
+
+  public locate(varName: string): Scope | null {
+    if (this.hasOwnBinding(varName)) {
+      return this;
+    } else {
+      if (this.parent) {
+        return this.parent.locate.call(this.parent, varName);
+      } else {
+        return null;
+      }
+    }
   }
 
   public hasBinding(varName: string): Var<any> | void {
@@ -136,6 +151,10 @@ export class Scope {
     return true;
   }
 
+  public del(varName: string) {
+    delete this.content[varName];
+  }
+
   public declare(kind: Kind, rawName: string, value: any): boolean {
     return {
       const: () => this.const(rawName, value),
@@ -148,22 +167,23 @@ export class Scope {
   }
   public fork(type?: ScopeType): Scope {
     // forks a new scope
-    const newScope = new Scope(type || this.type, null);
+    const siblingScope = new Scope(type || this.type, null);
 
     // copy the properties
-    newScope.invasive = this.invasive;
-    newScope.redeclare = this.redeclare;
-    newScope.isTopLevel = this.isTopLevel;
-    newScope.context = this.context;
-    newScope.parent = this.parent;
+    siblingScope.invasive = this.invasive;
+    siblingScope.redeclare = this.redeclare;
+    siblingScope.isTopLevel = this.isTopLevel;
+    siblingScope.context = this.context;
+    siblingScope.parent = this.parent;
+    siblingScope.origin = this;
 
     // copy the vars
     for (const varName in this.content) {
       if (this.content.hasOwnProperty(varName)) {
         const $var = this.content[varName];
-        newScope.declare($var.kind, $var.name, $var.value);
+        siblingScope.declare($var.kind, $var.name, $var.value);
       }
     }
-    return newScope;
+    return siblingScope;
   }
 }

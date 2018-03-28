@@ -7,6 +7,7 @@ export type ScopeType =
   | "method" // isolated scope
   | "constructor" // isolated scope
   | "for"
+  | "for_child"
   | "forIn"
   | "forOf"
   | "while"
