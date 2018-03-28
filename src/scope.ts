@@ -123,30 +123,43 @@ export class Scope {
 
   public var(varName: string, value: any): boolean {
     // tslint:disable-next-line
-    let scope: Scope = this;
+    let targetScope: Scope = this;
 
     while (
-      scope.parent !== null &&
-      (scope.type !== "function" && scope.type !== "constructor")
+      targetScope.parent !== null &&
+      // function and constructor has own scope
+      (targetScope.type !== "function" && targetScope.type !== "constructor")
     ) {
-      scope = scope.parent;
+      targetScope = targetScope.parent;
     }
 
-    const $var = scope.content[varName];
+    const $var = targetScope.content[varName];
     if ($var) {
       if ($var.kind !== "var") {
         // only cover var with var, not const and let
         throw ErrDuplicateDeclard(varName);
       } else {
-        if (this.isTopLevel && this.context[varName]) {
+        if (targetScope.isTopLevel && targetScope.context[varName]) {
           // top level context can not be cover
           // here we do nothing
         } else {
-          this.content[varName] = new Var("var", varName, value, this);
+          // new var cover the old var
+          targetScope.content[varName] = new Var(
+            "var",
+            varName,
+            value,
+            targetScope
+          );
         }
       }
     } else {
-      this.content[varName] = new Var("var", varName, value, this);
+      // set the new var
+      targetScope.content[varName] = new Var(
+        "var",
+        varName,
+        value,
+        targetScope
+      );
     }
     return true;
   }

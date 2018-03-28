@@ -447,16 +447,16 @@ const visitors: EvaluateMap = {
         if (signal.value === labelName) {
           break;
         }
-        return new Signal("break", signal.value);
+        return signal;
       } else if (Signal.isContinue(signal)) {
-        if (signal.value) {
-          if (signal.value === labelName) {
-            update();
-            continue;
-          }
-          return new Signal("continue", signal.value);
+        if (!signal.value) {
+          continue;
         }
-        continue;
+        if (signal.value === labelName) {
+          update();
+          continue;
+        }
+        return signal;
       } else if (Signal.isReturn(signal)) {
         return signal;
       }
@@ -508,10 +508,12 @@ const visitors: EvaluateMap = {
     }
   },
   ForInStatement(path) {
-    const { node, scope } = path;
+    const { node, scope, ctx } = path;
     const kind = (node.left as types.VariableDeclaration).kind;
     const decl = (node.left as types.VariableDeclaration).declarations[0];
     const name = (decl.id as types.Identifier).name;
+
+    const labelName: string = ctx.labelName;
 
     const right = evaluate(path.createChild(node.right));
 
@@ -519,16 +521,29 @@ const visitors: EvaluateMap = {
       if (Object.hasOwnProperty.call(right, value)) {
         const forInScope = scope.createChild("forIn");
         forInScope.invasive = true;
-        forInScope.declare(kind, name, value);
         forInScope.isolated = false;
+        forInScope.declare(kind, name, value);
 
-        const result = evaluate(path.createChild(node.body, forInScope));
-        if (Signal.isBreak(result)) {
-          break;
-        } else if (Signal.isContinue(result)) {
-          continue;
-        } else if (Signal.isReturn(result)) {
-          return result;
+        const signal = evaluate(path.createChild(node.body, forInScope));
+
+        if (Signal.isBreak(signal)) {
+          if (!signal.value) {
+            break;
+          }
+          if (signal.value === labelName) {
+            break;
+          }
+          return signal;
+        } else if (Signal.isContinue(signal)) {
+          if (!signal.value) {
+            continue;
+          }
+          if (signal.value === labelName) {
+            continue;
+          }
+          return signal;
+        } else if (Signal.isReturn(signal)) {
+          return signal;
         }
       }
     }
