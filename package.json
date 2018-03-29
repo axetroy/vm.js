@@ -4,7 +4,8 @@
   "description": "Javascript Interpreter, run Javascript code in ECMAScript",
   "main": "./build/src/vm.js",
   "scripts": {
-    "test": "rm -rf ./build && tsc -p ./ && nyc ava ./build/test",
+    "test":
+      "rm -rf ./build && tsc -p ./ && nyc ava ./build/test ./build/src/**/*.test.js",
     "build": "rm -rf ./build && tsc -p ./ -d",
     "start": "npm run build && parcel ./doc/index.html -d vm.js",
     "docs":

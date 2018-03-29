@@ -1,4 +1,4 @@
-import Context from "./context";
+import { Context } from "./context";
 import { ErrDuplicateDeclard } from "./error";
 import { Kind, ScopeType } from "./type";
 import { Var } from "./var";
@@ -27,6 +27,20 @@ export class Scope {
 
   constructor(public readonly type: ScopeType, public parent: Scope | null) {
     this.context = new Context();
+  }
+
+  get length(): number {
+    return Object.keys(this.content).length;
+  }
+
+  get raw(): { [key: string]: any } {
+    const raw = {};
+    for (const attr in this.content) {
+      if (this.content.hasOwnProperty(attr)) {
+        raw[attr] = this.content[attr].value;
+      }
+    }
+    return raw;
   }
 
   /**
@@ -193,8 +207,9 @@ export class Scope {
    * @param {string} varName
    * @memberof Scope
    */
-  public del(varName: string) {
+  public del(varName: string): boolean {
     delete this.content[varName];
+    return true;
   }
 
   /**

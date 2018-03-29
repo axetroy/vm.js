@@ -4,7 +4,7 @@ export interface ISandBox {
 
 import g from "./global";
 
-const defaultContext: ISandBox = {
+export const DEFAULT_CONTEXT: ISandBox = {
   Array,
   Boolean,
   clearInterval,
@@ -41,13 +41,13 @@ const defaultContext: ISandBox = {
   SyntaxError,
   TypeError,
   unescape,
-  URIError
+  URIError,
+  global: g
 };
 
-export default class Context {
-  public global: any = g;
+export class Context {
   constructor(externalContext: ISandBox = {}) {
-    const ctx = { ...defaultContext, ...externalContext };
+    const ctx = { ...DEFAULT_CONTEXT, ...externalContext };
     for (const attr in ctx) {
       if (ctx.hasOwnProperty(attr)) {
         this[attr] = ctx[attr];

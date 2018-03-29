@@ -1,5 +1,5 @@
 import { parse } from "babylon";
-import Context, { ISandBox } from "./context";
+import { Context, ISandBox } from "./context";
 import evaluate from "./evaluate";
 import { Path } from "./path";
 import { Scope } from "./scope";
