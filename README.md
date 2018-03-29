@@ -67,9 +67,10 @@ try {
 * [ ] Experimental
   * [x] Object rest spread
   * [x] Class property
-  * [x] Do expression
-  * [ ] Try with optional catch
-  * [ ] Decorator
+  * [x] [Do expressions](https://github.com/tc39/proposal-do-expressions)
+  * [ ] [Optional catch binding](https://github.com/tc39/proposal-optional-catch-binding)
+  * [ ] [Decorators](https://github.com/tc39/proposal-decorators)
+  * [ ] [Global](https://github.com/tc39/proposal-global)
 
 ## Test
 
