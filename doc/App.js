@@ -3,7 +3,21 @@ import CodeMirror from "react-codemirror";
 
 import "./App.css";
 import "codemirror/lib/codemirror.css";
-import "codemirror/mode/javascript/javascript";
+import "codemirror/mode/javascript/javascript.js";
+import "codemirror/addon/fold/foldcode.js";
+import "codemirror/addon/fold/foldgutter.js";
+import "codemirror/addon/fold/foldgutter.css";
+import "codemirror/addon/fold/brace-fold.js";
+import "codemirror/addon/fold/comment-fold.js";
+import "codemirror/addon/fold/indent-fold.js";
+import "codemirror/addon/edit/closebrackets.js";
+import "codemirror/addon/edit//matchtags.js";
+import "codemirror/addon/selection/active-line.js";
+import "codemirror/addon/scroll/annotatescrollbar.js";
+import "codemirror/addon/search/searchcursor.js";
+import "codemirror/addon/search/match-highlighter.js";
+import "codemirror/addon/search/matchesonscrollbar.js";
+import "codemirror/addon/search/matchesonscrollbar.css";
 
 import vm from "../build/src/vm";
 import pkg from "../package";
@@ -130,24 +144,42 @@ axetroy.hi("friend");
           </div>
           <div>
             <CodeMirror
+              ref={m => {
+                if (!m) return;
+                const editor = m.codeMirror;
+                // console.dir(m);
+                // console.dir(m.getCodeMirror());
+                // console.dir(m.getCodeMirrorInstance());
+                // const node = document.createElement("div");
+                // node.innerText = "Run";
+                // editor.addPanel(node, { position: "top", stable: true });
+              }}
               className="code-mirror"
               value={this.state.code}
               onChange={this.updateCode.bind(this)}
               options={{
                 mode: {
-                  name: "javascript",
-                  json: true
+                  name: "javascript"
                 },
+                styleActiveLine: true,
                 indentUnit: 2,
                 smartIndent: true,
                 tabSize: 2,
+                indentWithTabs: false,
                 // lineWrapping: true,
                 lineNumbers: true,
                 // showCursorWhenSelecting: true,
                 autofocus: false,
                 dragDrop: true,
                 allowDropFileTypes: ["js"],
-                cursorBlinkRate: 530
+                cursorBlinkRate: 530,
+                foldGutter: true,
+                gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"],
+                matchTags: { bothTags: true },
+                highlightSelectionMatches: {
+                  showToken: /\w/,
+                  annotateScrollbar: true
+                }
               }}
             />
             <div style={{ textAlign: "center", margin: "1rem" }}>
