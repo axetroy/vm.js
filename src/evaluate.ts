@@ -893,6 +893,13 @@ const visitors: EvaluateMap = {
         }
       }
       funcScope.const("this", this);
+      // support new.target
+      funcScope.const("new", {
+        target:
+          this && this.__proto__ && this.__proto__.constructor
+            ? this.__proto__.constructor
+            : undefined
+      });
       funcScope.const("arguments", arguments);
       funcScope.isolated = false;
 
@@ -1471,7 +1478,8 @@ const visitors: EvaluateMap = {
     return func(templateObject, ...expressionResultList);
   },
   MetaProperty(path) {
-    //
+    const obj = evaluate(path.createChild(path.node.meta));
+    return obj[path.node.property.name];
   },
   AwaitExpression(path) {
     const { next } = path.ctx;
