@@ -163,12 +163,16 @@ test("fork child", t => {
   t.deepEqual(scope.raw, { name: "vm" });
 
   const sibling = scope.fork("block");
+  t.deepEqual(sibling.type, "block");
   t.deepEqual(sibling.level, 0);
   t.deepEqual(sibling.length, 1);
   t.deepEqual(sibling.raw, { name: "vm" });
   t.true(sibling.origin === scope);
 
   t.true(!!sibling.hasBinding("name"));
+
+  // fork another
+  scope.fork();
 });
 
 test("locate scope", t => {
@@ -186,4 +190,6 @@ test("locate scope", t => {
   }
 
   t.true(target === scope);
+
+  t.deepEqual(childChild.locate("customerVarName"), undefined);
 });
