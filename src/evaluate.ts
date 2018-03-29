@@ -1286,19 +1286,20 @@ const visitors: EvaluateMap = {
 
       const classMethods = methods
         .map((method: types.ClassMethod) => {
-          const newScope = scope.createChild("function");
+          const methodScope = scope.createChild("function");
           const func = function(...args) {
-            newScope.var("this", this);
+            methodScope.const("this", this);
+            methodScope.const("new", { target: undefined });
 
             // defined the params
             method.params.forEach((p: types.LVal, i) => {
               if (isIdentifier(p)) {
-                newScope.const(p.name, args[i]);
+                methodScope.const(p.name, args[i]);
               }
             });
 
             const result = evaluate(
-              path.createChild(method.body, newScope, {
+              path.createChild(method.body, methodScope, {
                 SuperClass,
                 ClassConstructor,
                 ClassMethodArguments: args,
