@@ -70,7 +70,7 @@ try {
   * [x] [Do expressions](https://github.com/tc39/proposal-do-expressions)
   * [ ] [Optional catch binding](https://github.com/tc39/proposal-optional-catch-binding)
   * [ ] [Decorators](https://github.com/tc39/proposal-decorators)
-  * [ ] [Global](https://github.com/tc39/proposal-global)
+  * [x] [Global](https://github.com/tc39/proposal-global)
 
 ## Test
 
