@@ -1199,6 +1199,22 @@ const visitors: EvaluateMap = {
     const ClassConstructor = evaluate(
       path.createChild(path.node.body, path.scope.createChild("class"))
     );
+
+    // support class decorators
+    const classDecorators = (path.node.decorators || [])
+      .map(node => evaluate(path.createChild(node)))
+      .reverse(); // revers decorators
+
+    // TODO: support class property decorator
+    // support class method decorators
+    // const propertyDecorators = path.node.body.body.filter(
+    //   node => node.decorators && node.decorators.length
+    // );
+
+    for (const decorator of classDecorators) {
+      decorator(ClassConstructor);
+    }
+
     path.scope.const(path.node.id.name, ClassConstructor);
   },
   ClassBody(path) {
@@ -1342,6 +1358,9 @@ const visitors: EvaluateMap = {
   },
   ClassExpression(path) {
     //
+  },
+  Decorator(path) {
+    return evaluate(path.createChild(path.node.expression));
   },
   Super(path) {
     const { ctx } = path;

@@ -100,6 +100,7 @@ export interface INodeTypeMap {
   ExportSpecifier: t.ExportSpecifier;
   SpreadProperty: t.SpreadProperty;
   DoExpression: t.DoExpression;
+  Decorator: t.Decorator;
 }
 
 export type EvaluateMap = {
