@@ -44,6 +44,8 @@ import {
   isVariableDeclaration
 } from "./packages/babel-types";
 
+import { defineFunctionLength, defineFunctionName } from "./utils";
+
 const visitors: EvaluateMap = {
   File(path) {
     evaluate(path.createChild(path.node.program));
@@ -393,10 +395,8 @@ const visitors: EvaluateMap = {
       func = visitors.FunctionExpression(path.createChild(node as any));
     }
 
-    Object.defineProperties(func, {
-      length: { value: node.params.length || 0 },
-      name: { value: functionName }
-    });
+    defineFunctionLength(func, node.params.length || 0);
+    defineFunctionName(func, functionName);
 
     // Function can repeat declaration
     scope.var(functionName, func);
@@ -855,10 +855,8 @@ const visitors: EvaluateMap = {
         return result.value;
       }
     };
-    Object.defineProperties(method, {
-      length: { value: node.params.length },
-      name: { value: methodName }
-    });
+    defineFunctionLength(method, node.params.length);
+    defineFunctionName(method, methodName);
     switch (node.kind) {
       case "get":
         Object.defineProperty(path.ctx.object, methodName, { get: method });
@@ -904,10 +902,8 @@ const visitors: EvaluateMap = {
       }
     };
 
-    Object.defineProperties(func, {
-      length: { value: node.params.length },
-      name: { value: node.id ? node.id.name : "" } // Anonymous function
-    });
+    defineFunctionLength(func, node.params.length);
+    defineFunctionName(func, node.id ? node.id.name : ""); // Anonymous function
 
     return func;
   },
@@ -1170,10 +1166,8 @@ const visitors: EvaluateMap = {
       }
     };
 
-    Object.defineProperties(func, {
-      length: { value: node.params.length },
-      name: { value: node.id ? node.id.name : "" }
-    });
+    defineFunctionLength(func, node.params.length);
+    defineFunctionName(func, node.id ? node.id.name : "");
 
     return func;
   },
@@ -1266,11 +1260,12 @@ const visitors: EvaluateMap = {
         return this;
       }
 
-      // define class name
-      Object.defineProperties(ClassConstructor, {
-        name: { value: parentNode.id.name },
-        length: { value: constructor ? constructor.params.length : 0 }
-      });
+      // define class name and length
+      defineFunctionLength(
+        ClassConstructor,
+        constructor ? constructor.params.length : 0
+      );
+      defineFunctionName(ClassConstructor, parentNode.id.name);
 
       const classMethods = methods
         .map((method: types.ClassMethod) => {
@@ -1299,10 +1294,8 @@ const visitors: EvaluateMap = {
             }
           };
 
-          Object.defineProperties(func, {
-            length: { value: method.params.length },
-            name: { value: method.id ? method.id.name : "" }
-          });
+          defineFunctionLength(func, method.params.length);
+          defineFunctionName(func, method.id ? method.id.name : "");
 
           return {
             key: (method.key as any).name,
