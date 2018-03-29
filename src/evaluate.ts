@@ -1243,6 +1243,10 @@ const visitors: EvaluateMap = {
             classScope.const("this", this);
           }
 
+          classScope.const("new", {
+            target: ClassConstructor
+          });
+
           for (const n of constructor.body.body) {
             evaluate(
               path.createChild(n, classScope, {
