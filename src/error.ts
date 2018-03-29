@@ -31,3 +31,7 @@ export function ErrNoSuper(): ReferenceError {
     `Uncaught ReferenceError: Must call super constructor in derived class before accessing 'this' or returning from derived constructor`
   );
 }
+
+export function ErrIsNotFunction(name: string): ReferenceError {
+  return new TypeError(`Uncaught TypeError: ${name} is not a function`);
+}

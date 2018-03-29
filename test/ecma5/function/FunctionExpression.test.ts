@@ -1,5 +1,6 @@
 import test from "ava";
 import vm from "../../../src/vm";
+import { ErrIsNotFunction } from "../../../src/error";
 
 test("FunctionExpression-1", t => {
   const sandbox: any = vm.createContext({});
@@ -58,4 +59,19 @@ module.exports = person;
   );
 
   t.deepEqual(person.sayName.name, "sayName");
+});
+
+test("invalid function call", t => {
+  const sandbox: any = vm.createContext({});
+
+  t.throws(() => {
+    vm.runInContext(
+      `
+  const a = 123;
+  
+  module.exports = a(); // a is not a function
+    `,
+      sandbox
+    );
+  }, ErrIsNotFunction("a").message);
 });

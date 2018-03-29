@@ -1,10 +1,12 @@
 import * as types from "babel-types";
+import * as isFunction from "lodash.isfunction";
 import {
   ErrInvalidIterable,
   ErrNoSuper,
   ErrNotDefined,
   ErrNotSupport,
-  ErrUnexpectedToken
+  ErrUnexpectedToken,
+  ErrIsNotFunction
 } from "./error";
 import { Path } from "./path";
 import {
@@ -988,11 +990,15 @@ const visitors: EvaluateMap = {
     const { node, scope } = path;
     const func = evaluate(path.createChild(node.callee));
     const args = node.arguments.map(arg => evaluate(path.createChild(arg)));
+    const isValidFunction = isFunction(func) as boolean;
 
     if (isMemberExpression(node.callee)) {
       const object = evaluate(path.createChild(node.callee.object));
       return func.apply(object, args);
     } else {
+      if (!isValidFunction) {
+        throw ErrIsNotFunction((node.callee as types.Identifier).name);
+      }
       const thisVar = scope.hasBinding("this");
       return func.apply(thisVar ? thisVar.value : null, args);
     }

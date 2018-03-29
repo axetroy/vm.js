@@ -23,7 +23,8 @@
   "license": "MIT",
   "dependencies": {
     "babel-types": "^6.26.0",
-    "babylon": "^6.18.0"
+    "babylon": "^6.18.0",
+    "lodash.isfunction": "^3.0.9"
   },
   "bugs": {
     "url": "https://github.com/axetroy/vm.js/issues"
@@ -31,6 +32,7 @@
   "homepage": "https://github.com/axetroy/vm.js#readme",
   "devDependencies": {
     "@types/babel-core": "^6.25.3",
+    "@types/lodash": "^4.14.106",
     "@types/node": "^9.6.0",
     "ava": "^0.25.0",
     "babel-preset-env": "^1.6.1",
