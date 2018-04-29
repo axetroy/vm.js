@@ -4,8 +4,6 @@ export interface ISandBox {
 
 declare const WebAssembly: any;
 
-import g from "./global";
-
 const UNDEFINED: string = "undefined";
 
 // ECMA standar refs: https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects
@@ -33,7 +31,7 @@ export const DEFAULT_CONTEXT: ISandBox = {
   NaN,
   Number,
   ["null"]: null,
-  ["undefined"]: undefined,
+  [UNDEFINED]: void 0,
   Object,
   parseFloat,
   parseInt,
@@ -46,8 +44,7 @@ export const DEFAULT_CONTEXT: ISandBox = {
   SyntaxError,
   TypeError,
   unescape,
-  URIError,
-  global: g
+  URIError
 };
 
 // need to polyfill by user
