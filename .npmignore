@@ -15,3 +15,6 @@ tsconfig.json
 src
 tslint.json
 *.lock
+dist/**/*.test.d.ts
+dist/**/*.test.js
+dist/**/*.test.js.map

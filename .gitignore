@@ -6,3 +6,4 @@ build
 .DS_Store
 vm.js
 .cache
+dist
