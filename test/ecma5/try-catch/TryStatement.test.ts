@@ -51,3 +51,32 @@ module.exports = obj;
   t.true(obj.runTry);
   t.true(obj.runError);
 });
+
+test("TryStatement with finally", t => {
+  const sandbox: any = vm.createContext({});
+
+  const obj: any = vm.runInContext(
+    `
+const obj = {
+  runTry: false,
+  runError: false,
+  runFinally: false
+};
+
+try {
+  obj.runTry = true;
+} catch (err) {
+  obj.runError = true;
+}finally{
+  obj.runFinally = true;
+}
+
+module.exports = obj;
+  `,
+    sandbox
+  );
+
+  t.true(obj.runTry);
+  t.false(obj.runError);
+  t.true(obj.runFinally);
+});
