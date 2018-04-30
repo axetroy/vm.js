@@ -23,7 +23,7 @@ import { EvaluateFunc, EvaluateMap, Kind, ScopeType } from "./type";
 // tslint:disable-next-line
 import { Signal } from "./signal";
 import { Scope } from "./scope";
-import { MODULE, THIS, REQUIRE, UNDEFINED, ARGUMENTS } from "./constant";
+import { MODULE, THIS, REQUIRE, UNDEFINED, ARGUMENTS, NEW } from "./constant";
 
 import {
   isArrayExpression,
@@ -892,7 +892,7 @@ const visitors: EvaluateMap = {
       }
       funcScope.const(THIS, this);
       // support new.target
-      funcScope.const("new", {
+      funcScope.const(NEW, {
         target:
           this && this.__proto__ && this.__proto__.constructor
             ? this.__proto__.constructor
@@ -1252,7 +1252,7 @@ const visitors: EvaluateMap = {
             classScope.const(THIS, this);
           }
 
-          classScope.const("new", {
+          classScope.const(NEW, {
             target: ClassConstructor
           });
 
@@ -1298,7 +1298,7 @@ const visitors: EvaluateMap = {
           const methodScope = scope.createChild(ScopeType.Function);
           const func = function(...args) {
             methodScope.const(THIS, this);
-            methodScope.const("new", { target: undefined });
+            methodScope.const(NEW, { target: undefined });
 
             // defined the params
             method.params.forEach((p: types.LVal, i) => {
