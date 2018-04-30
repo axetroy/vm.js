@@ -23,6 +23,7 @@ import { EvaluateFunc, EvaluateMap, Kind } from "./type";
 // tslint:disable-next-line
 import { Signal } from "./signal";
 import { Scope } from "./scope";
+import { MODULE, THIS, REQUIRE, UNDEFINED, ARGUMENTS } from "./constant";
 
 import {
   isArrayExpression,
@@ -58,7 +59,7 @@ const visitors: EvaluateMap = {
         evaluate(path.createChild(node));
       } else if (isVariableDeclaration(node)) {
         for (const declaration of node.declarations) {
-          if (node.kind === "var") {
+          if (node.kind === Kind.Var) {
             scope.var((declaration.id as types.Identifier).name, undefined);
           }
         }
@@ -74,7 +75,7 @@ const visitors: EvaluateMap = {
 
   Identifier(path) {
     const { node, scope } = path;
-    if (node.name === "undefined") {
+    if (node.name === UNDEFINED) {
       return undefined;
     }
     const $var = scope.hasBinding(node.name);
@@ -135,7 +136,7 @@ const visitors: EvaluateMap = {
         evaluate(path.createChild(node));
       } else if (isVariableDeclaration(node)) {
         for (const declaration of node.declarations) {
-          if (node.kind === "var") {
+          if (node.kind === Kind.Var) {
             if (!scope.isolated && scope.invasive) {
               const targetScope = (function get(s: Scope) {
                 if (s.parent) {
@@ -257,7 +258,7 @@ const visitors: EvaluateMap = {
       }
 
       for (const varName in varKeyValueMap) {
-        if (scope.invasive && kind === "var") {
+        if (scope.invasive && kind === Kind.Var) {
           const targetScope = (function get(s: Scope) {
             if (s.parent) {
               if (s.parent.invasive) {
@@ -770,11 +771,11 @@ const visitors: EvaluateMap = {
     const { scope } = path;
     // use this in class constructor it it never call super();
     if (scope.type === "constructor") {
-      if (!scope.hasOwnBinding("this")) {
+      if (!scope.hasOwnBinding(THIS)) {
         throw ErrNoSuper();
       }
     }
-    const thisVar = scope.hasBinding("this");
+    const thisVar = scope.hasBinding(THIS);
     return thisVar ? thisVar.value : null;
   },
   ArrayExpression(path) {
@@ -839,7 +840,7 @@ const visitors: EvaluateMap = {
     const method = function() {
       const args = [].slice.call(arguments);
       const newScope = scope.createChild("function");
-      newScope.const("this", this);
+      newScope.const(THIS, this);
       // define argument
       node.params.forEach((param, i) => {
         if (isIdentifier(param)) {
@@ -893,7 +894,7 @@ const visitors: EvaluateMap = {
           );
         }
       }
-      funcScope.const("this", this);
+      funcScope.const(THIS, this);
       // support new.target
       funcScope.const("new", {
         target:
@@ -901,7 +902,7 @@ const visitors: EvaluateMap = {
             ? this.__proto__.constructor
             : undefined
       });
-      funcScope.const("arguments", arguments);
+      funcScope.const(ARGUMENTS, arguments);
       funcScope.isolated = false;
 
       const result = evaluate(path.createChild(node.body, funcScope));
@@ -985,7 +986,7 @@ const visitors: EvaluateMap = {
             ];
           }
         } else if (isIdentifier(node.argument)) {
-          const $this = scope.hasBinding("this");
+          const $this = scope.hasBinding(THIS);
           if ($this) {
             return $this.value[node.argument.name];
           }
@@ -1007,7 +1008,7 @@ const visitors: EvaluateMap = {
       if (!isValidFunction) {
         throw ErrIsNotFunction((node.callee as types.Identifier).name);
       }
-      const thisVar = scope.hasBinding("this");
+      const thisVar = scope.hasBinding(THIS);
       return func.apply(thisVar ? thisVar.value : null, args);
     }
   },
@@ -1166,10 +1167,10 @@ const visitors: EvaluateMap = {
         newScope.const(name, args[i]);
       }
 
-      const lastThis = scope.hasBinding("this");
+      const lastThis = scope.hasBinding(THIS);
 
-      newScope.const("this", lastThis ? lastThis.value : null);
-      newScope.const("arguments", args);
+      newScope.const(THIS, lastThis ? lastThis.value : null);
+      newScope.const(ARGUMENTS, args);
       const result = evaluate(path.createChild(node.body, newScope));
 
       if (Signal.isReturn(result)) {
@@ -1256,7 +1257,7 @@ const visitors: EvaluateMap = {
           });
 
           if (!SuperClass) {
-            classScope.const("this", this);
+            classScope.const(THIS, this);
           }
 
           classScope.const("new", {
@@ -1275,7 +1276,7 @@ const visitors: EvaluateMap = {
             );
           }
         } else {
-          classScope.const("this", this);
+          classScope.const(THIS, this);
           // apply super if constructor not exist
           _possibleConstructorReturn(
             this,
@@ -1286,7 +1287,7 @@ const visitors: EvaluateMap = {
           );
         }
 
-        if (!classScope.hasOwnBinding("this")) {
+        if (!classScope.hasOwnBinding(THIS)) {
           throw ErrNoSuper();
         }
 
@@ -1304,7 +1305,7 @@ const visitors: EvaluateMap = {
         .map((method: types.ClassMethod) => {
           const methodScope = scope.createChild("function");
           const func = function(...args) {
-            methodScope.const("this", this);
+            methodScope.const(THIS, this);
             methodScope.const("new", { target: undefined });
 
             // defined the params
@@ -1375,8 +1376,8 @@ const visitors: EvaluateMap = {
     if (parentPath) {
       // super()
       if (isCallExpression(parentPath.node)) {
-        if (classScope && !classScope.hasOwnBinding("this")) {
-          classScope.const("this", ClassEntity);
+        if (classScope && !classScope.hasOwnBinding(THIS)) {
+          classScope.const(THIS, ClassEntity);
         }
         return function inherits(...args) {
           _possibleConstructorReturn(
@@ -1418,16 +1419,16 @@ const visitors: EvaluateMap = {
       }
     });
 
-    const requireVar = scope.hasBinding("require");
+    const requireVar = scope.hasBinding(REQUIRE);
 
     if (requireVar === undefined) {
-      throw ErrNotDefined("require");
+      throw ErrNotDefined(REQUIRE);
     }
 
     const requireFunc = requireVar.value;
 
     if (!isFunction(requireFunc)) {
-      throw ErrIsNotFunction("require");
+      throw ErrIsNotFunction(REQUIRE);
     }
 
     const targetModule: any = requireFunc(moduleName) || {};
@@ -1451,7 +1452,7 @@ const visitors: EvaluateMap = {
   },
   ExportDefaultDeclaration(path) {
     const { node, scope } = path;
-    const moduleVar = scope.hasBinding("module");
+    const moduleVar = scope.hasBinding(MODULE);
     if (moduleVar) {
       const moduleObject = moduleVar.value;
       moduleObject.exports = {
@@ -1466,7 +1467,7 @@ const visitors: EvaluateMap = {
   },
   ExportSpecifier(path) {
     const { node, scope } = path;
-    const moduleVar = scope.hasBinding("module");
+    const moduleVar = scope.hasBinding(MODULE);
     if (moduleVar) {
       const moduleObject = moduleVar.value;
       moduleObject.exports[node.local.name] = evaluate(
