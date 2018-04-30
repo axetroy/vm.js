@@ -684,7 +684,8 @@ const visitors: EvaluateMap = {
         const finallyScope = scope.createChild("finally");
         finallyScope.invasive = true;
         finallyScope.isolated = false;
-        evaluate(path.createChild(node.finalizer, finallyScope));
+        // tslint:disable-next-line
+        return evaluate(path.createChild(node.finalizer, finallyScope));
       }
     }
   },
