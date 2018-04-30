@@ -1,15 +1,15 @@
 import { Scope } from "./scope";
-import { Kind } from "./type";
+import { Kind, KindType } from "./type";
 
 export interface IVar {
-  kind: Kind;
+  kind: Kind | KindType;
   readonly value: any;
   set(value: any): void;
 }
 
 export class Var<T> implements IVar {
   constructor(
-    public kind: Kind,
+    public kind: Kind | KindType,
     public name: string,
     private val: T,
     public scope: Scope
@@ -17,7 +17,7 @@ export class Var<T> implements IVar {
   public get value(): T {
     return this.val;
   }
-  public set(value: any) {
+  public set(value: any): void {
     this.val = value;
   }
 }

@@ -23,7 +23,13 @@ export type ScopeType =
   | "class"
   | "block";
 
-export type Kind = "const" | "var" | "let";
+export enum Kind {
+  Var = "var",
+  Const = "const",
+  Let = "let"
+}
+
+export type KindType = "var" | "const" | "let";
 
 export interface INodeTypeMap {
   File: t.File;

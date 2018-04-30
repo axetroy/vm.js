@@ -17,7 +17,7 @@ import {
   _toConsumableArray,
   __awaiter
 } from "./runtime";
-import { IVar, Var } from "./var";
+import { Var, IVar } from "./var";
 // tslint:disable-next-line
 import { EvaluateFunc, EvaluateMap, Kind } from "./type";
 // tslint:disable-next-line
@@ -730,13 +730,14 @@ const visitors: EvaluateMap = {
   UpdateExpression(path) {
     const { node, scope } = path;
     const { prefix } = node;
-    let $var;
+    let $var: IVar;
     if (isIdentifier(node.argument)) {
       const { name } = node.argument;
-      $var = scope.hasBinding(name);
-      if (!$var) {
+      const $$var = scope.hasBinding(name);
+      if (!$$var) {
         throw ErrNotDefined(name);
       }
+      $var = $$var;
     } else if (isMemberExpression(node.argument)) {
       const argument = node.argument;
       const object = evaluate(path.createChild(argument.object));
@@ -744,9 +745,9 @@ const visitors: EvaluateMap = {
         ? evaluate(path.createChild(argument.property))
         : (argument.property as types.Identifier).name;
       $var = {
+        kind: Kind.Const,
         set(value: any) {
           object[property] = value;
-          return true;
         },
         get value() {
           return object[property];
@@ -1021,7 +1022,7 @@ const visitors: EvaluateMap = {
     const obj = evaluate(path.createChild(object));
     const target = obj[propertyName];
 
-    return typeof target === "function" ? target.bind(obj) : target;
+    return isFunction(target) ? target.bind(obj) : target;
   },
   AssignmentExpression(path) {
     const { node, scope } = path;
@@ -1047,7 +1048,7 @@ const visitors: EvaluateMap = {
          * const test = 123;
          * test = 321 // it should throw an error
          */
-        if ($var.kind === "const") {
+        if ($var.kind === Kind.Const) {
           throw new TypeError("Assignment to constant variable.");
         }
       }
@@ -1057,8 +1058,9 @@ const visitors: EvaluateMap = {
       const property: string = left.computed
         ? evaluate(path.createChild(left.property))
         : (left.property as types.Identifier).name;
+
       $var = {
-        kind: "var",
+        kind: Kind.Var,
         set(value: any) {
           object[property] = value;
         },

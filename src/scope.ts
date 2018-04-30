@@ -1,6 +1,6 @@
 import { Context } from "./context";
 import { ErrDuplicateDeclard } from "./error";
-import { Kind, ScopeType } from "./type";
+import { Kind, KindType, ScopeType } from "./type";
 import { Var } from "./var";
 
 export class Scope {
@@ -112,7 +112,7 @@ export class Scope {
   public let(varName: string, value: any): boolean {
     const $var = this.content[varName];
     if (!$var) {
-      this.content[varName] = new Var("let", varName, value, this);
+      this.content[varName] = new Var(Kind.Let, varName, value, this);
       return true;
     } else {
       throw ErrDuplicateDeclard(varName);
@@ -129,7 +129,7 @@ export class Scope {
   public const(varName: string, value: any): boolean {
     const $var = this.content[varName];
     if (!$var) {
-      this.content[varName] = new Var("const", varName, value, this);
+      this.content[varName] = new Var(Kind.Const, varName, value, this);
       return true;
     } else {
       throw ErrDuplicateDeclard(varName);
@@ -157,7 +157,7 @@ export class Scope {
 
     const $var = targetScope.content[varName];
     if ($var) {
-      if ($var.kind !== "var") {
+      if ($var.kind !== Kind.Var) {
         // only cover var with var, not const and let
         throw ErrDuplicateDeclard(varName);
       } else {
@@ -167,7 +167,7 @@ export class Scope {
         } else {
           // new var cover the old var
           targetScope.content[varName] = new Var(
-            "var",
+            Kind.Var,
             varName,
             value,
             targetScope
@@ -177,7 +177,7 @@ export class Scope {
     } else {
       // set the new var
       targetScope.content[varName] = new Var(
-        "var",
+        Kind.Var,
         varName,
         value,
         targetScope
@@ -194,11 +194,11 @@ export class Scope {
    * @returns {boolean}
    * @memberof Scope
    */
-  public declare(kind: Kind, rawName: string, value: any): boolean {
+  public declare(kind: Kind | KindType, rawName: string, value: any): boolean {
     return {
-      const: () => this.const(rawName, value),
-      let: () => this.let(rawName, value),
-      var: () => this.var(rawName, value)
+      [Kind.Const]: () => this.const(rawName, value),
+      [Kind.Let]: () => this.let(rawName, value),
+      [Kind.Var]: () => this.var(rawName, value)
     }[kind]();
   }
 
