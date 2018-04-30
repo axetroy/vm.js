@@ -964,7 +964,7 @@ const visitors: EvaluateMap = {
       typeof: (): string => {
         if (isIdentifier(node.argument)) {
           const $var = scope.hasBinding(node.argument.name);
-          return $var ? typeof $var.value : "undefined";
+          return $var ? typeof $var.value : UNDEFINED;
         } else {
           return typeof evaluate(path.createChild(node.argument));
         }

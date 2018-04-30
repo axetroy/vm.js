@@ -1,10 +1,10 @@
+import { UNDEFINED } from "./constant";
+
 export interface ISandBox {
   [k: string]: any;
 }
 
 declare const WebAssembly: any;
-
-const UNDEFINED: string = "undefined";
 
 // ECMA standar refs: https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects
 export const DEFAULT_CONTEXT: ISandBox = {
