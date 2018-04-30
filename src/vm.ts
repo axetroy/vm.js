@@ -5,6 +5,7 @@ import { Path } from "./path";
 import { Scope } from "./scope";
 import { MODULE, EXPORTS, THIS } from "./constant";
 import { ScopeType } from "./type";
+import { Stack } from "./stack";
 
 /**
  * Run the code in context
@@ -39,7 +40,9 @@ export function runInContext(code: string, context: Context) {
     ]
   });
 
-  evaluate(new Path(ast, null, scope, {}));
+  const path = new Path(ast, null, scope, {}, new Stack());
+
+  evaluate(path);
 
   // exports
   const moduleVar = scope.hasBinding(MODULE);

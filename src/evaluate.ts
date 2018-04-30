@@ -23,7 +23,16 @@ import { EvaluateFunc, EvaluateMap, Kind, ScopeType } from "./type";
 // tslint:disable-next-line
 import { Signal } from "./signal";
 import { Scope } from "./scope";
-import { MODULE, THIS, REQUIRE, UNDEFINED, ARGUMENTS, NEW } from "./constant";
+import { Stack } from "./stack";
+import {
+  MODULE,
+  THIS,
+  REQUIRE,
+  UNDEFINED,
+  ARGUMENTS,
+  NEW,
+  ANONYMOUS
+} from "./constant";
 
 import {
   isArrayExpression,
@@ -42,10 +51,27 @@ import {
   isObjectProperty,
   isRestElement,
   isSpreadElement,
-  isVariableDeclaration
+  isVariableDeclaration,
+  isStringLiteral
 } from "./packages/babel-types";
 
 import { defineFunctionLength, defineFunctionName } from "./utils";
+
+function overriteStack(err: Error, stack: Stack, node: types.Node): Error {
+  stack.push({
+    filename: ANONYMOUS,
+    stack: stack.currentStackName,
+    location: node.loc
+  });
+  const originStack = (err.stack || "").split("\n");
+  originStack.shift(); // drop the error message
+  err.stack =
+    err.toString() +
+    "\n" +
+    stack.raw +
+    (originStack ? "\n" + originStack.join("\n") : "");
+  return err;
+}
 
 const visitors: EvaluateMap = {
   File(path) {
@@ -74,7 +100,7 @@ const visitors: EvaluateMap = {
   },
 
   Identifier(path) {
-    const { node, scope } = path;
+    const { node, scope, stack } = path;
     if (node.name === UNDEFINED) {
       return undefined;
     }
@@ -82,7 +108,7 @@ const visitors: EvaluateMap = {
     if ($var) {
       return $var.value;
     } else {
-      throw ErrNotDefined(node.name);
+      throw overriteStack(ErrNotDefined(node.name), stack, node);
     }
   },
   RegExpLiteral(path) {
@@ -468,7 +494,7 @@ const visitors: EvaluateMap = {
   },
   // @es2015 for of
   ForOfStatement(path) {
-    const { node, scope, ctx } = path;
+    const { node, scope, ctx, stack } = path;
     const labelName: string | void = ctx.labelName;
     const entity = evaluate(path.createChild(node.right));
     const SymbolConst: any = (() => {
@@ -480,7 +506,11 @@ const visitors: EvaluateMap = {
       if (!entity || !entity[SymbolConst.iterator]) {
         // FIXME: how to get function name
         // for (let value of get()){}
-        throw ErrInvalidIterable((node.right as types.Identifier).name);
+        throw overriteStack(
+          ErrInvalidIterable((node.right as types.Identifier).name),
+          stack,
+          node.right
+        );
       }
     }
 
@@ -657,7 +687,12 @@ const visitors: EvaluateMap = {
     }
   },
   ThrowStatement(path) {
-    throw evaluate(path.createChild(path.node.argument));
+    const r = evaluate(path.createChild(path.node.argument));
+    if (r instanceof Error) {
+      throw r;
+    } else {
+      throw overriteStack(r, path.stack, path.node.argument);
+    }
   },
   CatchClause(path) {
     return evaluate(path.createChild(path.node.body));
@@ -729,14 +764,14 @@ const visitors: EvaluateMap = {
     }
   },
   UpdateExpression(path) {
-    const { node, scope } = path;
+    const { node, scope, stack } = path;
     const { prefix } = node;
     let $var: IVar;
     if (isIdentifier(node.argument)) {
       const { name } = node.argument;
       const $$var = scope.hasBinding(name);
       if (!$$var) {
-        throw ErrNotDefined(name);
+        throw overriteStack(ErrNotDefined(name), stack, node.argument);
       }
       $var = $$var;
     } else if (isMemberExpression(node.argument)) {
@@ -772,7 +807,7 @@ const visitors: EvaluateMap = {
     // use this in class constructor it it never call super();
     if (scope.type === ScopeType.Constructor) {
       if (!scope.hasOwnBinding(THIS)) {
-        throw ErrNoSuper();
+        throw overriteStack(ErrNoSuper(), path.stack, path.node);
       }
     }
     const thisVar = scope.hasBinding(THIS);
@@ -831,13 +866,14 @@ const visitors: EvaluateMap = {
     }
   },
   ObjectMethod(path) {
-    const { node, scope } = path;
+    const { node, scope, stack } = path;
     const methodName: string = !node.computed
       ? isIdentifier(node.key)
         ? node.key.name
         : evaluate(path.createChild(node.key))
       : evaluate(path.createChild(node.key));
     const method = function() {
+      stack.enter("Object." + methodName);
       const args = [].slice.call(arguments);
       const newScope = scope.createChild(ScopeType.Function);
       newScope.const(THIS, this);
@@ -846,6 +882,7 @@ const visitors: EvaluateMap = {
         newScope.const((param as types.Identifier).name, args[i]);
       });
       const result = evaluate(path.createChild(node.body, newScope));
+      stack.leave();
       if (Signal.isReturn(result)) {
         return result.value;
       }
@@ -873,8 +910,11 @@ const visitors: EvaluateMap = {
     }
   },
   FunctionExpression(path) {
-    const { node, scope } = path;
+    const { node, scope, stack } = path;
+
+    const functionName = node.id ? node.id.name : "";
     const func = function functionDeclaration(...args) {
+      stack.enter(functionName); // enter the stack
       const funcScope = scope.createChild(ScopeType.Function);
       for (let i = 0; i < node.params.length; i++) {
         const param = node.params[i];
@@ -902,6 +942,7 @@ const visitors: EvaluateMap = {
       funcScope.isolated = false;
 
       const result = evaluate(path.createChild(node.body, funcScope));
+      stack.leave(); // leave stack
       if (result instanceof Signal) {
         return result.value;
       } else {
@@ -992,17 +1033,55 @@ const visitors: EvaluateMap = {
   },
 
   CallExpression(path) {
-    const { node, scope } = path;
+    const { node, scope, stack } = path;
+
+    const functionName: string = isMemberExpression(node.callee)
+      ? (() => {
+          if (isIdentifier(node.callee.property)) {
+            return (
+              (node.callee.object as any).name + "." + node.callee.property.name
+            );
+          } else if (isStringLiteral(node.callee.property)) {
+            return (
+              (node.callee.object as any).name +
+              "." +
+              node.callee.property.value
+            );
+          } else {
+            return "undefined";
+          }
+        })()
+      : (node.callee as types.Identifier).name;
+
     const func = evaluate(path.createChild(node.callee));
     const args = node.arguments.map(arg => evaluate(path.createChild(arg)));
     const isValidFunction = isFunction(func) as boolean;
 
     if (isMemberExpression(node.callee)) {
+      if (!isValidFunction) {
+        throw overriteStack(
+          ErrIsNotFunction(functionName),
+          stack,
+          node.callee.property
+        );
+      } else {
+        stack.push({
+          filename: ANONYMOUS,
+          stack: stack.currentStackName,
+          location: node.callee.property.loc
+        });
+      }
       const object = evaluate(path.createChild(node.callee.object));
       return func.apply(object, args);
     } else {
       if (!isValidFunction) {
-        throw ErrIsNotFunction((node.callee as types.Identifier).name);
+        throw overriteStack(ErrIsNotFunction(functionName), stack, node);
+      } else {
+        stack.push({
+          filename: ANONYMOUS,
+          stack: stack.currentStackName,
+          location: node.loc
+        });
       }
       const thisVar = scope.hasBinding(THIS);
       return func.apply(thisVar ? thisVar.value : null, args);
@@ -1037,7 +1116,7 @@ const visitors: EvaluateMap = {
         if (globalVar) {
           $var = globalVar;
         } else {
-          throw ErrNotDefined(name);
+          throw overriteStack(ErrNotDefined(name), path.stack, node.right);
         }
       } else {
         $var = varOrNot as Var<any>;
@@ -1046,7 +1125,11 @@ const visitors: EvaluateMap = {
          * test = 321 // it should throw an error
          */
         if ($var.kind === Kind.Const) {
-          throw new TypeError("Assignment to constant variable.");
+          throw overriteStack(
+            new TypeError("Assignment to constant variable."),
+            path.stack,
+            node.left
+          );
         }
       }
     } else if (isMemberExpression(node.left)) {
@@ -1141,12 +1224,24 @@ const visitors: EvaluateMap = {
       : evaluate(path.createChild(path.node.alternate));
   },
   NewExpression(path) {
-    const { node } = path;
+    const { node, stack } = path;
     const func = evaluate(path.createChild(node.callee));
     const args: any[] = node.arguments.map(arg =>
       evaluate(path.createChild(arg))
     );
     const entity = new func(...args);
+
+    // stack track for Error constructor
+    if (func === Error || entity instanceof Error) {
+      path.stack.push({
+        filename: ANONYMOUS,
+        stack: stack.currentStackName,
+        location: node.loc
+      });
+      entity.stack = `Error: ${entity.message}
+${path.stack.raw}
+      `;
+    }
     entity.prototype = entity.prototype || {};
     entity.prototype.constructor = func;
     return entity;
@@ -1215,7 +1310,7 @@ const visitors: EvaluateMap = {
     path.scope.const(path.node.id.name, ClassConstructor);
   },
   ClassBody(path) {
-    const { node, scope } = path;
+    const { node, scope, stack } = path;
     const constructor: types.ClassMethod | void = node.body.find(
       n => isClassMethod(n) && n.kind === "constructor"
     ) as types.ClassMethod | void;
@@ -1234,6 +1329,7 @@ const visitors: EvaluateMap = {
       }
 
       function ClassConstructor(...args) {
+        stack.enter(parentNode.id.name + ".constructor");
         _classCallCheck(this, ClassConstructor);
         const classScope = scope.createChild(ScopeType.Constructor);
 
@@ -1280,8 +1376,10 @@ const visitors: EvaluateMap = {
         }
 
         if (!classScope.hasOwnBinding(THIS)) {
-          throw ErrNoSuper();
+          throw overriteStack(ErrNoSuper(), path.stack, node);
         }
+
+        stack.leave();
 
         return this;
       }
@@ -1295,8 +1393,14 @@ const visitors: EvaluateMap = {
 
       const classMethods = methods
         .map((method: types.ClassMethod) => {
+          const methodName: string = method.id
+            ? method.id.name
+            : method.computed
+              ? evaluate(path.createChild(method.key))
+              : (method.key as types.Identifier).name;
           const methodScope = scope.createChild(ScopeType.Function);
           const func = function(...args) {
+            stack.enter(parentNode.id.name + "." + methodName);
             methodScope.const(THIS, this);
             methodScope.const(NEW, { target: undefined });
 
@@ -1316,13 +1420,15 @@ const visitors: EvaluateMap = {
               })
             );
 
+            stack.leave();
+
             if (Signal.isReturn(result)) {
               return result.value;
             }
           };
 
           defineFunctionLength(func, method.params.length);
-          defineFunctionName(func, method.id ? method.id.name : "");
+          defineFunctionName(func, methodName);
 
           return {
             key: (method.key as any).name,
@@ -1330,7 +1436,6 @@ const visitors: EvaluateMap = {
           };
         })
         .concat([{ key: "constructor", value: ClassConstructor }]);
-
       // define class methods
       _createClass(ClassConstructor, classMethods);
 
@@ -1397,7 +1502,7 @@ const visitors: EvaluateMap = {
     Object.assign(object, evaluate(path.createChild(node.argument)));
   },
   ImportDeclaration(path) {
-    const { node, scope } = path;
+    const { node, scope, stack } = path;
     let defaultImport: string = ""; // default import object
     const otherImport: string[] = []; // import property
     const moduleName: string = evaluate(path.createChild(node.source));
@@ -1414,13 +1519,13 @@ const visitors: EvaluateMap = {
     const requireVar = scope.hasBinding(REQUIRE);
 
     if (requireVar === undefined) {
-      throw ErrNotDefined(REQUIRE);
+      throw overriteStack(ErrNotDefined(REQUIRE), stack, node);
     }
 
     const requireFunc = requireVar.value;
 
     if (!isFunction(requireFunc)) {
-      throw ErrIsNotFunction(REQUIRE);
+      throw overriteStack(ErrIsNotFunction(REQUIRE), stack, node);
     }
 
     const targetModule: any = requireFunc(moduleName) || {};

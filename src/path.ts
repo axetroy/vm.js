@@ -1,6 +1,7 @@
 import { Node } from "babel-types";
 import { Scope } from "./scope";
 import { ScopeType } from "./type";
+import { Stack } from "./stack";
 
 export interface ICtx {
   [k: string]: any;
@@ -11,7 +12,8 @@ export class Path<T extends Node> {
     public node: T,
     public parent: Path<Node> | null,
     public scope: Scope,
-    public ctx: ICtx
+    public ctx: ICtx,
+    public stack: Stack
   ) {}
   /**
    * Generate child scope
@@ -33,7 +35,8 @@ export class Path<T extends Node> {
       scope
         ? typeof scope === "number" ? this.scope.createChild(scope) : scope
         : this.scope,
-      { ...this.ctx, ...ctx }
+      { ...this.ctx, ...ctx },
+      this.stack
     );
   }
   /**

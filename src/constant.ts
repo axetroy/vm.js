@@ -5,3 +5,4 @@ export const REQUIRE = "require";
 export const UNDEFINED = "undefined";
 export const ARGUMENTS = "arguments";
 export const NEW = "new";
+export const ANONYMOUS = "anonymous";

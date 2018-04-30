@@ -16,11 +16,16 @@ import {
   ObjectProperty,
   RestElement,
   SpreadElement,
-  VariableDeclaration
+  VariableDeclaration,
+  StringLiteral
 } from "babel-types";
 
 function is(node: Node, type: string): boolean {
   return node.type === type;
+}
+
+export function isStringLiteral(node: Node): node is StringLiteral {
+  return is(node, "StringLiteral");
 }
 
 export function isArrayExpression(node: Node): node is ArrayExpression {

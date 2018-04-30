@@ -75,3 +75,31 @@ test("invalid function call", t => {
     );
   }, ErrIsNotFunction("a").message);
 });
+
+test("object-property function call name", t => {
+  const sandbox: any = vm.createContext({});
+
+  t.throws(() => {
+    vm.runInContext(
+      `
+var obj = {};
+obj.a();
+    `,
+      sandbox
+    );
+  }, ErrIsNotFunction("obj.a").message);
+});
+
+test("object-property function call name", t => {
+  const sandbox: any = vm.createContext({});
+
+  t.throws(() => {
+    vm.runInContext(
+      `
+var obj = {};
+obj["a"]();
+    `,
+      sandbox
+    );
+  }, ErrIsNotFunction("obj.a").message);
+});

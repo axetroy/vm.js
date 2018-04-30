@@ -110,8 +110,25 @@ export interface INodeTypeMap {
   Decorator: t.Decorator;
 }
 
+export interface ITrackerTypeMap {
+  Identifier: t.Identifier;
+  NullLiteral: t.NullLiteral;
+  StringLiteral: t.StringLiteral;
+  NumericLiteral: t.NumericLiteral;
+  BooleanLiteral: t.BooleanLiteral;
+  RegExpLiteral: t.RegExpLiteral;
+  MemberExpression: t.MemberExpression;
+}
+
 export type EvaluateMap = {
   [key in keyof INodeTypeMap]: (path: Path<INodeTypeMap[key]>) => any
+};
+
+export type TrackerMap = {
+  [key in keyof ITrackerTypeMap]: (
+    path: ITrackerTypeMap[key],
+    name: string[]
+  ) => any
 };
 
 export type EvaluateFunc = (path: Path<t.Node>) => any;
