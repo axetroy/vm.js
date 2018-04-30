@@ -37,3 +37,33 @@ module.exports = arr;
   t.deepEqual(arr.length, 4);
   t.deepEqual(arr, [1, 2, 6, 4]);
 });
+
+test("ArrayExpression-with-undefined", t => {
+  const sandbox: any = vm.createContext({});
+
+  const arr: any = vm.runInContext(
+    `
+module.exports = [1, 2, undefined, 4];
+  `,
+    sandbox
+  );
+
+  t.true(Array.isArray(arr));
+  t.deepEqual(arr.length, 4);
+  t.deepEqual(arr, [1, 2, undefined, 4]);
+});
+
+test("ArrayExpression-with-null", t => {
+  const sandbox: any = vm.createContext({});
+
+  const arr: any = vm.runInContext(
+    `
+module.exports = [1, 2, undefined, null];
+  `,
+    sandbox
+  );
+
+  t.true(Array.isArray(arr));
+  t.deepEqual(arr.length, 4);
+  t.deepEqual(arr, [1, 2, undefined, null]);
+});
