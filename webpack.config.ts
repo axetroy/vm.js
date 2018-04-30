@@ -8,7 +8,11 @@ const webpackConfig: webpack.Configuration = {
   },
   output: {
     path: path.join(__dirname, "/dist"),
-    filename: "[name].js"
+    filename: "[name].js",
+    libraryTarget: "umd"
+  },
+  externals: {
+    "babel-types": "babel-types"
   },
   resolve: {
     modules: ["node_modules"],

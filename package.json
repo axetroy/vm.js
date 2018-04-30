@@ -7,8 +7,7 @@
   "scripts": {
     "test":
       "rm -rf ./build && tsc -p ./ && nyc ava ./build/test ./build/src/**/*.test.js",
-    "build": "rm -rf ./build && tsc -p ./ -d",
-    "pack":
+    "build":
       "rm -rf ./dist && webpack --display-error-details --progress --colors",
     "start": "npm run build && parcel ./doc/index.html -d vm.js",
     "docs":
