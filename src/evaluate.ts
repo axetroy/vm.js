@@ -470,13 +470,10 @@ const visitors: EvaluateMap = {
     const { node, scope, ctx } = path;
     const labelName: string | void = ctx.labelName;
     const entity = evaluate(path.createChild(node.right));
-    const SymbolConst: any =
-      typeof Symbol !== "undefined"
-        ? Symbol
-        : (() => {
-            const $var = scope.hasBinding("Symbol");
-            return $var ? $var.value : undefined;
-          })();
+    const SymbolConst: any = (() => {
+      const $var = scope.hasBinding("Symbol");
+      return $var ? $var.value : undefined;
+    })();
     // not support for of, it mean not support native for of
     if (SymbolConst) {
       if (!entity || !entity[SymbolConst.iterator]) {
