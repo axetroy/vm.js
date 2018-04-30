@@ -63,15 +63,7 @@ function overriteStack(err: Error, stack: Stack, node: types.Node): Error {
     stack: stack.currentStackName,
     location: node.loc
   });
-  const originStackList = (err.stack || "").split("\n");
-  originStackList.shift(); // drop the error message
-  const originStack =
-    // to test this featrue
-    // we have to ignore origin stack
-    // TODO: maybe it should not be add in the stack
-    process.env.NODE_ENV === "test" ? "" : originStackList.join("\n");
-  err.stack =
-    err.toString() + "\n" + stack.raw + (originStack ? "\n" + originStack : "");
+  err.stack = err.toString() + "\n" + stack.raw;
   return err;
 }
 
@@ -689,12 +681,7 @@ const visitors: EvaluateMap = {
     }
   },
   ThrowStatement(path) {
-    const r = evaluate(path.createChild(path.node.argument));
-    if (r instanceof Error) {
-      throw r;
-    } else {
-      throw overriteStack(r, path.stack, path.node.argument);
-    }
+    throw evaluate(path.createChild(path.node.argument));
   },
   CatchClause(path) {
     return evaluate(path.createChild(path.node.body));
@@ -1059,6 +1046,8 @@ const visitors: EvaluateMap = {
     const args = node.arguments.map(arg => evaluate(path.createChild(arg)));
     const isValidFunction = isFunction(func) as boolean;
 
+    let context: any = null;
+
     if (isMemberExpression(node.callee)) {
       if (!isValidFunction) {
         throw overriteStack(
@@ -1073,8 +1062,7 @@ const visitors: EvaluateMap = {
           location: node.callee.property.loc
         });
       }
-      const object = evaluate(path.createChild(node.callee.object));
-      return func.apply(object, args);
+      context = evaluate(path.createChild(node.callee.object));
     } else {
       if (!isValidFunction) {
         throw overriteStack(ErrIsNotFunction(functionName), stack, node);
@@ -1086,8 +1074,16 @@ const visitors: EvaluateMap = {
         });
       }
       const thisVar = scope.hasBinding(THIS);
-      return func.apply(thisVar ? thisVar.value : null, args);
+      context = thisVar ? thisVar.value : null;
     }
+
+    const result = func.apply(context, args);
+
+    if (result instanceof Error) {
+      result.stack = result.toString() + "\n" + stack.raw;
+    }
+
+    return result;
   },
   MemberExpression(path) {
     const { node } = path;
@@ -1231,18 +1227,11 @@ const visitors: EvaluateMap = {
     const args: any[] = node.arguments.map(arg =>
       evaluate(path.createChild(arg))
     );
-    const entity = new func(...args);
+    let entity = new func(...args);
 
     // stack track for Error constructor
     if (func === Error || entity instanceof Error) {
-      path.stack.push({
-        filename: ANONYMOUS,
-        stack: stack.currentStackName,
-        location: node.loc
-      });
-      entity.stack = `Error: ${entity.message}
-${path.stack.raw}
-      `;
+      entity = overriteStack(entity, stack, node);
     }
     entity.prototype = entity.prototype || {};
     entity.prototype.constructor = func;
