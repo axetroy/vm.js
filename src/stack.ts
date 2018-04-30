@@ -23,6 +23,7 @@ export class Stack {
   }
   public leave() {
     this.stackList.pop();
+    this.items.pop();
   }
   public push(item: IPen) {
     if (this.size > this.limitSize) {
