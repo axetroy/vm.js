@@ -25,7 +25,7 @@ export class Path<T extends Node> {
   public createChild<Child extends Node>(
     node: Child,
     scope?: ScopeType | Scope,
-    ctx: ICtx = {}
+    ctx?: ICtx
   ): Path<Child> {
     return new Path(
       node,
