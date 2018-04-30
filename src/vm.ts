@@ -4,6 +4,7 @@ import evaluate from "./evaluate";
 import { Path } from "./path";
 import { Scope } from "./scope";
 import { MODULE, EXPORTS, THIS } from "./constant";
+import { ScopeType } from "./type";
 
 /**
  * Run the code in context
@@ -13,7 +14,7 @@ import { MODULE, EXPORTS, THIS } from "./constant";
  * @returns
  */
 export function runInContext(code: string, context: Context) {
-  const scope = new Scope("root", null);
+  const scope = new Scope(ScopeType.Root, null);
   scope.level = 0;
   scope.invasive = true;
   scope.const(THIS, undefined);

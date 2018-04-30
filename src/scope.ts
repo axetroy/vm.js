@@ -150,7 +150,8 @@ export class Scope {
     while (
       targetScope.parent !== null &&
       // function and constructor has own scope
-      (targetScope.type !== "function" && targetScope.type !== "constructor")
+      (targetScope.type !== ScopeType.Function &&
+        targetScope.type !== ScopeType.Constructor)
     ) {
       targetScope = targetScope.parent;
     }

@@ -31,7 +31,7 @@ export class Path<T extends Node> {
       node,
       this,
       scope
-        ? typeof scope === "string" ? this.scope.createChild(scope) : scope
+        ? typeof scope === "number" ? this.scope.createChild(scope) : scope
         : this.scope,
       { ...this.ctx, ...ctx }
     );

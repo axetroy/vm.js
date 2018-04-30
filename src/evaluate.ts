@@ -19,7 +19,7 @@ import {
 } from "./runtime";
 import { Var, IVar } from "./var";
 // tslint:disable-next-line
-import { EvaluateFunc, EvaluateMap, Kind } from "./type";
+import { EvaluateFunc, EvaluateMap, Kind, ScopeType } from "./type";
 // tslint:disable-next-line
 import { Signal } from "./signal";
 import { Scope } from "./scope";
@@ -102,7 +102,7 @@ const visitors: EvaluateMap = {
     return null;
   },
   IfStatement(path) {
-    const ifScope = path.scope.createChild("if");
+    const ifScope = path.scope.createChild(ScopeType.If);
     ifScope.invasive = true;
     ifScope.isolated = false;
     if (evaluate(path.createChild(path.node.test, ifScope))) {
@@ -119,10 +119,10 @@ const visitors: EvaluateMap = {
 
     let blockScope: Scope = !scope.isolated
       ? scope
-      : scope.createChild("block");
+      : scope.createChild(ScopeType.Block);
 
     if (scope.isolated) {
-      blockScope = scope.createChild("block");
+      blockScope = scope.createChild(ScopeType.Block);
       blockScope.invasive = true;
     } else {
       blockScope = scope;
@@ -282,7 +282,7 @@ const visitors: EvaluateMap = {
     const { node, scope } = path;
     // @es2015 destructuring
     if (isObjectPattern(node.id)) {
-      const newScope = scope.createChild("object");
+      const newScope = scope.createChild(ScopeType.Object);
       if (isObjectExpression(node.init)) {
         evaluate(path.createChild(node.init, newScope));
       }
@@ -409,7 +409,7 @@ const visitors: EvaluateMap = {
   ForStatement(path) {
     const { node, scope, ctx } = path;
     const labelName = ctx.labelName as string | void;
-    const forScope = scope.createChild("for");
+    const forScope = scope.createChild(ScopeType.For);
 
     forScope.invasive = true; // 有块级作用域
 
@@ -431,7 +431,7 @@ const visitors: EvaluateMap = {
     for (;;) {
       // every loop will create it's own scope
       // it should inherit from forScope
-      const loopScope = forScope.fork("for_child");
+      const loopScope = forScope.fork(ScopeType.ForChild);
       loopScope.isolated = false;
 
       if (!test()) {
@@ -493,7 +493,7 @@ const visitors: EvaluateMap = {
       const declarator: types.VariableDeclarator = node.left.declarations[0];
       const varName = (declarator.id as types.Identifier).name;
       for (const value of entity) {
-        const forOfScope = scope.createChild("forOf");
+        const forOfScope = scope.createChild(ScopeType.ForOf);
         forOfScope.invasive = true;
         forOfScope.isolated = false;
         forOfScope.declare(node.left.kind, varName, value); // define in current scope
@@ -526,7 +526,7 @@ const visitors: EvaluateMap = {
        */
       const varName = node.left.name;
       for (const value of entity) {
-        const forOfScope = scope.createChild("forOf");
+        const forOfScope = scope.createChild(ScopeType.ForOf);
         forOfScope.invasive = true;
         scope.var(varName, value); // define in parent scope
         const signal = evaluate(path.createChild(node.body, forOfScope));
@@ -564,7 +564,7 @@ const visitors: EvaluateMap = {
 
     for (const value in right) {
       if (Object.hasOwnProperty.call(right, value)) {
-        const forInScope = scope.createChild("forIn");
+        const forInScope = scope.createChild(ScopeType.ForIn);
         forInScope.invasive = true;
         forInScope.isolated = false;
         forInScope.declare(kind, name, value);
@@ -598,7 +598,7 @@ const visitors: EvaluateMap = {
     const labelName: string | void = ctx.labelName;
     // do while don't have his own scope
     do {
-      const doWhileScope = scope.createChild("doWhile");
+      const doWhileScope = scope.createChild(ScopeType.DoWhile);
       doWhileScope.invasive = true;
       doWhileScope.isolated = false;
       const signal = evaluate(path.createChild(node.body, doWhileScope));
@@ -628,7 +628,7 @@ const visitors: EvaluateMap = {
     const labelName: string | void = ctx.labelName;
 
     while (evaluate(path.createChild(node.test))) {
-      const whileScope = scope.createChild("while");
+      const whileScope = scope.createChild(ScopeType.While);
       whileScope.invasive = true;
       whileScope.isolated = false;
       const signal = evaluate(path.createChild(node.body, whileScope));
@@ -665,20 +665,20 @@ const visitors: EvaluateMap = {
   TryStatement(path) {
     const { node, scope } = path;
     try {
-      const tryScope = scope.createChild("try");
+      const tryScope = scope.createChild(ScopeType.Try);
       tryScope.invasive = true;
       tryScope.isolated = false;
       return evaluate(path.createChild(node.block, tryScope));
     } catch (err) {
       const param = node.handler.param as types.Identifier;
-      const catchScope = scope.createChild("catch");
+      const catchScope = scope.createChild(ScopeType.Catch);
       catchScope.invasive = true;
       catchScope.isolated = false;
       catchScope.const(param.name, err);
       return evaluate(path.createChild(node.handler, catchScope));
     } finally {
       if (node.finalizer) {
-        const finallyScope = scope.createChild("finally");
+        const finallyScope = scope.createChild(ScopeType.Finally);
         finallyScope.invasive = true;
         finallyScope.isolated = false;
         // tslint:disable-next-line
@@ -689,7 +689,7 @@ const visitors: EvaluateMap = {
   SwitchStatement(path) {
     const { node, scope } = path;
     const discriminant = evaluate(path.createChild(node.discriminant)); // switch的条件
-    const switchScope = scope.createChild("switch");
+    const switchScope = scope.createChild(ScopeType.Switch);
     switchScope.invasive = true;
     switchScope.isolated = false;
 
@@ -770,7 +770,7 @@ const visitors: EvaluateMap = {
   ThisExpression(path) {
     const { scope } = path;
     // use this in class constructor it it never call super();
-    if (scope.type === "constructor") {
+    if (scope.type === ScopeType.Constructor) {
       if (!scope.hasOwnBinding(THIS)) {
         throw ErrNoSuper();
       }
@@ -796,7 +796,7 @@ const visitors: EvaluateMap = {
   ObjectExpression(path) {
     const { node, scope } = path;
     const object = {};
-    const newScope = scope.createChild("object");
+    const newScope = scope.createChild(ScopeType.Object);
     const computedProperties: Array<
       types.ObjectProperty | types.ObjectMethod
     > = [];
@@ -839,7 +839,7 @@ const visitors: EvaluateMap = {
       : evaluate(path.createChild(node.key));
     const method = function() {
       const args = [].slice.call(arguments);
-      const newScope = scope.createChild("function");
+      const newScope = scope.createChild(ScopeType.Function);
       newScope.const(THIS, this);
       // define argument
       node.params.forEach((param, i) => {
@@ -879,7 +879,7 @@ const visitors: EvaluateMap = {
   FunctionExpression(path) {
     const { node, scope } = path;
     const func = function functionDeclaration(...args) {
-      const funcScope = scope.createChild("function");
+      const funcScope = scope.createChild(ScopeType.Function);
       for (let i = 0; i < node.params.length; i++) {
         const param = node.params[i];
         if (isIdentifier(param)) {
@@ -1160,7 +1160,7 @@ const visitors: EvaluateMap = {
   ArrowFunctionExpression(path) {
     const { node, scope } = path;
     const func = (...args) => {
-      const newScope = scope.createChild("function");
+      const newScope = scope.createChild(ScopeType.Function);
 
       for (let i = 0; i < node.params.length; i++) {
         const { name } = node.params[i] as types.Identifier;
@@ -1198,7 +1198,7 @@ const visitors: EvaluateMap = {
   },
   ClassDeclaration(path) {
     const ClassConstructor = evaluate(
-      path.createChild(path.node.body, path.scope.createChild("class"))
+      path.createChild(path.node.body, path.scope.createChild(ScopeType.Class))
     );
 
     // support class decorators
@@ -1239,7 +1239,7 @@ const visitors: EvaluateMap = {
 
       function ClassConstructor(...args) {
         _classCallCheck(this, ClassConstructor);
-        const classScope = scope.createChild("constructor");
+        const classScope = scope.createChild(ScopeType.Constructor);
 
         // define class property
         properties.forEach(p => {
@@ -1303,7 +1303,7 @@ const visitors: EvaluateMap = {
 
       const classMethods = methods
         .map((method: types.ClassMethod) => {
-          const methodScope = scope.createChild("function");
+          const methodScope = scope.createChild(ScopeType.Function);
           const func = function(...args) {
             methodScope.const(THIS, this);
             methodScope.const("new", { target: undefined });
@@ -1517,7 +1517,7 @@ const visitors: EvaluateMap = {
     next(evaluate(path.createChild(path.node.argument))); // call next
   },
   DoExpression(path) {
-    const newScope = path.scope.createChild("do");
+    const newScope = path.scope.createChild(ScopeType.Do);
     newScope.invasive = true;
     return evaluate(path.createChild(path.node.body, newScope));
   }
