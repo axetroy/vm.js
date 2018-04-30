@@ -858,19 +858,24 @@ const visitors: EvaluateMap = {
     };
     defineFunctionLength(method, node.params.length);
     defineFunctionName(method, methodName);
-    switch (node.kind) {
-      case "get":
+
+    const objectKindMap = {
+      get() {
         Object.defineProperty(path.ctx.object, methodName, { get: method });
         scope.const(methodName, method);
-        break;
-      case "set":
+      },
+      set() {
         Object.defineProperty(path.ctx.object, methodName, { set: method });
-        break;
-      case "method":
+      },
+      method() {
         Object.defineProperty(path.ctx.object, methodName, { value: method });
-        break;
-      default:
-        throw new Error("Invalid kind of property");
+      }
+    };
+
+    const definer = objectKindMap[node.kind];
+
+    if (definer) {
+      definer();
     }
   },
   FunctionExpression(path) {
