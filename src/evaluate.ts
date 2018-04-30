@@ -712,7 +712,9 @@ const visitors: EvaluateMap = {
         if (Signal.isBreak(result)) {
           break;
         } else if (Signal.isContinue(result)) {
-          continue;
+          // SwitchStatement can not use continue keyword
+          // but it can continue parent loop, like for, for-in, for-of, while
+          return result;
         } else if (Signal.isReturn(result)) {
           return result;
         }
