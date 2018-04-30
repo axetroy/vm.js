@@ -1521,9 +1521,5 @@ const visitors: EvaluateMap = {
 };
 
 export default function evaluate(path: Path<types.Node>) {
-  const visitor: EvaluateFunc = visitors[path.node.type];
-  if (!visitor) {
-    throw new Error(`Unknown visitors of ${path.node.type}`);
-  }
-  return visitor(path);
+  return visitors[path.node.type](path);
 }
