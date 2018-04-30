@@ -4,10 +4,6 @@ export function ErrNotDefined(varName: string): ReferenceError {
   );
 }
 
-export function ErrNotSupport(syntax: string): SyntaxError {
-  return new SyntaxError(`The Syntax '${syntax}' is not support`);
-}
-
 export function ErrDuplicateDeclard(varName: string): SyntaxError {
   return new SyntaxError(`Identifier '${varName}' has already been declared`);
 }

@@ -44,7 +44,7 @@ export interface INodeTypeMap {
   BlockStatement: t.BlockStatement;
   EmptyStatement: t.EmptyStatement;
   DebuggerStatement: t.DebuggerStatement;
-  WithStatement: t.WithStatement;
+  // WithStatement: t.WithStatement; // babylon parse in strict modd and disable WithStatement
   ReturnStatement: t.ReturnStatement;
   LabeledStatement: t.LabeledStatement;
   BreakStatement: t.BreakStatement;

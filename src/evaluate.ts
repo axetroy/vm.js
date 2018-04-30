@@ -4,7 +4,6 @@ import {
   ErrInvalidIterable,
   ErrNoSuper,
   ErrNotDefined,
-  ErrNotSupport,
   ErrIsNotFunction
 } from "./error";
 import { Path } from "./path";
@@ -174,9 +173,10 @@ const visitors: EvaluateMap = {
     // anyway, return the last item
     return tempResult;
   },
-  WithStatement(path) {
-    throw ErrNotSupport(path.node.type);
-  },
+  // babylon parse in strict modd and disable WithStatement
+  // WithStatement(path) {
+  // throw ErrNotSupport(path.node.type);
+  // },
   DebuggerStatement(path) {
     // tslint:disable-next-line
     debugger;
