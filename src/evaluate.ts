@@ -669,16 +669,12 @@ const visitors: EvaluateMap = {
       tryScope.isolated = false;
       return evaluate(path.createChild(node.block, tryScope));
     } catch (err) {
-      if (node.handler) {
-        const param = node.handler.param as types.Identifier;
-        const catchScope = scope.createChild("catch");
-        catchScope.invasive = true;
-        catchScope.isolated = false;
-        catchScope.const(param.name, err);
-        return evaluate(path.createChild(node.handler, catchScope));
-      } else {
-        throw err;
-      }
+      const param = node.handler.param as types.Identifier;
+      const catchScope = scope.createChild("catch");
+      catchScope.invasive = true;
+      catchScope.isolated = false;
+      catchScope.const(param.name, err);
+      return evaluate(path.createChild(node.handler, catchScope));
     } finally {
       if (node.finalizer) {
         const finallyScope = scope.createChild("finally");
