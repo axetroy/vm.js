@@ -841,13 +841,9 @@ const visitors: EvaluateMap = {
       const args = [].slice.call(arguments);
       const newScope = scope.createChild(ScopeType.Function);
       newScope.const(THIS, this);
-      // define argument
+      // define arguments
       node.params.forEach((param, i) => {
-        if (isIdentifier(param)) {
-          newScope.const(param.name, args[i]);
-        } else {
-          throw node;
-        }
+        newScope.const((param as types.Identifier).name, args[i]);
       });
       const result = evaluate(path.createChild(node.body, newScope));
       if (Signal.isReturn(result)) {
@@ -1248,12 +1244,8 @@ const visitors: EvaluateMap = {
 
         if (constructor) {
           // defined the params
-          constructor.params.forEach((p: types.LVal, i) => {
-            if (isIdentifier(p)) {
-              classScope.const(p.name, args[i]);
-            } else {
-              throw new Error("Invalid params");
-            }
+          constructor.params.forEach((param: types.LVal, i) => {
+            classScope.const((param as types.Identifier).name, args[i]);
           });
 
           if (!SuperClass) {
