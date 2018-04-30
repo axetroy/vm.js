@@ -26,7 +26,7 @@ export class Stack {
   }
   public push(item: IPen) {
     if (this.size > this.limitSize) {
-      this.pop();
+      this.items.shift();
     }
     this.items.push(item);
   }
@@ -35,10 +35,6 @@ export class Stack {
     return this.stackList.length
       ? this.stackList[this.stackList.length - 1]
       : "";
-  }
-
-  public pop() {
-    return this.items.pop();
   }
 
   public peek(): IPen {

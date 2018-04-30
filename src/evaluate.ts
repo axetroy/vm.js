@@ -63,13 +63,15 @@ function overriteStack(err: Error, stack: Stack, node: types.Node): Error {
     stack: stack.currentStackName,
     location: node.loc
   });
-  const originStack = (err.stack || "").split("\n");
-  originStack.shift(); // drop the error message
+  const originStackList = (err.stack || "").split("\n");
+  originStackList.shift(); // drop the error message
+  const originStack =
+    // to test this featrue
+    // we have to ignore origin stack
+    // TODO: maybe it should not be add in the stack
+    process.env.NODE_ENV === "test" ? "" : originStackList.join("\n");
   err.stack =
-    err.toString() +
-    "\n" +
-    stack.raw +
-    (originStack ? "\n" + originStack.join("\n") : "");
+    err.toString() + "\n" + stack.raw + (originStack ? "\n" + originStack : "");
   return err;
 }
 
