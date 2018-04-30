@@ -12,12 +12,6 @@ export function ErrDuplicateDeclard(varName: string): SyntaxError {
   return new SyntaxError(`Identifier '${varName}' has already been declared`);
 }
 
-export function ErrUnexpectedToken(token: string = ""): SyntaxError {
-  return new SyntaxError(
-    `Uncaught SyntaxError: Invalid or unexpected token '${token}'`
-  );
-}
-
 export function ErrIsNot(name: string, type: string): TypeError {
   return new TypeError(`Uncaught TypeError: ${name} is not ${type}`);
 }

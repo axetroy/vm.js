@@ -11,7 +11,7 @@ export class Path<T extends Node> {
     public node: T,
     public parent: Path<Node> | null,
     public scope: Scope,
-    public ctx: ICtx = {}
+    public ctx: ICtx
   ) {}
   /**
    * Generate child scope
@@ -43,12 +43,10 @@ export class Path<T extends Node> {
    * @memberof Path
    */
   public findParent(type: string): Path<Node> | null {
-    if (this.parent) {
-      return this.parent.node.type === type
+    return this.parent
+      ? this.parent.node.type === type
         ? this.parent
-        : this.parent.findParent(type);
-    } else {
-      return null;
-    }
+        : this.parent.findParent(type)
+      : null;
   }
 }

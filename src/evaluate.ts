@@ -5,7 +5,6 @@ import {
   ErrNoSuper,
   ErrNotDefined,
   ErrNotSupport,
-  ErrUnexpectedToken,
   ErrIsNotFunction
 } from "./error";
 import { Path } from "./path";
@@ -1066,8 +1065,6 @@ const visitors: EvaluateMap = {
           return object[property];
         }
       };
-    } else {
-      throw ErrUnexpectedToken();
     }
 
     return {
