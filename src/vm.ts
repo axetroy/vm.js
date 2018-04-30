@@ -24,21 +24,6 @@ export function runInContext(code: string, context: Context) {
   scope.const("module", $module);
   scope.var("exports", $exports);
 
-  // require can be cover
-  if (!scope.hasBinding("require")) {
-    const requireFunc =
-      // tslint:disable-next-line
-      typeof context["require"] === "function"
-        ? // tslint:disable-next-line
-          context["require"]
-        : typeof require === "function"
-          ? require
-          : function _require(id: string) {
-              return {};
-            };
-    scope.var("require", requireFunc);
-  }
-
   const ast = parse(code, {
     sourceType: "module",
     plugins: [
@@ -52,12 +37,11 @@ export function runInContext(code: string, context: Context) {
     ]
   });
 
-  const path = new Path(ast, null, scope, {});
-  evaluate(path);
+  evaluate(new Path(ast, null, scope, {}));
 
   // exports
   const moduleVar = scope.hasBinding("module");
-  return moduleVar ? moduleVar.value.exports : null;
+  return moduleVar ? moduleVar.value.exports : undefined;
 }
 
 /**

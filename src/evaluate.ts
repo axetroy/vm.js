@@ -1422,21 +1422,27 @@ const visitors: EvaluateMap = {
 
     const requireVar = scope.hasBinding("require");
 
-    if (requireVar) {
-      const requireFunc = requireVar.value;
+    if (requireVar === undefined) {
+      throw ErrNotDefined("require");
+    }
 
-      const targetModule: any = requireFunc(moduleName) || {};
+    const requireFunc = requireVar.value;
 
-      if (defaultImport) {
-        scope.const(
-          defaultImport,
-          targetModule.default ? targetModule.default : targetModule
-        );
-      }
+    if (!isFunction(requireFunc)) {
+      throw ErrIsNotFunction("require");
+    }
 
-      otherImport.forEach((varName: string) => {
-        scope.const(varName, targetModule[varName]);
-      });
+    const targetModule: any = requireFunc(moduleName) || {};
+
+    if (defaultImport) {
+      scope.const(
+        defaultImport,
+        targetModule.default ? targetModule.default : targetModule
+      );
+    }
+
+    for (const varName of otherImport) {
+      scope.const(varName, targetModule[varName]);
     }
   },
   ImportDefaultSpecifier(path) {
