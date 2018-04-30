@@ -1,3 +1,16 @@
+<a name="0.3.0"></a>
+
+# [0.3.0](https://github.com/axetroy/vm.js/compare/v0.2.2...v0.3.0) (2018-04-30)
+
+### Bug Fixes
+
+* fix stack will not pop if it got fulled ([bde8889](https://github.com/axetroy/vm.js/commit/bde8889))
+
+### Features
+
+* improve error message ([b15694b](https://github.com/axetroy/vm.js/commit/b15694b))
+* partial support stack track ([bf159b5](https://github.com/axetroy/vm.js/commit/bf159b5))
+
 <a name="0.2.2"></a>
 
 ## [0.2.2](https://github.com/axetroy/vm.js/compare/v0.2.1...v0.2.2) (2018-04-30)
