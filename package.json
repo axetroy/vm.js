@@ -15,7 +15,9 @@
     "format": "prettier --write ./src/**/*.ts ./test/**/*.ts",
     "precommit": "npm run lint && pretty-quick --staged",
     "tslint-check": "tslint-config-prettier-check ./tslint.json",
-    "lint": "tslint -p ./ -c tslint.json"
+    "lint": "tslint -p ./ -c tslint.json",
+    "changelog":
+      "npx conventional-changelog-cli -p angular -i CHANGELOG.md -s -r 0"
   },
   "repository": {
     "type": "git",
