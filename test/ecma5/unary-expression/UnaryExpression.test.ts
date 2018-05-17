@@ -14,6 +14,35 @@ module.exports = typeof 123;
   t.deepEqual(type, "number");
 });
 
+test("typeof before defined", t => {
+  const sandbox: any = vm.createContext({});
+
+  const type: any = vm.runInContext(
+    `
+
+module.exports = typeof a; // a is not defined, it should equal 'undefined'
+  `,
+    sandbox
+  );
+
+  t.deepEqual(type, "undefined");
+});
+
+test("typeof before var", t => {
+  const sandbox: any = vm.createContext({});
+
+  const type: any = vm.runInContext(
+    `
+
+module.exports = typeof a;
+var a;
+  `,
+    sandbox
+  );
+
+  t.deepEqual(type, "undefined");
+});
+
 test("void", t => {
   const sandbox: any = vm.createContext({});
 
