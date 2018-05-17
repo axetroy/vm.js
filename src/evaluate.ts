@@ -1101,6 +1101,8 @@ const visitors: EvaluateMap = {
   AssignmentExpression(path) {
     const { node, scope } = path;
     let $var: IVar;
+    // right first
+    const rightValue = evaluate(path.createChild(node.right));
 
     if (isIdentifier(node.left)) {
       const { name } = node.left;
@@ -1203,7 +1205,7 @@ const visitors: EvaluateMap = {
         $var.set($var.value & v);
         return $var.value;
       }
-    }[node.operator](evaluate(path.createChild(node.right)));
+    }[node.operator](rightValue);
   },
   LogicalExpression(path) {
     const { node } = path;
