@@ -19,7 +19,8 @@ import "codemirror/addon/search/match-highlighter.js";
 import "codemirror/addon/search/matchesonscrollbar.js";
 import "codemirror/addon/search/matchesonscrollbar.css";
 
-import vm from "../dist/vm";
+// import vm from "../dist/vm";
+import vm from "../build/src/vm";
 import pkg from "../package";
 
 export default class App extends Component {
