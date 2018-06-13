@@ -110,7 +110,7 @@ export class Scope {
    * @memberof Scope
    */
   public let(varName: string, value: any): boolean {
-    const $var = this.content[varName];
+    const $var = this.content.hasOwnProperty(varName);
     if (!$var) {
       this.content[varName] = new Var(Kind.Let, varName, value, this);
       return true;
@@ -127,7 +127,7 @@ export class Scope {
    * @memberof Scope
    */
   public const(varName: string, value: any): boolean {
-    const $var = this.content[varName];
+    const $var = this.content.hasOwnProperty(varName);
     if (!$var) {
       this.content[varName] = new Var(Kind.Const, varName, value, this);
       return true;
