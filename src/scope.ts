@@ -5,10 +5,29 @@ import { Var } from "./var";
 
 export class Scope {
   // the scope have invasive property
+  // if the scope is block scope.
+  // it can define variables in parent scope via `var`
+  // for example
+  /**
+   * var a = 2;
+   *
+   * for(var i=0;i<a;i++){
+   *   var b = i;
+   * }
+   *
+   * // in here, b is not defined in the top scope.
+   * // but it defined in for loop
+   * // mark invasive = true. then var keyword can defined variables in parent scope
+   * console.log(b); // 1
+   *
+   */
   public invasive: boolean = false;
 
-  // the level of scope.
-  // level === 0 mean root scope
+  /**
+   * The level of scope.
+   * The top scope's level is 0.
+   * every child scope will increase 1
+   */
   public level: number = 0;
 
   // scope context
@@ -110,8 +129,7 @@ export class Scope {
    * @memberof Scope
    */
   public let(varName: string, value: any): boolean {
-    const $var = this.content.hasOwnProperty(varName);
-    if (!$var) {
+    if (!this.content.hasOwnProperty(varName)) {
       this.content[varName] = new Var(Kind.Let, varName, value, this);
       return true;
     } else {
@@ -127,8 +145,7 @@ export class Scope {
    * @memberof Scope
    */
   public const(varName: string, value: any): boolean {
-    const $var = this.content.hasOwnProperty(varName);
-    if (!$var) {
+    if (!this.content.hasOwnProperty(varName)) {
       this.content[varName] = new Var(Kind.Const, varName, value, this);
       return true;
     } else {
@@ -156,8 +173,8 @@ export class Scope {
       targetScope = targetScope.parent;
     }
 
-    const $var = targetScope.content[varName];
-    if ($var) {
+    if (targetScope.content.hasOwnProperty(varName)) {
+      const $var = targetScope.content[varName];
       if ($var.kind !== Kind.Var) {
         // only cover var with var, not const and let
         throw ErrDuplicateDeclard(varName);
@@ -209,7 +226,9 @@ export class Scope {
    * @memberof Scope
    */
   public del(varName: string): boolean {
-    delete this.content[varName];
+    if (this.content.hasOwnProperty) {
+      delete this.content[varName];
+    }
     return true;
   }
 
