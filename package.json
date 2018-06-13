@@ -5,19 +5,15 @@
   "main": "./dist/vm.js",
   "typings": "./dist/vm.d.ts",
   "scripts": {
-    "test":
-      "rm -rf ./build && tsc -p ./ && nyc ava ./build/test ./build/src/**/*.test.js",
-    "build":
-      "rm -rf ./dist && webpack --display-error-details --progress --colors",
+    "test": "rm -rf ./build && tsc -p ./ && nyc ava ./build/test ./build/src/**/*.test.js",
+    "build": "rm -rf ./dist && webpack --display-error-details --progress --colors",
     "start": "npm run build && parcel ./doc/index.html -d vm.js",
-    "docs":
-      "npm run build && parcel build doc/index.html -d ./vm.js && gh-pages -d ./vm.js",
+    "docs": "npm run build && parcel build doc/index.html -d ./vm.js && gh-pages -d ./vm.js",
     "format": "prettier --write ./src/**/*.ts ./test/**/*.ts",
     "precommit": "npm run lint && pretty-quick --staged",
     "tslint-check": "tslint-config-prettier-check ./tslint.json",
     "lint": "tslint -p ./ -c tslint.json",
-    "changelog":
-      "npx conventional-changelog-cli -p angular -i CHANGELOG.md -s -r 0"
+    "changelog": "npx conventional-changelog-cli -p angular -i CHANGELOG.md -s -r 0"
   },
   "repository": {
     "type": "git",
@@ -35,31 +31,31 @@
   },
   "homepage": "https://github.com/axetroy/vm.js#readme",
   "devDependencies": {
-    "@types/babel-core": "^6.25.3",
-    "@types/lodash": "^4.14.106",
+    "@types/babel-core": "^6.25.5",
+    "@types/lodash": "^4.14.109",
     "@types/node": "^9.6.0",
-    "@types/webpack": "^4.1.4",
+    "@types/webpack": "^4.4.0",
     "ava": "^0.25.0",
-    "babel-preset-env": "^1.6.1",
+    "babel-preset-env": "^1.7.0",
     "babel-preset-react": "^6.24.1",
-    "coveralls": "^3.0.0",
-    "gh-pages": "^1.1.0",
+    "coveralls": "^3.0.1",
+    "gh-pages": "^1.2.0",
     "husky": "^0.14.3",
     "normalize.css": "^8.0.0",
     "nyc": "^11.6.0",
-    "parcel-bundler": "^1.6.2",
-    "prettier": "^1.11.1",
-    "pretty-quick": "^1.4.1",
-    "react": "^16.2.0",
+    "parcel-bundler": "^1.8.1",
+    "prettier": "^1.13.5",
+    "pretty-quick": "^1.6.0",
+    "react": "^16.4.1",
     "react-codemirror": "^1.0.0",
-    "react-dom": "^16.2.0",
+    "react-dom": "^16.4.1",
     "ts-lint": "^4.5.1",
-    "ts-loader": "^4.2.0",
-    "ts-node": "^6.0.2",
-    "tslint": "^5.9.1",
-    "tslint-config-prettier": "^1.10.0",
-    "typescript": "^2.8.1",
-    "webpack": "^4.8.3",
+    "ts-loader": "^4.4.1",
+    "ts-node": "^6.1.1",
+    "tslint": "^5.10.0",
+    "tslint-config-prettier": "^1.13.0",
+    "typescript": "^2.9.1",
+    "webpack": "^4.12.0",
     "webpack-cli": "^2.1.3"
   }
 }
