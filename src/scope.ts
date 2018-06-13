@@ -1,6 +1,6 @@
 import { Context } from "./context";
 import { ErrDuplicateDeclard } from "./error";
-import { Kind, KindType, ScopeType } from "./type";
+import { Kind, KindType, ScopeType, isolatedScopeMap } from "./type";
 import { Var } from "./var";
 
 export class Scope {
@@ -164,12 +164,10 @@ export class Scope {
     // tslint:disable-next-line
     let targetScope: Scope = this;
 
-    while (
-      targetScope.parent !== null &&
-      // function and constructor has own scope
-      (targetScope.type !== ScopeType.Function &&
-        targetScope.type !== ScopeType.Constructor)
-    ) {
+    // When to stop?
+    // 1. if the current scope is top-level scope
+    // 2. if the current scope type is one of types `function`, `constructor`
+    while (targetScope.parent !== null && !isolatedScopeMap[targetScope.type]) {
       targetScope = targetScope.parent;
     }
 

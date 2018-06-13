@@ -24,6 +24,13 @@ export enum ScopeType {
   Block
 }
 
+export const isolatedScopeMap = {
+  [ScopeType.Function]: true,
+  [ScopeType.Constructor]: true,
+  [ScopeType.Method]: true,
+  [ScopeType.Object]: true
+};
+
 export enum Kind {
   Var = "var",
   Const = "const",

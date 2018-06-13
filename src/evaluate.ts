@@ -849,7 +849,7 @@ const visitors: EvaluateMap = {
     const val = evaluate(path.createChild(node.value));
     if (isIdentifier(node.key)) {
       object[node.key.name] = val;
-      scope.const(node.key.name, val);
+      scope.var(node.key.name, val);
     } else {
       object[evaluate(path.createChild(node.key))] = val;
     }
