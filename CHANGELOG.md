@@ -1,3 +1,26 @@
+<a name="0.3.3"></a>
+
+## [0.3.3](https://github.com/axetroy/vm.js/compare/v0.3.2...v0.3.3) (2018-06-13)
+
+### Bug Fixes
+
+* assignment should calculate the right side first, close [#12](https://github.com/axetroy/vm.js/issues/12) ([5bdcbdf](https://github.com/axetroy/vm.js/commit/5bdcbdf))
+* Can not defined same key in object. close [#14](https://github.com/axetroy/vm.js/issues/14) ([b06da7f](https://github.com/axetroy/vm.js/commit/b06da7f))
+* can not overwrite native method like toString, valueOf. close [#13](https://github.com/axetroy/vm.js/issues/13) ([3a0b050](https://github.com/axetroy/vm.js/commit/3a0b050))
+* 更换打包方式 ([40b5b48](https://github.com/axetroy/vm.js/commit/40b5b48))
+
+<a name="0.3.2"></a>
+
+## [0.3.2](https://github.com/axetroy/vm.js/compare/v0.3.1...v0.3.2) (2018-04-30)
+
+<a name="0.3.1"></a>
+
+## [0.3.1](https://github.com/axetroy/vm.js/compare/v0.3.0...v0.3.1) (2018-04-30)
+
+### Bug Fixes
+
+* stack not pop after leave stack ([7c3c21c](https://github.com/axetroy/vm.js/commit/7c3c21c))
+
 <a name="0.3.0"></a>
 
 # [0.3.0](https://github.com/axetroy/vm.js/compare/v0.2.2...v0.3.0) (2018-04-30)
