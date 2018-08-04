@@ -94,6 +94,12 @@ npx tsc && npx ava ./build/test/ecma5/array/
 npm run test
 ```
 
+### Related
+
+[jkeylu/evil-eval](https://github.com/jkeylu/evil-eval)
+
+[bramblex/jsjs](https://github.com/jkeylu/jsjs)
+
 ## Contributors
 
 <!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
