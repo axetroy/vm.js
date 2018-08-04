@@ -96,9 +96,9 @@ npm run test
 
 ### Related
 
-[jkeylu/evil-eval](https://github.com/jkeylu/evil-eval)
+[bramblex/jsjs](https://github.com/bramblex/jsjs)
 
-[bramblex/jsjs](https://github.com/jkeylu/jsjs)
+[jkeylu/evil-eval](https://github.com/jkeylu/evil-eval)
 
 ## Contributors
 
