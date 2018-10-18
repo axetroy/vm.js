@@ -26,28 +26,28 @@ module.exports = {d: d, Demo: Demo};
   t.true(d.__proto__ === Demo.prototype);
 });
 
-// test("overwrite native valueOf method", t => {
-//   const sandbox: any = vm.createContext({});
+test("overwrite native valueOf method", t => {
+  const sandbox: any = vm.createContext({});
 
-//   const { d, Demo } = vm.runInContext(
-//     `
-// var Demo = function(text) {};
+  const { d, Demo } = vm.runInContext(
+    `
+var Demo = function(text) {};
 
-// Demo.prototype = {
-//   valueOf: function() {
-//     return 1;
-//   }
-// };
+Demo.prototype = {
+  valueOf: function() {
+    return 1;
+  }
+};
 
-// var d = new Demo();
+var d = new Demo();
 
-// module.exports = {d: d, Demo: Demo};
-//     `,
-//     sandbox
-//   );
-//   t.deepEqual(typeof d.toString, "function");
-//   t.deepEqual(typeof Demo, "function");
-//   t.true(d.toString === Demo.prototype.toString);
-//   t.true(d.__proto__ === Demo.prototype);
-//   t.deepEqual(d + 0, 1);
-// });
+module.exports = {d: d, Demo: Demo};
+    `,
+    sandbox
+  );
+  t.deepEqual(typeof d.toString, "function");
+  t.deepEqual(typeof Demo, "function");
+  t.true(d.toString === Demo.prototype.toString);
+  t.true(d.__proto__ === Demo.prototype);
+  t.deepEqual(d + 0, 1);
+});

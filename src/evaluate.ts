@@ -4,7 +4,8 @@ import {
   ErrInvalidIterable,
   ErrNoSuper,
   ErrNotDefined,
-  ErrIsNotFunction
+  ErrIsNotFunction,
+  ErrCanNotReadProperty
 } from "./error";
 import { Path } from "./path";
 import {
@@ -65,6 +66,10 @@ function overriteStack(err: Error, stack: Stack, node: types.Node): Error {
   });
   err.stack = err.toString() + "\n" + stack.raw;
   return err;
+}
+
+class Prototype {
+  constructor(public constructor) {}
 }
 
 const visitors: EvaluateMap = {
@@ -902,7 +907,7 @@ const visitors: EvaluateMap = {
     const { node, scope, stack } = path;
 
     const functionName = node.id ? node.id.name : "";
-    const func = function functionDeclaration(...args) {
+    const func = function(...args) {
       stack.enter(functionName); // enter the stack
       const funcScope = scope.createChild(ScopeType.Function);
       for (let i = 0; i < node.params.length; i++) {
@@ -1094,9 +1099,25 @@ const visitors: EvaluateMap = {
       : (property as types.Identifier).name;
 
     const obj = evaluate(path.createChild(object));
-    const target = obj[propertyName];
 
-    return isFunction(target) ? target.bind(obj) : target;
+    if (obj === undefined) {
+      throw ErrCanNotReadProperty(propertyName, "undefined");
+    }
+
+    if (obj === null) {
+      throw ErrCanNotReadProperty(propertyName, "null");
+    }
+
+    const isPrototype =
+      propertyName === "prototype" && types.isIdentifier(property);
+
+    const target = isPrototype ? new Prototype(obj) : obj[propertyName];
+
+    return target instanceof Prototype
+      ? target
+      : isFunction(target)
+        ? target.bind(obj)
+        : target;
   },
   AssignmentExpression(path) {
     const { node, scope } = path;
@@ -1142,7 +1163,12 @@ const visitors: EvaluateMap = {
       $var = {
         kind: Kind.Var,
         set(value: any) {
-          object[property] = value;
+          if (object instanceof Prototype) {
+            const Constructor = object.constructor;
+            Constructor.prototype[property] = value;
+          } else {
+            object[property] = value;
+          }
         },
         get value() {
           return object[property];
@@ -1229,14 +1255,13 @@ const visitors: EvaluateMap = {
     const args: any[] = node.arguments.map(arg =>
       evaluate(path.createChild(arg))
     );
+    func.prototype.constructor = func;
     let entity = new func(...args);
 
     // stack track for Error constructor
     if (func === Error || entity instanceof Error) {
       entity = overriteStack(entity, stack, node);
     }
-    entity.prototype = entity.prototype || {};
-    entity.prototype.constructor = func;
     return entity;
   },
 

@@ -23,3 +23,10 @@ export function ErrNoSuper(): ReferenceError {
 export function ErrIsNotFunction(name: string): ReferenceError {
   return new TypeError(`${name} is not a function`);
 }
+
+export function ErrCanNotReadProperty(
+  property: string,
+  target: string
+): ReferenceError {
+  return new TypeError(`Cannot read property '${property}' of ${target}`);
+}

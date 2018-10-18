@@ -25,5 +25,5 @@ module.exports = {
   // entity
   t.true(people instanceof People);
   t.deepEqual(people.name, "axetroy");
-  t.true(people.prototype.constructor === People);
+  t.true(people.constructor === People);
 });
