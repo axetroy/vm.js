@@ -8,7 +8,7 @@
     "test": "rm -rf ./build && tsc -p ./ && nyc ava ./build/test ./build/src/**/*.test.js",
     "build": "rm -rf ./dist && webpack --display-error-details --progress --colors",
     "start": "npm run build && parcel ./doc/index.html -d vm.js",
-    "docs": "npm run build && parcel build doc/index.html -d ./vm.js && gh-pages -d ./vm.js",
+    "docs": "npm run build && npx parcel build doc/index.html -d ./vm.js --public-url /vm.js && gh-pages -d ./vm.js",
     "format": "prettier --write ./src/**/*.ts ./test/**/*.ts",
     "precommit": "npm run lint && pretty-quick --staged",
     "tslint-check": "tslint-config-prettier-check ./tslint.json",
