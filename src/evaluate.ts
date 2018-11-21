@@ -913,7 +913,7 @@ const visitors: EvaluateMap = {
       for (let i = 0; i < node.params.length; i++) {
         const param = node.params[i];
         if (isIdentifier(param)) {
-          funcScope.const(param.name, args[i]);
+          funcScope.let(param.name, args[i]);
         } else if (isAssignmentPattern(param)) {
           // @es2015 default parameters
           evaluate(path.createChild(param, funcScope, { value: args[i] }));
@@ -926,13 +926,13 @@ const visitors: EvaluateMap = {
       }
       funcScope.const(THIS, this);
       // support new.target
-      funcScope.const(NEW, {
+      funcScope.let(NEW, {
         target:
           this && this.__proto__ && this.__proto__.constructor
             ? this.__proto__.constructor
             : undefined
       });
-      funcScope.const(ARGUMENTS, arguments);
+      funcScope.let(ARGUMENTS, arguments);
       funcScope.isolated = false;
 
       const result = evaluate(path.createChild(node.body, funcScope));
