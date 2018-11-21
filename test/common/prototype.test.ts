@@ -50,3 +50,31 @@ module.exports = { Man, man }
   t.deepEqual(man.name, "axetroy");
   t.deepEqual(Object.keys(man).length, 0);
 });
+
+test("Multiple prototype", t => {
+  const sandbox: any = vm.createContext({});
+
+  const { man, Man, name } = vm.runInContext(
+    `
+function Man () {
+
+}
+
+const prototype = Man.prototype
+
+prototype.name = "axetroy"
+
+prototype.whoami = function () {
+  return this.name
+}
+
+const man = new Man();
+
+module.exports = { Man, man }
+    `,
+    sandbox
+  );
+  t.deepEqual(typeof Man, "function");
+  t.deepEqual(man.name, "axetroy");
+  t.deepEqual(Object.keys(man).length, 0);
+});
