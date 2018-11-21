@@ -78,3 +78,31 @@ module.exports = { Man, man }
   t.deepEqual(man.name, "axetroy");
   t.deepEqual(Object.keys(man).length, 0);
 });
+
+test("prototype without return instance", t => {
+  const sandbox: any = vm.createContext({});
+
+  const { test, Test } = vm.runInContext(
+    `
+var Test = function(text) {
+  if (text) {
+    var o = JSON.parse(text);
+    this.id = o.id;
+    this.list = o.list;
+  } else {
+    this.id = '';
+    this.list = [];
+  }
+};
+
+var test = new Test('{"id":1,"list":[1, 2, 3]}');
+
+module.exports = { test, Test }
+    `,
+    sandbox
+  );
+  t.deepEqual(typeof Test, "function");
+  t.deepEqual(test.id, 1);
+  t.deepEqual(test.list, [1, 2, 3]);
+  t.deepEqual(Object.keys(test).length, 2);
+});

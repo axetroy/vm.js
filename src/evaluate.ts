@@ -58,6 +58,9 @@ import {
 
 import { defineFunctionLength, defineFunctionName } from "./utils";
 
+import { Prototype } from "./Prototype";
+import { This } from "./This";
+
 function overriteStack(err: Error, stack: Stack, node: types.Node): Error {
   stack.push({
     filename: ANONYMOUS,
@@ -66,10 +69,6 @@ function overriteStack(err: Error, stack: Stack, node: types.Node): Error {
   });
   err.stack = err.toString() + "\n" + stack.raw;
   return err;
-}
-
-class Prototype {
-  constructor(public constructor) {}
 }
 
 const visitors: EvaluateMap = {
@@ -909,6 +908,15 @@ const visitors: EvaluateMap = {
     const functionName = node.id ? node.id.name : "";
     const func = function(...args) {
       stack.enter(functionName); // enter the stack
+
+      // Is this function is a constructor?
+      // if it's constructor, it should return instance
+      const shouldReturnInstance =
+        args.length &&
+        args[args.length - 1] instanceof This &&
+        args.pop() &&
+        true;
+
       const funcScope = scope.createChild(ScopeType.Function);
       for (let i = 0; i < node.params.length; i++) {
         const param = node.params[i];
@@ -924,6 +932,7 @@ const visitors: EvaluateMap = {
           );
         }
       }
+
       funcScope.const(THIS, this);
       // support new.target
       funcScope.const(NEW, {
@@ -937,7 +946,9 @@ const visitors: EvaluateMap = {
 
       const result = evaluate(path.createChild(node.body, funcScope));
       stack.leave(); // leave stack
-      if (result instanceof Signal) {
+      if (shouldReturnInstance) {
+        return this;
+      } else if (result instanceof Signal) {
         return result.value;
       } else {
         return result;
@@ -1256,7 +1267,7 @@ const visitors: EvaluateMap = {
       evaluate(path.createChild(arg))
     );
     func.prototype.constructor = func;
-    let entity = new func(...args);
+    let entity = new func(...args, new This(null));
 
     // stack track for Error constructor
     if (func === Error || entity instanceof Error) {
