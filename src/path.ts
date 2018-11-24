@@ -1,6 +1,6 @@
 import { Node } from "babel-types";
 import { Scope } from "./scope";
-import { ScopeType } from "./type";
+import { ScopeType, EvaluateFunc, presetMap } from "./type";
 import { Stack } from "./stack";
 
 export interface ICtx {
@@ -8,6 +8,8 @@ export interface ICtx {
 }
 
 export class Path<T extends Node> {
+  public evaluate!: EvaluateFunc;
+  public preset!: presetMap;
   constructor(
     public node: T,
     public parent: Path<Node> | null,
@@ -29,15 +31,20 @@ export class Path<T extends Node> {
     scope?: ScopeType | Scope,
     ctx?: ICtx
   ): Path<Child> {
-    return new Path(
+    const path = new Path(
       node,
       this,
       scope
-        ? typeof scope === "number" ? this.scope.createChild(scope) : scope
+        ? typeof scope === "number"
+          ? this.scope.createChild(scope)
+          : scope
         : this.scope,
       { ...this.ctx, ...ctx },
       this.stack
     );
+    path.evaluate = this.evaluate;
+    path.preset = this.preset;
+    return path;
   }
   /**
    * Find scope scope with type

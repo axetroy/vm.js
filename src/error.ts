@@ -2,6 +2,10 @@ export function ErrNotDefined(varName: string): ReferenceError {
   return new ReferenceError(`${varName} is not defined`);
 }
 
+export function ErrImplement(varName: string): SyntaxError {
+  return new SyntaxError(`Not implement for '${varName}' syntax`);
+}
+
 export function ErrDuplicateDeclard(varName: string): SyntaxError {
   return new SyntaxError(`Identifier '${varName}' has already been declared`);
 }

@@ -4,7 +4,7 @@ import evaluate from "./evaluate";
 import { Path } from "./path";
 import { Scope } from "./scope";
 import { MODULE, EXPORTS, THIS } from "./constant";
-import { ScopeType } from "./type";
+import { ScopeType, presetMap } from "./type";
 import { Stack } from "./stack";
 
 /**
@@ -14,7 +14,11 @@ import { Stack } from "./stack";
  * @param {Context} context
  * @returns
  */
-export function runInContext(code: string, context: Context) {
+export function runInContext(
+  code: string,
+  context: Context,
+  preset: presetMap = presetMap.env
+) {
   const scope = new Scope(ScopeType.Root, null);
   scope.level = 0;
   scope.invasive = true;
@@ -41,6 +45,8 @@ export function runInContext(code: string, context: Context) {
   });
 
   const path = new Path(ast, null, scope, {}, new Stack());
+  path.preset = preset;
+  path.evaluate = evaluate;
 
   evaluate(path);
 

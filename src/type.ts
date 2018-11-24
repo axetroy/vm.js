@@ -39,7 +39,7 @@ export enum Kind {
 
 export type KindType = "var" | "const" | "let";
 
-export interface INodeTypeMap {
+export interface IES5TypeMap {
   File: t.File;
   Program: t.Program;
   Identifier: t.Identifier;
@@ -50,7 +50,7 @@ export interface INodeTypeMap {
   RegExpLiteral: t.RegExpLiteral;
   FunctionDeclaration: t.FunctionDeclaration;
   FunctionExpression: t.FunctionExpression;
-  ArrowFunctionExpression: t.ArrowFunctionExpression;
+  ArrayExpression: t.ArrayExpression;
   SwitchCase: t.SwitchCase;
   CatchClause: t.CatchClause;
   VariableDeclarator: t.VariableDeclarator;
@@ -71,15 +71,11 @@ export interface INodeTypeMap {
   DoWhileStatement: t.DoWhileStatement;
   ForStatement: t.ForStatement;
   ForInStatement: t.ForInStatement;
-  ForOfStatement: t.ForOfStatement;
   VariableDeclaration: t.VariableDeclaration;
-  ClassDeclaration: t.ClassDeclaration;
   ThisExpression: t.ThisExpression;
-  ArrayExpression: t.ArrayExpression;
   ObjectExpression: t.ObjectExpression;
   ObjectProperty: t.ObjectProperty;
   ObjectMethod: t.ObjectMethod;
-  YieldExpression: t.YieldExpression;
   UnaryExpression: t.UnaryExpression;
   UpdateExpression: t.UpdateExpression;
   BinaryExpression: t.BinaryExpression;
@@ -90,15 +86,21 @@ export interface INodeTypeMap {
   CallExpression: t.CallExpression;
   NewExpression: t.NewExpression;
   SequenceExpression: t.SequenceExpression;
+}
+
+export interface IES2015TypeMap {
+  ArrowFunctionExpression: t.ArrowFunctionExpression;
   TemplateLiteral: t.TemplateLiteral;
   TaggedTemplateExpression: t.TaggedTemplateExpression;
+  ForOfStatement: t.ForOfStatement;
   ClassExpression: t.ClassExpression;
   ClassMethod: t.ClassMethod;
   MetaProperty: t.MetaProperty;
-  AwaitExpression: t.AwaitExpression;
   Super: t.Super;
   TemplateElement: t.TemplateElement;
   SpreadElement: t.SpreadElement;
+  ClassDeclaration: t.ClassDeclaration;
+  YieldExpression: t.YieldExpression;
   // ObjectPattern: t.ObjectPattern;
   // ArrayPattern: t.ArrayPattern;
   RestElement: t.RestElement;
@@ -107,6 +109,17 @@ export interface INodeTypeMap {
   ImportDeclaration: t.ImportDeclaration;
   ExportNamedDeclaration: t.ExportNamedDeclaration;
   ExportDefaultDeclaration: t.ExportDefaultDeclaration;
+}
+
+export interface IES2016TypeMap {
+  BinaryExpression: t.BinaryExpression;
+}
+
+export interface IES2017TypeMap {
+  AwaitExpression: t.AwaitExpression;
+}
+
+export interface IExperimentalTypeMap {
   // ExportAllDeclaration: t.ExportAllDeclaration;
   ImportSpecifier: t.ImportSpecifier;
   ImportDefaultSpecifier: t.ImportDefaultSpecifier;
@@ -117,25 +130,46 @@ export interface INodeTypeMap {
   Decorator: t.Decorator;
 }
 
-export interface ITrackerTypeMap {
-  Identifier: t.Identifier;
-  NullLiteral: t.NullLiteral;
-  StringLiteral: t.StringLiteral;
-  NumericLiteral: t.NumericLiteral;
-  BooleanLiteral: t.BooleanLiteral;
-  RegExpLiteral: t.RegExpLiteral;
-  MemberExpression: t.MemberExpression;
-}
+export interface INodeTypeMap
+  extends IES5TypeMap,
+    IES2015TypeMap,
+    IES2016TypeMap,
+    IES2017TypeMap,
+    IExperimentalTypeMap {}
 
-export type EvaluateMap = {
-  [key in keyof INodeTypeMap]: (path: Path<INodeTypeMap[key]>) => any
+export type ES5Map = {
+  [key in keyof IES5TypeMap]: (path: Path<IES5TypeMap[key]>) => any
 };
 
-export type TrackerMap = {
-  [key in keyof ITrackerTypeMap]: (
-    path: ITrackerTypeMap[key],
-    name: string[]
+export type ES2015Map = {
+  [key in keyof IES2015TypeMap]: (path: Path<IES2015TypeMap[key]>) => any
+};
+
+export type ES2016Map = {
+  [key in keyof IES2016TypeMap]: (path: Path<IES2016TypeMap[key]>) => any
+};
+
+export type ES2017Map = {
+  [key in keyof IES2017TypeMap]: (path: Path<IES2017TypeMap[key]>) => any
+};
+
+export type ExperimentalMap = {
+  [key in keyof IExperimentalTypeMap]: (
+    path: Path<IExperimentalTypeMap[key]>
   ) => any
 };
 
+export type IEcmaScriptMap = {
+  [key in keyof INodeTypeMap]: (path: Path<INodeTypeMap[key]>) => any
+};
+
 export type EvaluateFunc = (path: Path<t.Node>) => any;
+
+export enum presetMap {
+  es5 = "es5",
+  es2015 = "es2015",
+  es2016 = "es2016",
+  es2017 = "es2017",
+  es2018 = "es2018",
+  env = "env"
+}
