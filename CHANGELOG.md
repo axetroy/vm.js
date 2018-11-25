@@ -1,3 +1,9 @@
+## [0.3.6](https://github.com/axetroy/vm.js/compare/v0.3.5...v0.3.6) (2018-11-25)
+
+### Bug Fixes
+
+- close [#22](https://github.com/axetroy/vm.js/issues/22) ([08fea44](https://github.com/axetroy/vm.js/commit/08fea44))
+
 ## [0.3.5](https://github.com/axetroy/vm.js/compare/v0.3.4...v0.3.5) (2018-11-25)
 
 ### Bug Fixes
