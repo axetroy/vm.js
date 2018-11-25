@@ -103,3 +103,21 @@ obj["a"]();
     );
   }, ErrIsNotFunction("obj.a").message);
 });
+
+test("function params should can be overwrite", t => {
+  const sandbox: any = vm.createContext({});
+
+  const test = vm.runInContext(
+    `
+function test (a) {
+  a = a || 'hello'
+  return a
+}
+
+module.exports = test
+    `,
+    sandbox
+  );
+
+  t.deepEqual(test(), "hello");
+});

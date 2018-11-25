@@ -928,7 +928,7 @@ export const es5: ES5Map = {
       for (let i = 0; i < node.params.length; i++) {
         const param = node.params[i];
         if (isIdentifier(param)) {
-          funcScope.const(param.name, args[i]);
+          funcScope.let(param.name, args[i]);
         } else if (isAssignmentPattern(param)) {
           // @es2015 default parameters
           path.evaluate(path.createChild(param, funcScope, { value: args[i] }));
