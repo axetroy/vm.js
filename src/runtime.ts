@@ -1,4 +1,5 @@
 /* tslint:disable */
+/* istanbul ignore file */
 
 export function _classCallCheck(instance, Constructor) {
   if (!(instance instanceof Constructor)) {
