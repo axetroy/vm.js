@@ -15,3 +15,19 @@ module.exports = num;
   );
   t.deepEqual(num, 4);
 });
+
+test("ExponentiationOperator-2", t => {
+  const sandbox: any = vm.createContext({});
+
+  const num: any = vm.runInContext(
+    `
+let num = 3;
+
+num **= 2
+
+module.exports = num;
+  `,
+    sandbox
+  );
+  t.deepEqual(num, 9);
+});

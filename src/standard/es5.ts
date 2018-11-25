@@ -80,6 +80,67 @@ export const BinaryExpressionOperatorEvaluateMap = {
   instanceof: (a, b) => a instanceof b
 };
 
+export const AssignmentExpressionEvaluateMap = {
+  "=": ($var: IVar, v) => {
+    $var.set(v);
+    return v;
+  },
+  "+=": ($var: IVar, v) => {
+    $var.set($var.value + v);
+    return $var.value;
+  },
+  "-=": ($var: IVar, v) => {
+    $var.set($var.value - v);
+    return $var.value;
+  },
+  "*=": ($var: IVar, v) => {
+    $var.set($var.value * v);
+    return $var.value;
+  },
+  "**=": ($var: IVar, v) => {
+    $var.set(Math.pow($var.value, v));
+    return $var.value;
+  },
+  "/=": ($var: IVar, v) => {
+    $var.set($var.value / v);
+    return $var.value;
+  },
+  "%=": ($var: IVar, v) => {
+    $var.set($var.value % v);
+    return $var.value;
+  },
+  "<<=": ($var: IVar, v) => {
+    // tslint:disable-next-line: no-bitwise
+    $var.set($var.value << v);
+    return $var.value;
+  },
+  ">>=": ($var: IVar, v) => {
+    // tslint:disable-next-line: no-bitwise
+    $var.set($var.value >> v);
+    return $var.value;
+  },
+  ">>>=": ($var: IVar, v) => {
+    // tslint:disable-next-line: no-bitwise
+    $var.set($var.value >>> v);
+    return $var.value;
+  },
+  "|=": ($var: IVar, v) => {
+    // tslint:disable-next-line: no-bitwise
+    $var.set($var.value | v);
+    return $var.value;
+  },
+  "^=": ($var: IVar, v) => {
+    // tslint:disable-next-line: no-bitwise
+    $var.set($var.value ^ v);
+    return $var.value;
+  },
+  "&=": ($var: IVar, v) => {
+    // tslint:disable-next-line: no-bitwise
+    $var.set($var.value & v);
+    return $var.value;
+  }
+};
+
 export const es5: ES5Map = {
   File(path) {
     path.evaluate(path.createChild(path.node.program));
@@ -252,9 +313,9 @@ export const es5: ES5Map = {
           ? path.evaluate(path.createChild(declaration.init))
           : undefined;
       } else if (isObjectPattern(declaration.id)) {
-      /**
-       * example:
-       */
+        /**
+         * example:
+         */
         const vars: Array<{ key: string; alias: string }> = [];
         for (const n of declaration.id.properties) {
           if (isObjectProperty(n)) {
@@ -1046,7 +1107,15 @@ export const es5: ES5Map = {
   },
   AssignmentExpression(path) {
     const { node, scope } = path;
-    let $var: IVar;
+    let $var: IVar = {
+      kind: Kind.Var,
+      set(value: any) {
+        //
+      },
+      get value() {
+        return undefined;
+      }
+    };
     // right first
     const rightValue = path.evaluate(path.createChild(node.right));
 
@@ -1101,62 +1170,7 @@ export const es5: ES5Map = {
       };
     }
 
-    return {
-      "=": v => {
-        $var.set(v);
-        return v;
-      },
-      "+=": v => {
-        $var.set($var.value + v);
-        return $var.value;
-      },
-      "-=": v => {
-        $var.set($var.value - v);
-        return $var.value;
-      },
-      "*=": v => {
-        $var.set($var.value * v);
-        return $var.value;
-      },
-      "/=": v => {
-        $var.set($var.value / v);
-        return $var.value;
-      },
-      "%=": v => {
-        $var.set($var.value % v);
-        return $var.value;
-      },
-      "<<=": v => {
-        // tslint:disable-next-line: no-bitwise
-        $var.set($var.value << v);
-        return $var.value;
-      },
-      ">>=": v => {
-        // tslint:disable-next-line: no-bitwise
-        $var.set($var.value >> v);
-        return $var.value;
-      },
-      ">>>=": v => {
-        // tslint:disable-next-line: no-bitwise
-        $var.set($var.value >>> v);
-        return $var.value;
-      },
-      "|=": v => {
-        // tslint:disable-next-line: no-bitwise
-        $var.set($var.value | v);
-        return $var.value;
-      },
-      "^=": v => {
-        // tslint:disable-next-line: no-bitwise
-        $var.set($var.value ^ v);
-        return $var.value;
-      },
-      "&=": v => {
-        // tslint:disable-next-line: no-bitwise
-        $var.set($var.value & v);
-        return $var.value;
-      }
-    }[node.operator](rightValue);
+    return AssignmentExpressionEvaluateMap[node.operator]($var, rightValue);
   },
   LogicalExpression(path) {
     const { node } = path;
