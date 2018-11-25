@@ -4,7 +4,8 @@ import {
   ErrNoSuper,
   ErrNotDefined,
   ErrIsNotFunction,
-  ErrCanNotReadProperty
+  ErrCanNotReadProperty,
+  ErrInvalidIterable
 } from "../error";
 import { __generator, _toConsumableArray, __awaiter } from "../runtime";
 import { Var, IVar } from "../var";
@@ -15,7 +16,6 @@ import { Stack } from "../stack";
 import { THIS, UNDEFINED, ARGUMENTS, NEW, ANONYMOUS } from "../constant";
 
 import {
-  isArrayExpression,
   isArrayPattern,
   isAssignmentPattern,
   isFunctionDeclaration,
@@ -298,7 +298,7 @@ export const es5: ES5Map = {
     );
   },
   VariableDeclaration(path) {
-    const { node, scope } = path;
+    const { node, scope, stack } = path;
     const kind = node.kind;
 
     for (const declaration of node.declarations) {
@@ -315,6 +315,8 @@ export const es5: ES5Map = {
       } else if (isObjectPattern(declaration.id)) {
         /**
          * example:
+         *
+         * const {q,w,e} = {};
          */
         const vars: Array<{ key: string; alias: string }> = [];
         for (const n of declaration.id.properties) {
@@ -335,24 +337,24 @@ export const es5: ES5Map = {
       } else if (isArrayPattern(declaration.id)) {
         // @es2015 destrucuring
         // @flow
+        const initValue = path.evaluate(path.createChild(declaration.init));
+
+        if (!initValue[Symbol.iterator]) {
+          throw overriteStack(
+            ErrInvalidIterable("{(intermediate value)}"),
+            stack,
+            declaration.init
+          );
+        }
+
         declaration.id.elements.forEach((n, i) => {
           if (isIdentifier(n)) {
             const $varName: string = n.typeAnnotation
               ? (n.typeAnnotation.typeAnnotation as any).id.name
               : n.name;
 
-            // FIXME: #20
-            if (isArrayExpression(declaration.init)) {
-              const el = declaration.init.elements[i];
-              if (!el) {
-                varKeyValueMap[$varName] = undefined;
-              } else {
-                const result = path.evaluate(path.createChild(el));
-                varKeyValueMap[$varName] = result;
-              }
-            } else {
-              throw node;
-            }
+            const el = initValue[i];
+            varKeyValueMap[$varName] = el;
           }
         });
       } else {

@@ -68,3 +68,18 @@ module.exports = {a: _a, b: _b, c: _c};
   t.deepEqual(obj.b, 2);
   t.deepEqual(obj.c, 3);
 });
+
+test("Invalid array DestructuringExpression", t => {
+  const sandbox: any = vm.createContext({});
+
+  t.throws(() => {
+    vm.runInContext(
+      `
+      const [a, b, c] = {};
+      
+      module.exports = {a: _a, b: _b, c: _c};
+    `,
+      sandbox
+    );
+  }, "{(intermediate value)} is not iterable");
+});
