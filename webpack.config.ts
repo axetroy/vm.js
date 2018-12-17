@@ -11,6 +11,7 @@ const webpackConfig: webpack.Configuration = {
     filename: "[name].js",
     libraryTarget: "umd"
   },
+  target: "node",
   externals: {
     "babel-types": "babel-types"
   },
