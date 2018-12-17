@@ -1197,7 +1197,9 @@ export const es5: ES5Map = {
       path.evaluate(path.createChild(arg))
     );
     func.prototype.constructor = func;
-    let entity = new func(...args, new This(null));
+    let entity = /native code/.test(func.toString())
+      ? new func(...args)
+      : new func(...args, new This(null));
 
     // stack track for Error constructor
     if (func === Error || entity instanceof Error) {
