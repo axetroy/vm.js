@@ -953,10 +953,10 @@ export const es5: ES5Map = {
 
       const result = path.evaluate(path.createChild(node.body, funcScope));
       stack.leave(); // leave stack
-      if (shouldReturnInstance) {
-        return this;
-      } else if (result instanceof Signal) {
+      if (result instanceof Signal) {
         return result.value;
+      } else if (shouldReturnInstance) {
+        return this;
       } else {
         return result;
       }
