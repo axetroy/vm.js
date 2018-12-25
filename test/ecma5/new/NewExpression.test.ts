@@ -54,3 +54,31 @@ test("NewExpression for built-in functions", t => {
   t.true(date <= new Date());
   t.true(regexp instanceof RegExp);
 });
+
+test("NewExpression for constructor function which return object", t => {
+  const sandbox: any = vm.createContext({});
+
+  const { o, p } = vm.runInContext(
+    `
+    var o = {
+      a: 1
+    }
+
+    function P() {
+      this.name = 1
+
+      return o
+    }
+
+    var p = new P()
+
+    module.exports = {
+      o: o,
+      p: p
+    }
+    `,
+    sandbox
+  );
+
+  t.deepEqual(o, p);
+});
