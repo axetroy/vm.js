@@ -5,7 +5,7 @@
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 [![Prettier](https://img.shields.io/badge/Code%20Style-Prettier-green.svg)](https://github.com/prettier/prettier)
 ![Node](https://img.shields.io/badge/node-%3E=7.6-blue.svg?style=flat-square)
-[![npm version](https://badge.fury.io/js/%40axetroy%2Fvm.svg)](https://badge.fury.io/js/%40axetroy%2Fvm)
+[![npm version](https://badge.fury.io/js/%40axetroy%2Fvm.svg)](https://badge.fury.io/js/%40axetroy%2Fvm) [![Greenkeeper badge](https://badges.greenkeeper.io/axetroy/vm.js.svg)](https://greenkeeper.io/)
 ![Size](https://github-size-badge.herokuapp.com/axetroy/vm.js.svg)
 
 Run Javascript code in ECMAScript, without eval(), new Function(), setTimeout()...
