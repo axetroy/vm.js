@@ -103,17 +103,17 @@
   dependencies:
     "@types/babel-types" "*"
 
-"@types/lodash@4.14.123":
-  version "4.14.123"
-  resolved "https://registry.yarnpkg.com/@types/lodash/-/lodash-4.14.123.tgz#39be5d211478c8dd3bdae98ee75bb7efe4abfe4d"
+"@types/lodash@4.14.109":
+  version "4.14.109"
+  resolved "https://registry.yarnpkg.com/@types/lodash/-/lodash-4.14.109.tgz#b1c4442239730bf35cabaf493c772b18c045886d"
 
 "@types/node@*":
   version "10.0.0"
   resolved "https://registry.npmjs.org/@types/node/-/node-10.0.0.tgz#c40f8e07dce607d3ef25a626b93a6a7cdcf97881"
 
-"@types/node@9.6.0":
-  version "9.6.0"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-9.6.0.tgz#d3480ee666df9784b1001a1872a2f6ccefb6c2d7"
+"@types/node@9.6.47":
+  version "9.6.47"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-9.6.47.tgz#655b4a1cc52c8ab08f48cc055061990d6846bc97"
 
 "@types/tapable@*":
   version "1.0.2"
