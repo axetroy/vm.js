@@ -32,7 +32,7 @@
   "homepage": "https://github.com/axetroy/vm.js#readme",
   "devDependencies": {
     "@types/babel-core": "6.25.5",
-    "@types/lodash": "4.14.109",
+    "@types/lodash": "4.14.123",
     "@types/node": "9.6.0",
     "@types/webpack": "4.4.0",
     "ava": "0.25.0",
