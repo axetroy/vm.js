@@ -52,7 +52,7 @@
     "ts-lint": "4.5.1",
     "ts-loader": "5.3.3",
     "ts-node": "8.0.3",
-    "tslint": "5.10.0",
+    "tslint": "5.15.0",
     "tslint-config-prettier": "1.18.0",
     "typescript": "3.4.2",
     "webpack": "4.12.0",
