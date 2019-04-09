@@ -46,7 +46,7 @@
     "parcel-bundler": "1.8.1",
     "prettier": "1.13.5",
     "pretty-quick": "1.6.0",
-    "react": "16.4.1",
+    "react": "16.8.6",
     "react-codemirror": "1.0.0",
     "react-dom": "16.4.1",
     "ts-lint": "4.5.1",
