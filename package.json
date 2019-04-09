@@ -48,7 +48,7 @@
     "pretty-quick": "1.6.0",
     "react": "16.4.1",
     "react-codemirror": "1.0.0",
-    "react-dom": "16.4.1",
+    "react-dom": "16.8.6",
     "ts-lint": "4.5.1",
     "ts-loader": "4.4.1",
     "ts-node": "6.1.1",
