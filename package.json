@@ -39,7 +39,7 @@
     "babel-preset-env": "1.7.0",
     "babel-preset-react": "6.24.1",
     "coveralls": "3.0.1",
-    "gh-pages": "1.2.0",
+    "gh-pages": "2.0.1",
     "husky": "0.14.3",
     "normalize.css": "8.0.0",
     "nyc": "11.6.0",
