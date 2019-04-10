@@ -32,45 +32,45 @@ try {
 
 ## Support
 
-* [x] ECMA5
-* [x] ES2015
-  * [x] Let and const
-  * [x] Block scoping
-  * [x] ES modules
-  * [x] Arrow functions
-  * [x] Class
-  * [x] Computed properties
-  * [x] Destructuring
-  * [x] For of
-  * [x] Function/Class name
-  * [x] Literals
-  * [x] Object super
-  * [x] Default and rest parameters
-  * [x] Shorthand properties
-  * [x] Spread
-  * [x] Template literals
-  * [x] Lifting template literal restriction
-  * [ ] Unicode-regex
-  * [x] Generator function
-* [ ] ES2016
-  * [x] Exponentiation operator
-* [ ] ES2017
-  * [x] Trailing commas in function parameter lists and calls
-  * [ ] Async functions
-  * [ ] Shared memory and atomics
-* [ ] ES2018
-  * [ ] Asynchronous iteration
-  * [ ] Promise.prototype.finally()
-  * [ ] s (dotAll) flag for regular expressions
-  * [ ] RegExp named capture groups
-  * [ ] RegExp Unicode Property Escapes
-* [ ] Experimental
-  * [x] Object rest spread
-  * [x] Class property
-  * [x] [Do expressions](https://github.com/tc39/proposal-do-expressions)
-  * [ ] [Optional catch binding](https://github.com/tc39/proposal-optional-catch-binding)
-  * [ ] [Decorators](https://github.com/tc39/proposal-decorators)
-  * [x] [Global](https://github.com/tc39/proposal-global)
+- [x] ECMA5
+- [x] ES2015
+  - [x] Let and const
+  - [x] Block scoping
+  - [x] ES modules
+  - [x] Arrow functions
+  - [x] Class
+  - [x] Computed properties
+  - [x] Destructuring
+  - [x] For of
+  - [x] Function/Class name
+  - [x] Literals
+  - [x] Object super
+  - [x] Default and rest parameters
+  - [x] Shorthand properties
+  - [x] Spread
+  - [x] Template literals
+  - [x] Lifting template literal restriction
+  - [ ] Unicode-regex
+  - [x] Generator function
+- [ ] ES2016
+  - [x] Exponentiation operator
+- [ ] ES2017
+  - [x] Trailing commas in function parameter lists and calls
+  - [ ] Async functions
+  - [ ] Shared memory and atomics
+- [ ] ES2018
+  - [ ] Asynchronous iteration
+  - [ ] Promise.prototype.finally()
+  - [ ] s (dotAll) flag for regular expressions
+  - [ ] RegExp named capture groups
+  - [ ] RegExp Unicode Property Escapes
+- [ ] Experimental
+  - [x] Object rest spread
+  - [x] Class property
+  - [x] [Do expressions](https://github.com/tc39/proposal-do-expressions)
+  - [ ] [Optional catch binding](https://github.com/tc39/proposal-optional-catch-binding)
+  - [ ] [Decorators](https://github.com/tc39/proposal-decorators)
+  - [x] [Global](https://github.com/tc39/proposal-global)
 
 ## Test
 
@@ -100,15 +100,15 @@ npm run test
 
 [jkeylu/evil-eval](https://github.com/jkeylu/evil-eval)
 
-## Contributors
+### 捐赠我
 
-<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
+如果你觉得这个项目能帮助到你，可以考虑 **支付宝扫码(或搜索 511118132)领红包** 支持我
 
-| [<img src="https://avatars1.githubusercontent.com/u/9758711?v=3" width="100px;"/><br /><sub>Axetroy</sub>](http://axetroy.github.io)<br />[💻](https://github.com/axetroy/vm.js/commits?author=axetroy) 🔌 [⚠️](https://github.com/axetroy/vm.js/commits?author=axetroy) [🐛](https://github.com/axetroy/vm.js/issues?q=author%3Aaxetroy) 🎨 |
-| :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
+甚至可以请我喝一杯 ☕️
 
-
-<!-- ALL-CONTRIBUTORS-LIST:END -->
+| 微信                                                                                                     | 支付宝                                                                                                   | 支付宝红包                                                                                                   |
+| -------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| <img src="https://github.com/axetroy/blog/raw/master/public/donate/wechat.png" width="200" height="200"> | <img src="https://github.com/axetroy/blog/raw/master/public/donate/alipay.png" width="200" height="200"> | <img src="https://github.com/axetroy/blog/raw/master/public/donate/alipay-red.png" width="200" height="200"> |
 
 ## License
 
