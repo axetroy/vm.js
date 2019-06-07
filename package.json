@@ -44,7 +44,7 @@
     "normalize.css": "8.0.1",
     "nyc": "13.3.0",
     "parcel-bundler": "1.8.1",
-    "prettier": "1.13.5",
+    "prettier": "1.18.2",
     "pretty-quick": "1.6.0",
     "react": "16.8.6",
     "react-codemirror": "1.0.0",
