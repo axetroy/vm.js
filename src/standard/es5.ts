@@ -1118,12 +1118,13 @@ export const es5: ES5Map = {
         return undefined;
       }
     };
-    // right first
-    const rightValue = path.evaluate(path.createChild(node.right));
+    let rightValue;
 
     if (isIdentifier(node.left)) {
       const { name } = node.left;
       const varOrNot = scope.hasBinding(name);
+      // right first
+      rightValue = path.evaluate(path.createChild(node.right));
 
       if (!varOrNot) {
         // here to define global var
@@ -1152,6 +1153,9 @@ export const es5: ES5Map = {
     } else if (isMemberExpression(node.left)) {
       const left = node.left;
       const object: any = path.evaluate(path.createChild(left.object));
+      // left first
+      rightValue = path.evaluate(path.createChild(node.right));
+
       const property: string = left.computed
         ? path.evaluate(path.createChild(left.property))
         : (left.property as types.Identifier).name;
