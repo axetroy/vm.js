@@ -1,3 +1,9 @@
+## [0.3.7](https://github.com/axetroy/vm.js/compare/v0.3.6...v0.3.7) (2019-07-10)
+
+### Bug Fixes
+
+- continuous-define assignment bug ([dc81840](https://github.com/axetroy/vm.js/commit/dc81840))
+
 ## [0.3.6](https://github.com/axetroy/vm.js/compare/v0.3.5...v0.3.6) (2018-11-25)
 
 ### Bug Fixes
