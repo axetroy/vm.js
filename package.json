@@ -51,7 +51,7 @@
     "react-dom": "16.8.6",
     "ts-lint": "4.5.1",
     "ts-loader": "6.0.4",
-    "ts-node": "8.0.3",
+    "ts-node": "8.3.0",
     "tslint": "5.15.0",
     "tslint-config-prettier": "1.18.0",
     "typescript": "3.4.2",
