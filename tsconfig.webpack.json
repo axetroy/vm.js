@@ -10,7 +10,7 @@
     "noImplicitThis": false,
     "rootDirs": ["."],
     "inlineSources": true,
-    "outDir": "./",
+    "outDir": "./dist",
     "typeRoots": ["node_modules/@types"],
     "types": ["node"],
     "sourceMap": true,
