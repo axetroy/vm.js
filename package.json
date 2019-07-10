@@ -42,7 +42,7 @@
     "gh-pages": "2.0.1",
     "husky": "3.0.0",
     "normalize.css": "8.0.1",
-    "nyc": "14.1.1",
+    "nyc": "13.3.0",
     "parcel-bundler": "1.12.3",
     "prettier": "1.18.2",
     "pretty-quick": "1.11.1",
