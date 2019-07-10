@@ -134,3 +134,21 @@ module.exports = run;
 
   t.deepEqual(func(), "hello");
 });
+
+test("VariableDeclaration-continuous-define continuous assignment", t => {
+  const sandbox: any = vm.createContext({});
+
+  const { a, b } = vm.runInContext(
+    `
+var a = {n: 2};
+var b = a;
+a.x = a = {n: 1};
+module.exports = {a, b};
+      `,
+    sandbox
+  );
+
+  t.deepEqual(a.n, 1);
+  t.deepEqual(b.n, 2);
+  t.deepEqual(b.x, a);
+});
