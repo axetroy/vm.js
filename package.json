@@ -1,6 +1,6 @@
 {
   "name": "@axetroy/vm",
-  "version": "0.3.7",
+  "version": "0.3.8",
   "description": "Javascript Interpreter, run Javascript code in ECMAScript",
   "main": "./dist/vm.js",
   "typings": "./dist/vm.d.ts",
