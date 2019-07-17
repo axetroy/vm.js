@@ -33,7 +33,7 @@
   "devDependencies": {
     "@types/babel-core": "6.25.6",
     "@types/lodash": "4.14.136",
-    "@types/node": "9.6.49",
+    "@types/node": "9.6.50",
     "@types/webpack": "4.4.35",
     "ava": "0.25.0",
     "babel-preset-env": "1.7.0",
