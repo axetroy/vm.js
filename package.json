@@ -43,7 +43,7 @@
     "husky": "3.0.8",
     "normalize.css": "8.0.1",
     "nyc": "13.3.0",
-    "parcel-bundler": "1.12.3",
+    "parcel-bundler": "1.12.4",
     "prettier": "1.18.2",
     "pretty-quick": "1.11.1",
     "react": "16.10.2",
