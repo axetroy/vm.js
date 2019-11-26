@@ -38,7 +38,7 @@
     "ava": "0.25.0",
     "babel-preset-env": "1.7.0",
     "babel-preset-react": "6.24.1",
-    "coveralls": "3.0.8",
+    "coveralls": "3.0.9",
     "gh-pages": "2.1.0",
     "husky": "3.1.0",
     "normalize.css": "8.0.1",
