@@ -40,7 +40,7 @@
     "babel-preset-react": "6.24.1",
     "coveralls": "3.0.9",
     "gh-pages": "2.1.1",
-    "husky": "4.0.5",
+    "husky": "4.0.7",
     "normalize.css": "8.0.1",
     "nyc": "13.3.0",
     "parcel-bundler": "1.12.4",
