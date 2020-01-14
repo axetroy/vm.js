@@ -39,5 +39,9 @@ jobs:
         run: npm run test
 
       - name: Coveralls
+        env:
+          COVERALLS_SERVICE_NAME: github-action
+          COVERALLS_REPO_TOKEN: ${{secrets.COVERALLS_REPO_TOKEN}}
+          COVERALLS_GIT_BRANCH: ${{github.ref}}
         run: |
           ./node_modules/.bin/nyc report --reporter=text-lcov | ./node_modules/.bin/coveralls
