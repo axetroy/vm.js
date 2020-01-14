@@ -1,5 +1,5 @@
 {
   "hooks": {
-    "precommit": "npm run lint && pretty-quick --staged"
+    "pre-commit": "npm run lint && pretty-quick --staged"
   }
 }
