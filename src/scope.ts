@@ -224,7 +224,7 @@ export class Scope {
    * @memberof Scope
    */
   public del(varName: string): boolean {
-    if (this.content.hasOwnProperty) {
+    if (this.content.hasOwnProperty(varName)) {
       delete this.content[varName];
     }
     return true;

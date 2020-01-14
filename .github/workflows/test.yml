@@ -1,0 +1,47 @@
+name: test
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    strategy:
+      matrix:
+        node: ["12.14.1"]
+        os: [ubuntu-latest, macOS-latest, windows-latest]
+    name: ${{ matrix.os }} - Node@${{ matrix.node }}
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node }}
+
+      - name: Environment
+        run: |
+          node -v
+          npm -v
+          yarn --version
+
+      - name: Install
+        run: |
+          yarn
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build
+        run: |
+          npm run build
+
+      - name: Test
+        run: npm run test
+
+      - name: Coveralls
+        env:
+          COVERALLS_SERVICE_NAME: github-action
+          COVERALLS_REPO_TOKEN: ${{secrets.COVERALLS_REPO_TOKEN}}
+          COVERALLS_GIT_BRANCH: ${{github.ref}}
+        run: |
+          ./node_modules/.bin/nyc report --reporter=text-lcov | ./node_modules/.bin/coveralls

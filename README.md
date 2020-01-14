@@ -1,6 +1,6 @@
 # vm.js
 
-[![Build Status](https://travis-ci.org/axetroy/vm.js.svg?branch=master)](https://travis-ci.org/axetroy/vm.js)
+[![Build Status](https://github.com/axetroy/vm.js/workflows/test/badge.svg)](https://github.com/axetroy/vm.js/actions)
 [![Coverage Status](https://coveralls.io/repos/github/axetroy/vm.js/badge.svg?branch=master)](https://coveralls.io/github/axetroy/vm.js?branch=master)
 [![DeepScan grade](https://deepscan.io/api/teams/5773/projects/7589/branches/79788/badge/grade.svg)](https://deepscan.io/dashboard#view=project&tid=5773&pid=7589&bid=79788)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)

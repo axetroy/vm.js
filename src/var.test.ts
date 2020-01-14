@@ -6,7 +6,6 @@ test("var", t => {
   t.deepEqual($var.kind, "var");
   t.deepEqual($var.name, "name");
   t.deepEqual($var.value, "hello world");
-  t.deepEqual($var.scope, {});
 
   // set var
   $var.set("hello");

@@ -10,7 +10,6 @@
     "start": "npm run build && parcel ./doc/index.html -d vm.js",
     "docs": "npm run build && npx parcel build doc/index.html -d ./vm.js --public-url /vm.js && gh-pages -d ./vm.js",
     "format": "prettier --write ./src/**/*.ts ./test/**/*.ts",
-    "precommit": "npm run lint && pretty-quick --staged",
     "tslint-check": "tslint-config-prettier-check ./tslint.json",
     "lint": "tslint -p ./ -c tslint.json",
     "changelog": "npx conventional-changelog-cli -p angular -i CHANGELOG.md -s -r 0"
@@ -34,13 +33,13 @@
     "@types/babel-core": "6.25.6",
     "@types/lodash": "4.14.149",
     "@types/node": "9.6.55",
-    "@types/webpack": "4.41.0",
+    "@types/webpack": "4.41.2",
     "ava": "0.25.0",
     "babel-preset-env": "1.7.0",
     "babel-preset-react": "6.24.1",
     "coveralls": "3.0.9",
     "gh-pages": "2.1.1",
-    "husky": "3.1.0",
+    "husky": "4.0.7",
     "normalize.css": "8.0.1",
     "nyc": "15.0.0",
     "parcel-bundler": "1.12.4",
@@ -51,11 +50,11 @@
     "react-dom": "16.12.0",
     "ts-lint": "4.5.1",
     "ts-loader": "6.2.1",
-    "ts-node": "8.5.4",
+    "ts-node": "8.6.2",
     "tslint": "5.20.1",
     "tslint-config-prettier": "1.18.0",
     "typescript": "3.7.4",
-    "webpack": "4.41.4",
+    "webpack": "4.41.5",
     "webpack-cli": "3.3.10"
   }
 }
