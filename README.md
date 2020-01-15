@@ -75,7 +75,7 @@ try {
 
 ## Test
 
-I have written a lot of test case for this, look at [here](https://github.com/axetroy/vm.js/tree/master/test)
+I have written a lot of test case for this, look at [here](test)
 
 Now it still in development, got a lot of work to do and more detail to resolve.
 
@@ -103,4 +103,4 @@ npm run test
 
 ## License
 
-The [MIT License](https://github.com/axetroy/vm.js/blob/master/LICENSE)
+The [MIT License](LICENSE)
