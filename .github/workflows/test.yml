@@ -1,6 +1,6 @@
 name: test
 
-on: [push]
+on: [push, pull_request]
 
 jobs:
   build:
@@ -38,10 +38,37 @@ jobs:
       - name: Test
         run: npm run test
 
+      - name: Generate Document
+        run: npm run docs
+
+      - uses: actions/upload-artifact@v1
+        if: runner.os == 'macOS'
+        with:
+          name: docs
+          path: ./vscode-deno.vsix
+
       - name: Coveralls
+        if: runner.os == 'macOS'
         env:
           COVERALLS_SERVICE_NAME: github-action
           COVERALLS_REPO_TOKEN: ${{secrets.COVERALLS_REPO_TOKEN}}
           COVERALLS_GIT_BRANCH: ${{github.ref}}
         run: |
           ./node_modules/.bin/nyc report --reporter=text-lcov | ./node_modules/.bin/coveralls
+
+  release:
+    runs-on: ubuntu-latest
+    name: "Deploy Document"
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+    needs: build
+    steps:
+      - uses: actions/download-artifact@v1
+        with:
+          name: docs
+
+      - name: Build and Deploy 🚀
+        uses: JamesIves/github-pages-deploy-action@releases/v3
+        with:
+          ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+          BRANCH: gh-pages # The branch the action should deploy to.
+          FOLDER: docs # The folder the action should deploy.
