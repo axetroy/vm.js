@@ -38,7 +38,7 @@
     "babel-core": "^6.26.3",
     "babel-preset-env": "1.7.0",
     "babel-preset-react": "6.24.1",
-    "coveralls": "3.0.9",
+    "coveralls": "3.0.11",
     "husky": "4.2.3",
     "normalize.css": "8.0.1",
     "nyc": "15.0.0",
