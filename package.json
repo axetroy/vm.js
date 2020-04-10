@@ -39,7 +39,7 @@
     "babel-preset-env": "1.7.0",
     "babel-preset-react": "6.24.1",
     "coveralls": "3.0.11",
-    "husky": "4.2.4",
+    "husky": "4.2.5",
     "normalize.css": "8.0.1",
     "nyc": "15.0.1",
     "parcel-bundler": "1.12.4",
