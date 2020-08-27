@@ -66,13 +66,13 @@ const axetroy = new Developer("Axetroy");
 
 axetroy.hi("friend");
       `.trim(),
-      error: ""
+      error: "",
     };
   }
   updateCode(newCode) {
     this.setState({
       code: newCode,
-      error: ""
+      error: "",
     });
   }
   runCode(code) {
@@ -110,7 +110,7 @@ axetroy.hi("friend");
               position: "absolute",
               top: "0",
               border: 0,
-              right: 0
+              right: 0,
             }}
           >
             <path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z" />
@@ -134,18 +134,19 @@ axetroy.hi("friend");
               Javascript Interpreter, run Javascript code in ECMAScript
             </p>
             <p>
-              Run Javascript code in ECMAScript, without eval(), new Function(),
-              setTimeout()...
+              Run Javascript code in ECMAScript, use function without{" "}
+              <code>eval()</code>, <code>new Function()</code>,
+              <code>setTimeout()</code> etc...
             </p>
             <p>
-              It's useful to do dirty job in some environment whitch do not
+              It's useful to do a dirty job in some environment that does not
               allow you exec custom Javascript code.
             </p>
-            <p>For example: hot-load in Wechat mini app</p>
+            <p>For example: hot-load in WeChat mini app</p>
           </div>
           <div>
             <CodeMirror
-              ref={m => {
+              ref={(m) => {
                 if (!m) return;
                 const editor = m.codeMirror;
                 // console.dir(m);
@@ -160,7 +161,7 @@ axetroy.hi("friend");
               onChange={this.updateCode.bind(this)}
               options={{
                 mode: {
-                  name: "javascript"
+                  name: "javascript",
                 },
                 styleActiveLine: true,
                 indentUnit: 2,
@@ -179,8 +180,8 @@ axetroy.hi("friend");
                 matchTags: { bothTags: true },
                 highlightSelectionMatches: {
                   showToken: /\w/,
-                  annotateScrollbar: true
-                }
+                  annotateScrollbar: true,
+                },
               }}
             />
             <div style={{ textAlign: "center", margin: "1rem" }}>

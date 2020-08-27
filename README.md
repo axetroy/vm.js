@@ -9,7 +9,7 @@
 [![npm version](https://badge.fury.io/js/%40axetroy%2Fvm.svg)](https://badge.fury.io/js/%40axetroy%2Fvm)
 ![Size](https://github-size-badge.herokuapp.com/axetroy/vm.js.svg)
 
-Run Javascript code in ECMAScript, without eval(), new Function(), setTimeout()...
+Run Javascript code in ECMAScript, use function without `eval()`, `new Function()`, `setTimeout()` etc...
 
 It base on [https://github.com/bramblex/jsjs](https://github.com/bramblex/jsjs)
 
@@ -100,6 +100,12 @@ npm run test
 [bramblex/jsjs](https://github.com/bramblex/jsjs)
 
 [jkeylu/evil-eval](https://github.com/jkeylu/evil-eval)
+
+## Docs
+
+### How to Run Start
+
+When you run the script about `npm run start`, some error like this `xxx/vm.js/doc/App.js:23:15: Cannot resolve dependency '../build/src/vm' at 'xxx/vm.js/build/src/vm'`, Please find the file about `doc/App.js` and annotate `line 23`, use `line 22` for starting the docs. Exchange their two-line annotate when you are pushing the code.
 
 ## License
 
