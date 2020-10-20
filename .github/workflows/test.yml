@@ -42,14 +42,14 @@ jobs:
         run: npm run docs
 
       - name: Upload Document
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v2
         if: runner.os == 'macOS'
         with:
           name: docs
           path: ./vm.js
 
       - name: Upload build
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v2
         if: runner.os == 'macOS'
         with:
           name: dist
