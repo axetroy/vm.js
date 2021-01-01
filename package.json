@@ -34,7 +34,7 @@
     "@types/lodash": "4.14.166",
     "@types/node": "9.6.61",
     "@types/webpack": "4.41.25",
-    "ava": "0.25.0",
+    "ava": "3.15.0",
     "babel-core": "6.26.3",
     "babel-preset-env": "1.7.0",
     "babel-preset-react": "6.24.1",
